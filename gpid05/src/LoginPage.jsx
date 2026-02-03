@@ -16,7 +16,7 @@ export default function LoginPage() {
     <div className="login-container">
       <div className="login-card">
         <div className="header">
-          <div className="logo">G</div>
+          
           <h1>Welcome back</h1>
         </div>
 
@@ -55,7 +55,7 @@ export default function LoginPage() {
         </form>
 
         <p className="signup-link">
-          Don&apos;t have an account? <a href="#">Sign up</a>
+          Dont have an account? <a href="#">Sign up</a>
         </p>
       </div>
     </div>

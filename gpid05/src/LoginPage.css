@@ -62,21 +62,7 @@ body {
   margin-bottom: 40px;
 }
 
-.logo {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, var(--warm-brown), var(--accent-terracotta));
-  border-radius: 14px;
-  margin: 0 auto 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Playfair Display', serif;
-  color: white;
-  font-size: 26px;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(200, 125, 94, 0.2);
-}
+
 
 h1 {
   font-family: 'Playfair Display', serif;
