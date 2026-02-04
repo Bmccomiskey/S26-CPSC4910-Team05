@@ -1,15 +1,44 @@
 import { useState } from 'react';
 import './LoginPage.css';
 
+
+
+const MAX_ATTEMPTS = 3;
+
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [locked, setLocked] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    //mock login in lock handling
+    if (locked) {
+      setError('This account is locked due to too many failed login attempts.');
+      return;
+    }
 
-    // TODO: implement login logic
-    console.log(email, password);
+    const MOCK_EMAIL = 'test@example.com';
+    const MOCK_PASSWORD = 'password123';
+
+    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
+      setError('');
+      setAttempts(0);
+      console.log('Login successful');
+    } else {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts >= MAX_ATTEMPTS) {
+        setLocked(true);
+        setError('Account locked after too many failed attempts.');
+      } else {
+        setError(`Incorrect email or password. Attempts left: ${MAX_ATTEMPTS - newAttempts}`);
+      }
+    }
   };
 
   return (
@@ -45,11 +74,13 @@ export default function LoginPage() {
             />
           </div>
 
+          {error && <p className="error-message">{error}</p>}
+
           <div className="form-footer">
             <a href="#" className="forgot-link">Forgot password?</a>
           </div>
 
-          <button type="submit" className="submit-btn">
+          <button type="submit" className="submit-btn" disabled={locked}>
             Sign in
           </button>
         </form>

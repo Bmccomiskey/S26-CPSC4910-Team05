@@ -117,6 +117,13 @@ input:focus {
   margin-bottom: 28px;
 }
 
+.error-message {
+  color: red;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+
 /* =========================
    BUTTON
    ========================= */
