@@ -1,4 +1,3 @@
-import bcrypt
 from typing import List, Tuple
 
 def validate_password_complexity(password: str) -> Tuple[bool, List[str]]:
