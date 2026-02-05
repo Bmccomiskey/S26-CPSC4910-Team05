@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth_router
 
 from db import engine, Base
 import uesrModels
@@ -24,4 +23,4 @@ app.add_middleware(
 def health():
     return {"ok": True}
 
-app.include_router(auth_router, prefix="/auth")
+app.include_router(auth_router)
