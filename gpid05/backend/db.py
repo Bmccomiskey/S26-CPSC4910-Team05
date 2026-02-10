@@ -3,7 +3,7 @@
 import mysql.connector
 import boto3
 
-password = "CPSC4910"
+password = password
 
 conn = None
 try:
