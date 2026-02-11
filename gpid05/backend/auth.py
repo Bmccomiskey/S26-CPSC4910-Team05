@@ -1,6 +1,7 @@
 from fastapi import  APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from password_policy import validate_password_complexity
 from userModels import User
 from db import get_db
 
@@ -24,6 +25,12 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
 
     if not email or not password or not role:
         raise HTTPException(status_code=400, detail="Email, password, and role are required")
+    
+    # checks the complexity to make sure it follows the password policy
+    is_valid, errors = validate_password_complexity(password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=errors)
+
     if role not in ["admin", "user", "sponsor"]:
         raise HTTPException(status_code=400, detail="Role must be 'admin', 'user', or 'sponsor'")
     
