@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from db import engine, Base
-import uesrModels
+import userModels
 from auth import router as auth_router
 
 # creates SQL tables on startup
