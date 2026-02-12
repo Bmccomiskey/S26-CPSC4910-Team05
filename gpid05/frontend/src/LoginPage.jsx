@@ -73,7 +73,7 @@ export default function LoginPage() {
         {error && <p className="error-message">{error}</p>}
 
         <div className="form-footer">
-          <a>Forgot password?</a>
+          <a>Forgot password?</Link>
         </div>
 
         <button type="submit" className="submit-btn" disabled={locked}>
