@@ -36,7 +36,7 @@ export default function StartupPage() {
         <div className="startup-nav-logo">
           <span className="startup-logo-icon">🚛</span>
           <span className="startup-logo-text">
-            HAULER<span className="startup-logo-accent">PRO</span>
+            Great Driver<span className="startup-logo-accent"> Incentive Program</span>
           </span>
         </div>
         <div className="startup-nav-buttons">
