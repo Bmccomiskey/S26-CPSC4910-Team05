@@ -5,6 +5,8 @@ from db import engine, Base
 import userModels
 from auth import router as auth_router
 
+import auditModels
+
 # creates SQL tables on startup
 Base.metadata.create_all(bind=engine)
 

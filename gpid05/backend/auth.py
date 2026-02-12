@@ -1,9 +1,10 @@
-from fastapi import  APIRouter, Depends, HTTPException
+from fastapi import  APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from password_policy import validate_password_complexity
 from userModels import User
 from db import get_db
+from audit import log_audit_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -49,20 +50,35 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @router.post("/login")
-def login(body: LoginBody, db: Session = Depends(get_db)):
+def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     password = body.password
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
 
-    # checks the database for a user with the same email and compares the passwords
     user = db.query(User).filter(User.email == email).first()
+
     if not user or user.password_hash != password:
+        log_audit_event(
+            db=db,
+            event_type="LOGIN_ATTEMPT",
+            success=False,
+            user_id=user.id if user else None,
+            request=request
+        )
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # will return a session token or JWT later
+    log_audit_event(
+        db=db,
+        event_type="LOGIN_ATTEMPT",
+        success=True,
+        user_id=user.id,
+        request=request
+    )
+
     return {"message": "User logged in successfully"}
+
 
 @router.post("/logout")
 def logout():
