@@ -1,10 +1,11 @@
-from fastapi import  APIRouter, Depends, HTTPException, Request
+from fastapi import  APIRouter, Depends, HTTPException, Request, Response, Cookie
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import secrets
 import os
 
+from sessions import create_session, delete_session
 from security import hash_password, verify_password
 from password_policy import validate_password_complexity
 from userModels import User
@@ -14,6 +15,7 @@ from audit import log_audit_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+SESSION_COOKIE = "session_token"
 TOKEN_EXPIRY_MINUTES = 30
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
@@ -65,7 +67,7 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @router.post("/login")
-def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
+def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     password = body.password
 
@@ -92,12 +94,31 @@ def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
         request=request
     )
 
+    token = create_session(db, user.id)
+
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=False
+    )
+
     return {"message": "User logged in successfully"}
 
 
 @router.post("/logout")
-def logout():
-    # when session handling is implemented this will invalidate the token and remove their session
+def logout(
+    response: Response, 
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE), 
+    db: Session = Depends(get_db)
+    ):
+
+    if session_token:
+        delete_session(db, session_token)
+    
+    response.delete_cookie(SESSION_COOKIE)
+    
     return {"message": "User logged out successfully"}
 
 # accepts an email and sends a reset link if the account exists

@@ -1,6 +1,8 @@
 import secrets
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session as DbSession
+from fastapi import Depends, HTTPException, Cookie
+from db import get_db
 
 from sessionModels import Session
 
@@ -45,4 +47,16 @@ def get_session_and_refresh(db: DbSession, token: str):
     sess.expires_at = now + timedelta(minutes=INACTIVITY_MINUTES)
     db.commit()
     db.refresh(sess)
+    return sess
+
+# used to require a valid session for endpoints
+# add to an endpoint like "def endpoint(sess = Depends(require_session))" to validate the session
+# when the user tries to use that endpoint it will check the inactivity
+def require_session(
+    db = Depends(get_db),
+    session_token: str | None = Cookie(default=None, alias="session_token")
+):
+    sess = get_session_and_refresh(db, session_token)
+    if not sess:
+        raise HTTPException(401, detail="Session expired")
     return sess
