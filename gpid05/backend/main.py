@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import userModels
 import auditModels
 import resetTokenModels
+import sessionModels
 from auth import router as auth_router
 
 app = FastAPI()
