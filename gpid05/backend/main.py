@@ -1,15 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import engine, Base
 import userModels
 import auditModels
 import resetTokenModels
 from auth import router as auth_router
-
-
-# creates SQL tables on startup
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
