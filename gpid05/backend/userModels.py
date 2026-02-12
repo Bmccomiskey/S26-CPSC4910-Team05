@@ -1,6 +1,6 @@
 
 from sqlalchemy import String, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db import Base
 
 class User(Base):
@@ -10,3 +10,5 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    reset_tokens = relationship("PasswordResetToken", back_populates="user")
