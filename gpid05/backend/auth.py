@@ -1,12 +1,20 @@
 from fastapi import  APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+import secrets
+import os
+
 from password_policy import validate_password_complexity
 from userModels import User
+from resetTokenModels import PasswordResetToken
 from db import get_db
 from audit import log_audit_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+TOKEN_EXPIRY_MINUTES = 30
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # uses the pydantic "BaseModel" to define and validate expected request body
 class RegisterBody(BaseModel):
@@ -17,6 +25,13 @@ class RegisterBody(BaseModel):
 class LoginBody(BaseModel):
     email: str
     password: str
+
+class ForgotPasswordBody(BaseModel):
+    email: str
+
+class ResetPasswordBody(BaseModel):
+    token: str
+    new_password: str
 
 @router.post("/register")
 def register(body: RegisterBody, db: Session = Depends(get_db)):
@@ -84,3 +99,94 @@ def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
 def logout():
     # when session handling is implemented this will invalidate the token and remove their session
     return {"message": "User logged out successfully"}
+
+# accepts an email and sends a reset link if the account exists
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = Depends(get_db)):
+    email = body.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
+
+    if user:
+        db.query(PasswordResetToken).filter(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.used == False
+        ).update({"used": True})
+        db.commit()
+
+        raw_token = secrets.token_urlsafe(48)
+        expires_at = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRY_MINUTES)
+
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token=raw_token,
+            expires_at=expires_at,
+        )
+        db.add(reset_token)
+        db.commit()
+
+        log_audit_event(
+            db=db,
+            event_type="PASSWORD_RESET_REQUEST",
+            success=True,
+            user_id=user.id,
+            request=request
+        )
+
+        reset_link = f"{FRONTEND_URL}/reset-password?token={raw_token}"
+        print(f"\nPassword reset link for {email}:\n  {reset_link}\n")
+
+    return {"message": "If an account with that email exists, a reset link has been sent."}
+
+
+# checks if a reset token is still valid before showing the new password form
+@router.get("/validate-reset-token")
+def validate_reset_token(token: str, db: Session = Depends(get_db)):
+    token_record = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == token,
+        PasswordResetToken.used == False
+    ).first()
+
+    if not token_record or datetime.utcnow() > token_record.expires_at:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link.")
+
+    return {"valid": True}
+
+
+# validates the token and updates the password
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordBody, request: Request, db: Session = Depends(get_db)):
+    token_record = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == body.token,
+        PasswordResetToken.used == False
+    ).first()
+
+    if not token_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link.")
+
+    if datetime.utcnow() > token_record.expires_at:
+        token_record.used = True
+        db.commit()
+        raise HTTPException(status_code=400, detail="This reset link has expired. Please request a new one.")
+
+    is_valid, errors = validate_password_complexity(body.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=errors)
+
+    user = db.query(User).filter(User.id == token_record.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    user.password_hash = body.new_password
+    token_record.used = True
+
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="PASSWORD_RESET_COMPLETE",
+        success=True,
+        user_id=user.id,
+        request=request
+    )
+
+    return {"message": "Password updated successfully. You can now log in."}
