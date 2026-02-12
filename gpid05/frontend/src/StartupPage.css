@@ -1,0 +1,417 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Russo+One&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+:root {
+  --amber:        #F59E0B;
+  --amber-light:  #FCD34D;
+  --amber-glow:   rgba(245, 158, 11, 0.25);
+  --road-black:   #0a0a0a;
+  --card-bg:      rgba(15, 15, 15, 0.97);
+  --steel-gray:   #2a2a2a;
+  --chrome:       #9ca3af;
+  --white:        #f0f0f0;
+}
+
+/* =========================
+   PAGE WRAPPER
+   ========================= */
+
+.startup-page {
+  min-height: 100vh;
+  background-color: var(--road-black);
+  font-family: 'Oswald', 'Franklin Gothic Medium', 'Arial Narrow', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   ANIMATED ROAD BACKGROUND
+   ========================= */
+
+.startup-road-bg {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 28px,
+    rgba(245, 158, 11, 0.07) 28px,
+    rgba(245, 158, 11, 0.07) 48px
+  );
+  background-size: 4px 60px;
+  background-position: center 0;
+  background-repeat: repeat-y;
+  animation: roadScroll 1.5s linear infinite;
+  z-index: 0;
+}
+
+@keyframes roadScroll {
+  from { background-position: center 0; }
+  to   { background-position: center 60px; }
+}
+
+/* =========================
+   FOG LAYERS
+   ========================= */
+
+.startup-fog-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to top, var(--road-black) 30%, transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.startup-fog-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: linear-gradient(to bottom, var(--road-black) 10%, transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* =========================
+   GRAIN OVERLAY
+   ========================= */
+
+.startup-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* =========================
+   NAV
+   ========================= */
+
+.startup-nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 48px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.startup-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.startup-logo-icon {
+  font-size: 28px;
+}
+
+.startup-logo-text {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #e5e5e5;
+}
+
+.startup-logo-accent {
+  color: var(--amber);
+}
+
+.startup-nav-buttons {
+  display: flex;
+  gap: 14px;
+}
+
+/* Sign In button */
+.startup-btn-signin {
+  background: transparent;
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  color: var(--amber);
+  padding: 10px 26px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.startup-btn-signin:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--amber);
+}
+
+/* Sign Up button */
+.startup-btn-signup {
+  background: var(--amber);
+  border: 1.5px solid var(--amber);
+  color: var(--road-black);
+  padding: 10px 26px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.startup-btn-signup:hover {
+  background: var(--amber-light);
+  border-color: var(--amber-light);
+}
+
+/* =========================
+   HERO
+   ========================= */
+
+.startup-hero {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+  padding-bottom: 20px;
+}
+
+/* Headlight beams */
+.startup-beam-left {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 220px solid transparent;
+  border-right: 0px solid transparent;
+  border-bottom: 520px solid rgba(253, 230, 138, 0.04);
+  transform: translateX(-100%) rotate(-10deg);
+  pointer-events: none;
+}
+
+.startup-beam-right {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-right: 220px solid transparent;
+  border-left: 0px solid transparent;
+  border-bottom: 520px solid rgba(253, 230, 138, 0.04);
+  transform: rotate(10deg);
+  pointer-events: none;
+}
+
+/* Hero text content */
+.startup-hero-content {
+  text-align: center;
+  max-width: 780px;
+  padding: 0 24px;
+}
+
+.startup-eyebrow {
+  color: var(--amber);
+  font-size: 11px;
+  letter-spacing: 5px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.startup-headline {
+  margin: 0 0 16px;
+  line-height: 0.88;
+  display: flex;
+  flex-direction: column;
+}
+
+.startup-headline-top {
+  font-size: clamp(80px, 14vw, 140px);
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: #f0f0f0;
+  text-shadow: 0 0 80px rgba(245, 158, 11, 0.15);
+}
+
+.startup-headline-mid {
+  font-size: clamp(80px, 14vw, 140px);
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--amber);
+  text-shadow: 0 0 60px rgba(245, 158, 11, 0.3);
+}
+
+.startup-sub {
+  color: var(--chrome);
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+  font-family: 'Georgia', serif;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* CTA buttons row */
+.startup-cta-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.startup-cta-primary {
+  background: var(--amber);
+  border: none;
+  color: var(--road-black);
+  padding: 16px 36px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+}
+
+.startup-cta-primary:hover {
+  background: var(--amber-light);
+  box-shadow: 0 0 50px rgba(245, 158, 11, 0.5);
+}
+
+.startup-cta-secondary {
+  background: transparent;
+  border: 1.5px solid #444;
+  color: var(--chrome);
+  padding: 16px 36px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.startup-cta-secondary:hover {
+  border-color: var(--chrome);
+  color: #e5e5e5;
+}
+
+/* =========================
+   TRUCK SVG
+   ========================= */
+
+.startup-truck-wrap {
+  margin-top: 40px;
+  width: 100%;
+  max-width: 520px;
+  padding: 0 24px;
+  filter: drop-shadow(0 20px 40px rgba(245, 158, 11, 0.2));
+}
+
+.startup-truck-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* =========================
+   STATS BAR
+   ========================= */
+
+.startup-stats-bar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+  background-color: rgba(245, 158, 11, 0.04);
+  flex-wrap: wrap;
+}
+
+.startup-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 48px;
+  border-right: 1px solid rgba(245, 158, 11, 0.1);
+}
+
+.startup-stat-item:last-child {
+  border-right: none;
+}
+
+.startup-stat-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+
+.startup-stat-label {
+  font-size: 11px;
+  color: #6b7280;
+  letter-spacing: 2px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 768px) {
+  .startup-nav {
+    padding: 16px 24px;
+  }
+
+  .startup-logo-text {
+    font-size: 20px;
+  }
+
+  .startup-btn-signin,
+  .startup-btn-signup {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .startup-stat-item {
+    padding: 18px 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .startup-nav-buttons {
+    gap: 8px;
+  }
+
+  .startup-cta-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .startup-cta-primary,
+  .startup-cta-secondary {
+    width: 100%;
+    text-align: center;
+  }
+}

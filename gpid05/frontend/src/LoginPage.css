@@ -14,12 +14,14 @@ body,
 }
 
 :root {
-  --trucker-red: #D32F2F;
-  --road-black: #1a1a1a;
-  --steel-gray: #424242;
-  --chrome: #E0E0E0;
-  --warning-yellow: #FFC107;
-  --white: #ffffff;
+  --amber:       #F59E0B;
+  --amber-light: #FCD34D;
+  --amber-glow:  rgba(245, 158, 11, 0.25);
+  --road-black:  #0a0a0a;
+  --card-bg:     rgba(15, 15, 15, 0.97);
+  --steel-gray:  #2a2a2a;
+  --chrome:      #9ca3af;
+  --white:       #f0f0f0;
 }
 
 /* =========================
@@ -32,42 +34,45 @@ body {
   overflow: hidden;
 }
 
-/* Background */
+/* Dark asphalt base */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   background: linear-gradient(
-    135deg,
-    rgba(26, 26, 26, 0.92),
-    rgba(211, 47, 47, 0.85)
+    160deg,
+    #0a0a0a 0%,
+    #111111 50%,
+    #0d0d0d 100%
   );
 }
 
+/* Animated road dashes — matches startup page */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   background: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 100px,
-    rgba(255, 193, 7, 0.1) 100px,
-    rgba(255, 193, 7, 0.1) 120px
+    180deg,
+    transparent 0px,
+    transparent 28px,
+    rgba(245, 158, 11, 0.07) 28px,
+    rgba(245, 158, 11, 0.07) 48px
   );
-  animation: roadScroll 3s linear infinite;
+  background-size: 4px 60px;
+  animation: roadScroll 1.5s linear infinite;
   pointer-events: none;
 }
 
 @keyframes roadScroll {
-  from { background-position: 0 0; }
-  to { background-position: 120px 0; }
+  from { background-position: center 0; }
+  to   { background-position: center 60px; }
 }
 
 /* =========================
-   LOGIN CONTAINER (FORCED CENTER)
+   LOGIN CONTAINER
    ========================= */
 
 .login-container {
@@ -89,8 +94,8 @@ body::after {
    ========================= */
 
 .login-card {
-  background: rgba(26, 26, 26, 0.95);
-  border: 3px solid var(--trucker-red);
+  background: var(--card-bg);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
   padding: 60px 50px;
 
   width: 100%;
@@ -99,8 +104,9 @@ body::after {
   overflow-y: auto;
 
   box-shadow:
-    0 0 60px rgba(211, 47, 47, 0.4),
-    inset 0 0 30px rgba(0, 0, 0, 0.5);
+    0 0 60px rgba(245, 158, 11, 0.1),
+    0 0 120px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(0, 0, 0, 0.4);
 
   position: relative;
   margin: auto;
@@ -118,7 +124,7 @@ body::after {
   }
 }
 
-/* Corner accents */
+/* Amber corner accents — same style as startup page buttons */
 .login-card::before,
 .login-card::after {
   content: '';
@@ -128,17 +134,17 @@ body::after {
 }
 
 .login-card::before {
-  top: -3px;
-  left: -3px;
-  border-top: 6px solid var(--warning-yellow);
-  border-left: 6px solid var(--warning-yellow);
+  top: -2px;
+  left: -2px;
+  border-top: 4px solid var(--amber);
+  border-left: 4px solid var(--amber);
 }
 
 .login-card::after {
-  bottom: -3px;
-  right: -3px;
-  border-bottom: 6px solid var(--warning-yellow);
-  border-right: 6px solid var(--warning-yellow);
+  bottom: -2px;
+  right: -2px;
+  border-bottom: 4px solid var(--amber);
+  border-right: 4px solid var(--amber);
 }
 
 /* =========================
@@ -157,13 +163,15 @@ h1 {
   letter-spacing: 4px;
   text-transform: uppercase;
   margin-bottom: 10px;
+  text-shadow: 0 0 40px rgba(245, 158, 11, 0.2);
 }
 
 .subtitle {
   font-family: 'Russo One', sans-serif;
-  font-size: 14px;
-  letter-spacing: 2px;
+  font-size: 13px;
+  letter-spacing: 3px;
   color: var(--chrome);
+  text-transform: uppercase;
 }
 
 /* =========================
@@ -177,59 +185,102 @@ h1 {
 label {
   display: block;
   margin-bottom: 10px;
-  font-size: 13px;
-  letter-spacing: 1.5px;
+  font-size: 11px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--warning-yellow);
+  color: var(--amber);
 }
 
 input {
   width: 100%;
   padding: 16px 18px;
-  border: 2px solid var(--steel-gray);
-  background: rgba(66, 66, 66, 0.3);
+  border: 1.5px solid var(--steel-gray);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--white);
-  font-size: 16px;
+  font-size: 15px;
+  font-family: 'Oswald', sans-serif;
+  transition: border-color 0.2s;
 }
 
 input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 input:focus {
   outline: none;
-  border-color: var(--trucker-red);
+  border-color: var(--amber);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
 }
 
 /* =========================
-   SELECT DROPDOWN (NEW)
+   ERROR MESSAGE
+   ========================= */
+
+.error-message {
+  color: #f87171;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.07);
+}
+
+/* =========================
+   SELECT DROPDOWN
    ========================= */
 
 select {
   width: 100%;
   padding: 16px 18px;
-  border: 2px solid var(--steel-gray);
-  background: rgba(66, 66, 66, 0.3);
+  border: 1.5px solid var(--steel-gray);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--white);
-  font-size: 16px;
+  font-size: 15px;
   font-family: 'Oswald', sans-serif;
   cursor: pointer;
   appearance: none;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23FFC107" d="M1 1l5 5 5-5"/></svg>');
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%23F59E0B" d="M1 1l5 5 5-5" stroke="%23F59E0B" stroke-width="1.5" fill="none"/></svg>');
   background-repeat: no-repeat;
   background-position: right 18px center;
   padding-right: 45px;
+  transition: border-color 0.2s;
 }
 
 select option {
-  background: var(--road-black);
+  background: #111;
   color: var(--white);
   padding: 10px;
 }
 
 select:focus {
   outline: none;
-  border-color: var(--trucker-red);
+  border-color: var(--amber);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+/* =========================
+   FORM FOOTER (forgot password)
+   ========================= */
+
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
+
+.form-footer a {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--chrome);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.form-footer a:hover {
+  color: var(--amber);
 }
 
 /* =========================
@@ -239,54 +290,51 @@ select:focus {
 .submit-btn {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(135deg, var(--trucker-red), #B71C1C);
-  color: var(--white);
+  background: var(--amber);
+  color: #0a0a0a;
   border: none;
-  font-size: 18px;
+  font-size: 15px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
   letter-spacing: 3px;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.25);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--amber-light);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.45);
+}
+
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* =========================
-   SIGN UP + FORGOT PASSWORD (BOTTOM SECTION)
+   SIGNUP LINK
    ========================= */
 
 .signup-link {
-  margin-top: 25px;
+  margin-top: 28px;
   text-align: center;
-
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.signup-link,
-.signup-link p {
-  color: var(--white);
-  font-size: 14px;
+  color: var(--chrome);
+  font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
 .signup-link a {
-  color: var(--white);
+  color: var(--amber);
   font-weight: 600;
   text-decoration: none;
-  transition: color 0.3s ease;
+  letter-spacing: 1px;
+  transition: color 0.2s;
 }
 
 .signup-link a:hover {
-  color: var(--warning-yellow);
-}
-
-/* Forgot password specifically */
-.forgot-password {
-  color: var(--white);
-  font-size: 14px;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.forgot-password:hover {
-  color: var(--warning-yellow);
+  color: var(--amber-light);
 }
 
 /* =========================
