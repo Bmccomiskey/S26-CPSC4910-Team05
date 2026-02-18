@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './useAuth';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function SponsorDashboard() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth('sponsor'); // redirects if not logged in or wrong role
 
   const handleLogout = async () => {
     try {
@@ -14,8 +16,13 @@ export default function SponsorDashboard() {
     } catch (err) {
       console.error('Logout error:', err);
     }
-    navigate('/');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userEmail');
+    navigate('/login');
   };
+
+  if (loading) return <div style={{padding: '40px', fontSize: '18px'}}>Loading...</div>;
+  if (!user) return null;
 
   return (
     <div style={styles.container}>
@@ -101,6 +108,8 @@ const styles = {
     minHeight: '100vh',
     fontFamily: 'system-ui, sans-serif',
     backgroundColor: '#f1f5f9',
+    position: 'relative',
+    zIndex: 999,
   },
   sidebar: {
     width: '240px',

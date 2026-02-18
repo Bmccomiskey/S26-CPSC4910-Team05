@@ -104,7 +104,7 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
         secure=False
     )
 
-    return {"message": "User logged in successfully"}
+    return {"message": "User logged in successfully", "role": user.role}
 
 
 @router.post("/logout")
@@ -211,3 +211,24 @@ def reset_password(body: ResetPasswordBody, request: Request, db: Session = Depe
     )
 
     return {"message": "Password updated successfully. You can now log in."}
+
+
+# returns current logged-in user info based on their session cookie
+@router.get("/me")
+def get_me(
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE),
+    db: Session = Depends(get_db)
+):
+    if not session_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    from sessions import get_session_and_refresh
+    session = get_session_and_refresh(db, session_token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    user = db.query(User).filter(User.id == session.user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return {"id": user.id, "email": user.email, "role": user.role}

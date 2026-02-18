@@ -363,4 +363,16 @@ select:focus {
   h1 {
     font-size: 36px;
   }
+
+Copy
+
+.success-message {
+  color: #16a34a;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin: 0;
+}
 }

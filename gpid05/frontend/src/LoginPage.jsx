@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import './LoginPage.css';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MAX_ATTEMPTS = 3;
 
 export default function LoginPage() {
@@ -10,32 +11,59 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [locked, setLocked] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    //mock login in lock handling
+
     if (locked) {
       setError('This account is locked due to too many failed login attempts.');
       return;
     }
 
-    const MOCK_EMAIL = 'test@example.com';
-    const MOCK_PASSWORD = 'password123';
+    setError('');
+    setLoading(true);
 
-    if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
-      setError('');
-      setAttempts(0);
-      console.log('Login successful');
-    } else {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (newAttempts >= MAX_ATTEMPTS) {
-        setLocked(true);
-        setError('Account locked after too many failed attempts.');
+      const data = await response.json();
+
+      if (response.ok) {
+        setAttempts(0);
+        localStorage.setItem('userRole', data.role);
+        localStorage.setItem('userEmail', email);
+
+        if (data.role === 'sponsor') {
+          navigate('/sponsor-dashboard');
+        } else if (data.role === 'admin') {
+          navigate('/admin-dashboard');
+        } else {
+          navigate('/driver-dashboard');
+        }
       } else {
-        setError(`Incorrect email or password. Attempts left: ${MAX_ATTEMPTS - newAttempts}`);
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+
+        if (newAttempts >= MAX_ATTEMPTS) {
+          setLocked(true);
+          setError('Account locked after too many failed attempts.');
+        } else {
+          const detail = data.detail || 'Incorrect email or password.';
+          setError(`${detail} Attempts left: ${MAX_ATTEMPTS - newAttempts}`);
+        }
       }
+    } catch (err) {
+      setError('Unable to connect to the server. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,6 +83,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading || locked}
           />
         </div>
 
@@ -67,6 +96,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading || locked}
           />
         </div>
 
@@ -76,8 +106,8 @@ export default function LoginPage() {
           <Link to="/forgot-password">Forgot password?</Link>
         </div>
 
-        <button type="submit" className="submit-btn" disabled={locked}>
-          Sign in
+        <button type="submit" className="submit-btn" disabled={loading || locked}>
+          {loading ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
 
