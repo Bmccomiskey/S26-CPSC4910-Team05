@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
+import './DriverDashboard.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth('user'); // redirects if not logged in or wrong role
+  const { user, loading } = useAuth('user');
 
   const handleLogout = async () => {
     try {
@@ -21,68 +22,65 @@ export default function DriverDashboard() {
     navigate('/login');
   };
 
-  if (loading) return <div style={{padding: '40px', fontSize: '18px'}}>Loading...</div>;
+  if (loading) return <div style={{ padding: '40px', fontSize: '18px' }}>Loading...</div>;
   if (!user) return null;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.sidebar}>
-        <div style={styles.sidebarHeader}>
-          <h2 style={styles.sidebarTitle}>🚗 Driver Portal</h2>
+    <div className="dd-container">
+      <div className="dd-sidebar">
+        <div className="dd-sidebar-header">
+          <h2 className="dd-sidebar-title">🚗 Driver Portal</h2>
         </div>
-        <nav style={styles.nav}>
-          <a style={{ ...styles.navItem, ...styles.navItemActive }} href="#">Dashboard</a>
-          <a style={styles.navItem} href="#">My Points</a>
-          <a style={styles.navItem} href="#">Catalog</a>
-          <a style={styles.navItem} href="#">My Orders</a>
-          <a style={styles.navItem} href="#">Profile</a>
+        <nav className="dd-nav">
+          <a className="dd-nav-item active" href="#">Dashboard</a>
+          <a className="dd-nav-item" href="#">My Points</a>
+          <a className="dd-nav-item" href="#">Catalog</a>
+          <a className="dd-nav-item" href="#">My Orders</a>
+          <a className="dd-nav-item" href="#">Profile</a>
         </nav>
-        <button style={styles.logoutBtn} onClick={handleLogout}>
+        <button className="dd-logout-btn" onClick={handleLogout}>
           Sign Out
         </button>
       </div>
 
-      <main style={styles.main}>
-        <div style={styles.topBar}>
-          <h1 style={styles.pageTitle}>Driver Dashboard</h1>
+      <main className="dd-main">
+        <div className="dd-top-bar">
+          <h1 className="dd-page-title">Driver Dashboard</h1>
         </div>
 
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <p style={styles.statLabel}>Total Points</p>
-            <p style={styles.statValue}>1,250</p>
+        <div className="dd-stats-grid">
+          <div className="dd-stat-card">
+            <p className="dd-stat-label">Total Points</p>
+            <p className="dd-stat-value">1,250</p>
           </div>
-          <div style={styles.statCard}>
-            <p style={styles.statLabel}>Points This Month</p>
-            <p style={styles.statValue}>320</p>
+          <div className="dd-stat-card">
+            <p className="dd-stat-label">Points This Month</p>
+            <p className="dd-stat-value">320</p>
           </div>
-          <div style={styles.statCard}>
-            <p style={styles.statLabel}>Items Redeemed</p>
-            <p style={styles.statValue}>4</p>
+          <div className="dd-stat-card">
+            <p className="dd-stat-label">Items Redeemed</p>
+            <p className="dd-stat-value">4</p>
           </div>
-          <div style={styles.statCard}>
-            <p style={styles.statLabel}>Active Sponsors</p>
-            <p style={styles.statValue}>2</p>
+          <div className="dd-stat-card">
+            <p className="dd-stat-label">Active Sponsors</p>
+            <p className="dd-stat-value">2</p>
           </div>
         </div>
 
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Recent Activity</h2>
-          <div style={styles.activityList}>
+        <div className="dd-section">
+          <h2 className="dd-section-title">Recent Activity</h2>
+          <div className="dd-activity-list">
             {[
               { label: 'Points awarded by Sponsor A', points: '+100', date: 'Feb 15, 2026' },
               { label: 'Redeemed: $10 Gift Card', points: '-500', date: 'Feb 10, 2026' },
               { label: 'Points awarded by Sponsor B', points: '+220', date: 'Feb 5, 2026' },
             ].map((item, i) => (
-              <div key={i} style={styles.activityItem}>
+              <div key={i} className="dd-activity-item">
                 <div>
-                  <p style={styles.activityLabel}>{item.label}</p>
-                  <p style={styles.activityDate}>{item.date}</p>
+                  <p className="dd-activity-label">{item.label}</p>
+                  <p className="dd-activity-date">{item.date}</p>
                 </div>
-                <span style={{
-                  ...styles.activityPoints,
-                  color: item.points.startsWith('+') ? '#16a34a' : '#dc2626'
-                }}>
+                <span className={`dd-activity-points ${item.points.startsWith('+') ? 'positive' : 'negative'}`}>
                   {item.points} pts
                 </span>
               </div>
@@ -93,134 +91,3 @@ export default function DriverDashboard() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    minHeight: '100vh',
-    fontFamily: 'system-ui, sans-serif',
-    backgroundColor: '#f1f5f9',
-    position: 'relative',
-    zIndex: 999,
-  },
-  sidebar: {
-    width: '240px',
-    backgroundColor: '#1e293b',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '24px 0',
-  },
-  sidebarHeader: {
-    padding: '0 20px 24px',
-    borderBottom: '1px solid #334155',
-  },
-  sidebarTitle: {
-    color: '#f8fafc',
-    fontSize: '18px',
-    margin: 0,
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '16px 0',
-    flex: 1,
-  },
-  navItem: {
-    color: '#94a3b8',
-    textDecoration: 'none',
-    padding: '10px 20px',
-    fontSize: '14px',
-    transition: 'background 0.2s',
-  },
-  navItemActive: {
-    color: '#f8fafc',
-    backgroundColor: '#334155',
-    borderLeft: '3px solid #3b82f6',
-  },
-  logoutBtn: {
-    margin: '16px',
-    padding: '10px',
-    backgroundColor: '#dc2626',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
-  main: {
-    flex: 1,
-    padding: '32px',
-  },
-  topBar: {
-    marginBottom: '32px',
-  },
-  pageTitle: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#0f172a',
-    margin: 0,
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '16px',
-    marginBottom: '32px',
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    padding: '20px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  },
-  statLabel: {
-    fontSize: '13px',
-    color: '#64748b',
-    margin: '0 0 8px',
-  },
-  statValue: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#0f172a',
-    margin: 0,
-  },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: '10px',
-    padding: '24px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  },
-  sectionTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#0f172a',
-    margin: '0 0 16px',
-  },
-  activityList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  activityItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '8px',
-  },
-  activityLabel: {
-    margin: 0,
-    fontSize: '14px',
-    color: '#1e293b',
-    fontWeight: '500',
-  },
-  activityDate: {
-    margin: '4px 0 0',
-    fontSize: '12px',
-    color: '#94a3b8',
-  },
-  activityPoints: {
-    fontWeight: '700',
-    fontSize: '14px',
-  },
-};
