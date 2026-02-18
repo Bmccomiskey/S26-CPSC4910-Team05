@@ -29,7 +29,7 @@ export default function DriverDashboard() {
     <div className="dd-container">
       <div className="dd-sidebar">
         <div className="dd-sidebar-header">
-          <h2 className="dd-sidebar-title">🚗 Driver Portal</h2>
+          <h2 className="dd-sidebar-title">Driver Portal</h2>
         </div>
         <nav className="dd-nav">
           <a className="dd-nav-item active" href="#">Dashboard</a>
