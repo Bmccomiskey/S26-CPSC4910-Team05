@@ -104,7 +104,12 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
         secure=False
     )
 
-    return {"message": "User logged in successfully", "role": user.role}
+    return {
+    "message": "User logged in successfully",
+    "role": user.role,
+    "id": user.id
+    }
+
 
 
 @router.post("/logout")
@@ -187,6 +192,14 @@ def reset_password(body: ResetPasswordBody, request: Request, db: Session = Depe
     if datetime.utcnow() > token_record.expires_at:
         token_record.used = True
         db.commit()
+        log_audit_event(
+            db=db,
+            event_type="PASSWORD_RESET_EXPIRED",
+            success=False,
+            user_id=token_record.user_id,
+            request=request
+        )
+
         raise HTTPException(status_code=400, detail="This reset link has expired. Please request a new one.")
 
     is_valid, errors = validate_password_complexity(body.new_password)
@@ -281,3 +294,8 @@ def reactivate_user(user_id: int, request: Request, db: Session = Depends(get_db
     )
 
     return {"message": f"User {user.email} has been reactivated."}
+
+@router.get("/users/sponsors")
+def get_sponsors(db: Session = Depends(get_db)):
+    sponsors = db.query(User).filter(User.role == "sponsor").all()
+    return [{"id": s.id, "email": s.email} for s in sponsors]

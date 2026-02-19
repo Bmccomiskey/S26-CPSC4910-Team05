@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './LoginPage.css';
 import { Link, useNavigate } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const MAX_ATTEMPTS = 3;
 
 export default function LoginPage() {
@@ -40,6 +40,7 @@ export default function LoginPage() {
         setAttempts(0);
         localStorage.setItem('userRole', data.role);
         localStorage.setItem('userEmail', email);
+        localStorage.setItem('userId', data.id);
 
         if (data.role === 'sponsor') {
           navigate('/sponsor-dashboard');

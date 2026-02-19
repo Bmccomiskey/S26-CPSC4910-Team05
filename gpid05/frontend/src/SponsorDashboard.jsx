@@ -1,13 +1,48 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
+import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 
 export default function SponsorDashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth('sponsor');
 
+  const [applications, setApplications] = useState([]);
+  const fetchApplications = () => {
+    fetch(`${API_BASE}/applications/sponsor/${user.id}`, {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => setApplications(data))
+      .catch(err => console.error('Error fetching applications:', err));
+  };
+  useEffect(() => {
+    if (user) fetchApplications();
+  }, [user]);
+
+  const handleApprove = async (id) => {
+    await fetch(
+      `${API_BASE}/applications/${id}/approve?sponsor_id=${user.id}`,
+      {
+        method: 'POST',
+        credentials: 'include',
+      }
+    );
+    fetchApplications();
+  };
+  const handleReject = async (id) => {
+    await fetch(
+      `${API_BASE}/applications/${id}/reject?sponsor_id=${user.id}`,
+      {
+        method: 'POST',
+        credentials: 'include',
+      }
+    );
+    fetchApplications();
+  };
   const handleLogout = async () => {
     try {
       await fetch(`${API_BASE}/auth/logout`, {

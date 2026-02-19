@@ -2,7 +2,7 @@ import { useState } from "react";
 import './LoginPage.css';
 import { useNavigate, Link } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 function SignUp() {
   const [accountType, setAccountType] = useState('');

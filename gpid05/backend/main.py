@@ -6,6 +6,8 @@ import userModels
 import auditModels
 import resetTokenModels
 import sessionModels
+import sponsorshipModels
+from applications import router as applications_router
 from auth import router as auth_router
 
 # creates SQL tables on startup
@@ -17,10 +19,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Cookie", "Set-Cookie"],
-    expose_headers=["Set-Cookie"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 # used for checking if the server is running
 @app.get("/health")
@@ -28,3 +30,4 @@ def health():
     return {"ok": True}
 
 app.include_router(auth_router)
+app.include_router(applications_router)

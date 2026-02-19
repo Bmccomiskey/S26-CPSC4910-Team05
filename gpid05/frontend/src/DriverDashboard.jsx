@@ -1,12 +1,58 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
+import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth('user');
+
+  const [sponsors, setSponsors] = useState([]);
+  const [selectedSponsor, setSelectedSponsor] = useState('');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetch(`${API_BASE}/users/sponsors`, {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => setSponsors(data))
+      .catch(err => console.error('Error fetching sponsors:', err));
+  }, [user]);
+
+  const handleApply = async () => {
+    if (!selectedSponsor) {
+      setMessage('Please select a sponsor.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          driver_id: user.id,
+          sponsor_id: parseInt(selectedSponsor),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('Application submitted successfully.');
+      } else {
+        setMessage(data.detail || 'Error submitting application.');
+      }
+    } catch {
+      setMessage('Server error. Please try again.');
+    }
+  };
 
   const handleLogout = async () => {
     try {

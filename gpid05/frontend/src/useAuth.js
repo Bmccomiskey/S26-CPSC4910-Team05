@@ -9,6 +9,7 @@ export function useAuth(requiredRole = null) {
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     const email = localStorage.getItem('userEmail');
+    const id = localStorage.getItem('userId');
 
     if (!role) {
       navigate('/login');
@@ -23,7 +24,7 @@ export function useAuth(requiredRole = null) {
       return;
     }
 
-    setUser({ role, email });
+    setUser({ role, email, id: id ? parseInt(id) : null });
     setLoading(false);
   }, []);
 
