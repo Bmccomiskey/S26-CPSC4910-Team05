@@ -1,10 +1,12 @@
-from fastapi import  APIRouter, Depends, HTTPException, Request
+from fastapi import  APIRouter, Depends, HTTPException, Request, Response, Cookie
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import secrets
 import os
 
+from sessions import create_session, delete_session
+from security import hash_password, verify_password
 from password_policy import validate_password_complexity
 from userModels import User
 from resetTokenModels import PasswordResetToken
@@ -13,6 +15,7 @@ from audit import log_audit_event
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+SESSION_COOKIE = "session_token"
 TOKEN_EXPIRY_MINUTES = 30
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
@@ -55,8 +58,7 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # will be updated to encryption later
-    user = User(email=email, role=role, password_hash=password)
+    user = User(email=email, role=role, password_hash=hash_password(password))
 
     db.add(user)
     db.commit()
@@ -65,7 +67,7 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @router.post("/login")
-def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
+def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     password = body.password
 
@@ -74,7 +76,7 @@ def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
 
     user = db.query(User).filter(User.email == email).first()
 
-    if not user or user.password_hash != password:
+    if not user or not verify_password(password, user.password_hash):
         log_audit_event(
             db=db,
             event_type="LOGIN_ATTEMPT",
@@ -92,12 +94,31 @@ def login(body: LoginBody, request: Request, db: Session = Depends(get_db)):
         request=request
     )
 
-    return {"message": "User logged in successfully"}
+    token = create_session(db, user.id)
+
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=False
+    )
+
+    return {"message": "User logged in successfully", "role": user.role}
 
 
 @router.post("/logout")
-def logout():
-    # when session handling is implemented this will invalidate the token and remove their session
+def logout(
+    response: Response, 
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE), 
+    db: Session = Depends(get_db)
+    ):
+
+    if session_token:
+        delete_session(db, session_token)
+    
+    response.delete_cookie(SESSION_COOKIE)
+    
     return {"message": "User logged out successfully"}
 
 # accepts an email and sends a reset link if the account exists
@@ -176,7 +197,7 @@ def reset_password(body: ResetPasswordBody, request: Request, db: Session = Depe
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    user.password_hash = body.new_password
+    user.password_hash = hash_password(body.new_password)
     token_record.used = True
 
     db.commit()
@@ -190,3 +211,24 @@ def reset_password(body: ResetPasswordBody, request: Request, db: Session = Depe
     )
 
     return {"message": "Password updated successfully. You can now log in."}
+
+
+# returns current logged-in user info based on their session cookie
+@router.get("/me")
+def get_me(
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE),
+    db: Session = Depends(get_db)
+):
+    if not session_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    from sessions import get_session_and_refresh
+    session = get_session_and_refresh(db, session_token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    user = db.query(User).filter(User.id == session.user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return {"id": user.id, "email": user.email, "role": user.role}

@@ -1,0 +1,161 @@
+/* SponsorDashboard.css */
+
+.sd-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  background-color: #f1f5f9;
+  position: relative;
+  z-index: 999;
+}
+
+.sd-sidebar {
+  width: 240px;
+  background-color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+}
+
+.sd-sidebar-header {
+  padding: 0 20px 24px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.sd-sidebar-title {
+  color: #f8fafc;
+  font-size: 18px;
+  margin: 0;
+}
+
+.sd-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  flex: 1;
+}
+
+.sd-nav-item {
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.sd-nav-item:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+.sd-nav-item.active {
+  color: #f8fafc;
+  background-color: #1e293b;
+  border-left: 3px solid #f59e0b;
+}
+
+.sd-logout-btn {
+  margin: 16px;
+  padding: 10px;
+  background-color: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.sd-logout-btn:hover {
+  background-color: #b91c1c;
+}
+
+.sd-main {
+  flex: 1;
+  padding: 32px;
+}
+
+.sd-top-bar {
+  margin-bottom: 32px;
+}
+
+.sd-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.sd-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.sd-stat-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.sd-stat-label {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 8px;
+}
+
+.sd-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.sd-section {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.sd-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 16px;
+}
+
+.sd-table-wrapper {
+  overflow-x: auto;
+}
+
+.sd-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sd-th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sd-td {
+  padding: 12px;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.sd-td.points {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.sd-tr-even {
+  background-color: #f8fafc;
+}
