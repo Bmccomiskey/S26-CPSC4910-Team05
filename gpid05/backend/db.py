@@ -54,6 +54,22 @@ def dbConnect():
         print(f"Database error: {e}")
         return None
 
+def get_db_info() -> dict:
+    
+    conn = dbConnect()
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Version_Info")
+
+    result = cursor.fetchall()
+
+    return {
+        "team": result[0][0],
+        "version": result[0][1],
+        "date": result[0][2]
+    }
+
+print(get_db_info())
 
 # Close a raw connection
 def dbConnClose(conn):
