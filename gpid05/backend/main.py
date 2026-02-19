@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import engine, Base
+from db import engine, Base, get_db_info
 import userModels
 import auditModels
 import resetTokenModels
@@ -28,6 +28,22 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"ok": True}
+
+
+# returns DB connection status and version info
+@app.get("/api/health")
+def db_health():
+    try:
+        info = get_db_info()
+        return {
+            "status": "connected",
+            "team": info["team"],
+            "version": info["version"],
+            "date": info["date"],
+        }
+    except Exception as e:
+        return {"status": "disconnected", "error": str(e)}
+
 
 app.include_router(auth_router)
 app.include_router(applications_router)

@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./StartupPage.css";
 
 export default function StartupPage() {
   const navigate = useNavigate();
   const roadRef = useRef(null);
+  const [dbInfo, setDbInfo] = useState({ status: "checking" });
 
   // Animate dashes on the road background via JS offset
   useEffect(() => {
@@ -18,8 +19,19 @@ export default function StartupPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch DB info from backend on mount
+  useEffect(() => {
+    fetch("/api/health")
+      .then((res) => res.json())
+      .then((data) => setDbInfo(data))
+      .catch(() => setDbInfo({ status: "disconnected" }));
+  }, []);
+
+  const isConnected = dbInfo.status === "connected";
+  const isChecking  = dbInfo.status === "checking";
+
   return (
-    <div className="startup-page">
+    <div className="startup-page" style={{position: "relative", zIndex: 0, minHeight: "100vh", width: "100%", backgroundColor: "#0a0a0a", display: "flex", flexDirection: "column"}}>
 
       {/* Animated road background */}
       <div className="startup-road-bg" ref={roadRef} />
@@ -129,6 +141,72 @@ export default function StartupPage() {
           </div>
         ))}
       </div>
+
+      {/* ── DB STATUS BADGE ── */}
+      <div style={{
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        zIndex: 100,
+        backgroundColor: "#111",
+        border: `1px solid ${isChecking ? "#555" : isConnected ? "#22c55e" : "#ef4444"}`,
+        borderRadius: "8px",
+        padding: "10px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        boxShadow: `0 0 16px ${isChecking ? "transparent" : isConnected ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`,
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: "#ccc",
+        minWidth: "220px",
+      }}>
+        {/* Pulsing dot */}
+        <span style={{
+          width: "10px",
+          height: "10px",
+          borderRadius: "50%",
+          backgroundColor: isChecking ? "#888" : isConnected ? "#22c55e" : "#ef4444",
+          flexShrink: 0,
+          animation: isConnected ? "dbPulse 2s ease-in-out infinite" : "none",
+        }} />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <span style={{
+            color: isChecking ? "#888" : isConnected ? "#22c55e" : "#ef4444",
+            fontWeight: "bold",
+            letterSpacing: "0.05em",
+            fontSize: "11px",
+          }}>
+            {isChecking ? "CONNECTING..." : isConnected ? "DB CONNECTED" : "DB DISCONNECTED"}
+          </span>
+
+          {isConnected && (
+            <>
+              <span style={{ color: "#aaa" }}>
+                Team: <span style={{ color: "#F59E0B" }}>{dbInfo.team}</span>
+              </span>
+              <span style={{ color: "#aaa" }}>
+                v<span style={{ color: "#F59E0B" }}>{dbInfo.version}</span>
+                {" · "}
+                <span style={{ color: "#666" }}>{dbInfo.date}</span>
+              </span>
+            </>
+          )}
+
+          {!isConnected && !isChecking && (
+            <span style={{ color: "#ef4444", fontSize: "11px" }}>Could not reach database</span>
+          )}
+        </div>
+      </div>
+
+      {/* Pulse keyframe injected inline */}
+      <style>{`
+        @keyframes dbPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.4; transform: scale(0.85); }
+        }
+      `}</style>
 
     </div>
   );
