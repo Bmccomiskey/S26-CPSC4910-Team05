@@ -76,7 +76,7 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
 
     user = db.query(User).filter(User.email == email).first()
 
-    if not user or not verify_password(password, user.password_hash):
+    if not user or not verify_password(password, user.password_hash) or not user.is_active:
         log_audit_event(
             db=db,
             event_type="LOGIN_ATTEMPT",
@@ -232,3 +232,52 @@ def get_me(
         raise HTTPException(status_code=401, detail="User not found")
 
     return {"id": user.id, "email": user.email, "role": user.role}
+
+#deactivates a user account
+@router.post("/deactivate-user")
+def deactivate_user(user_id: int, request: Request, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="User is already deactivated.")
+
+    user.is_active = False
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="USER_DEACTIVATED",
+        success=True,
+        user_id=user.id,
+        request=request
+    )
+
+    return {"message": f"User {user.email} has been deactivated."}
+
+
+#reactivates a user account
+@router.post("/reactivate-user")
+def reactivate_user(user_id: int, request: Request, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="User is already active.")
+
+    user.is_active = True
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="USER_REACTIVATED",
+        success=True,
+        user_id=user.id,
+        request=request
+    )
+
+    return {"message": f"User {user.email} has been reactivated."}
