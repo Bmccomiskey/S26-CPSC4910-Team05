@@ -13,6 +13,7 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 class ApplicationCreateBody(BaseModel):
     driver_id: int
     sponsor_id: int
+
 @router.post("/")
 def create_application(
     body: ApplicationCreateBody,
@@ -28,6 +29,19 @@ def create_application(
     if not sponsor or sponsor.role != "sponsor":
         raise HTTPException(status_code=400, detail="Invalid sponsor")
 
+    # 🔒 Duplicate protection
+    existing_application = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.driver_id == body.driver_id,
+        SponsorshipApplication.sponsor_id == body.sponsor_id,
+        SponsorshipApplication.status == "PENDING"
+    ).first()
+
+    if existing_application:
+        raise HTTPException(
+            status_code=400,
+            detail="You already have a pending application with this sponsor"
+        )
+
     application = SponsorshipApplication(
         driver_id=body.driver_id,
         sponsor_id=body.sponsor_id,
@@ -37,19 +51,6 @@ def create_application(
     db.add(application)
     db.commit()
     db.refresh(application)
-
-    # Audit log
-    log_audit_event(
-        db=db,
-        event_type="APPLICATION_SUBMITTED",
-        success=True,
-        user_id=driver.id,
-        request=request,
-        metadata={
-            "application_id": application.id,
-            "sponsor_id": sponsor.id
-        }
-    )
 
     return {"message": "Application submitted successfully"}
 
@@ -162,4 +163,24 @@ def get_all_sponsors(db: Session = Depends(get_db)):
         for sponsor in sponsors
     ]
 
+@router.get("/driver/{driver_id}")
+def get_driver_applications(
+    driver_id: int,
+    db: Session = Depends(get_db)
+):
+    applications = (
+        db.query(SponsorshipApplication, User.email)
+        .join(User, SponsorshipApplication.sponsor_id == User.id)
+        .filter(SponsorshipApplication.driver_id == driver_id)
+        .all()
+    )
 
+    return [
+        {
+            "id": app.id,
+            "sponsor_id": app.sponsor_id,
+            "sponsor_email": sponsor_email,
+            "status": app.status
+        }
+        for app, sponsor_email in applications
+    ]

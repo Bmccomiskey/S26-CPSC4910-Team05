@@ -10,9 +10,11 @@ export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth('user');
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [myApplications, setMyApplications] = useState([]);
   const [sponsors, setSponsors] = useState([]);
   const [selectedSponsor, setSelectedSponsor] = useState('');
-  const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
   if (user && activeTab === "apply") {
@@ -23,20 +25,49 @@ export default function DriverDashboard() {
     }
   }, [user, activeTab]);
 
+  useEffect(() => {
+    if (user) {
+      fetch(`${API_BASE}/applications/driver/${user.id}`)
+        .then(res => res.json())
+        .then(data => setMyApplications(data))
+        .catch(err => console.error("Error fetching applications:", err));
+    }
+  }, [user]);
   const handleApply = async (sponsorId) => {
-    await fetch(`${API_BASE}/applications/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        driver_id: user.id,
-        sponsor_id: sponsorId,
-      }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/applications/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          driver_id: user.id,
+          sponsor_id: sponsorId,
+        }),
+      });
 
-  alert("Application submitted!");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMessage(data.detail || "Something went wrong.");
+        setSuccessMessage('');
+        return;
+      }
+      setSuccessMessage("Application submitted successfully!");
+      setErrorMessage('');
+
+      // Refresh applications so UI updates
+      const refresh = await fetch(
+        `${API_BASE}/applications/driver/${user.id}`
+      );
+      const refreshedData = await refresh.json();
+      setMyApplications(refreshedData);
+
+    } catch (err) {
+      setErrorMessage("Network error.");
+      setSuccessMessage('');
+    }
   };
 
 
@@ -54,9 +85,14 @@ export default function DriverDashboard() {
     navigate('/login');
   };
 
+  useEffect(() => {
+    setSuccessMessage('');
+    setErrorMessage('');
+  }, [activeTab]);
+
   if (loading) return <div style={{ padding: '40px', fontSize: '18px' }}>Loading...</div>;
   if (!user) return null;
-
+  console.log(myApplications);
   return (
     <div className="dd-container">
       <div className="dd-sidebar">
@@ -113,6 +149,16 @@ export default function DriverDashboard() {
         </div>
 
         <div className="dd-section">
+          {successMessage && (
+            <p style={{ marginBottom: "15px", color: "green" }}>
+              {successMessage}
+              </p>
+            )}
+            {errorMessage && (
+              <p style={{ marginBottom: "15px", color: "red" }}>
+                {errorMessage}
+                </p>
+              )}
           <div className="dd-table-wrapper">
             <table className="dd-table">
               <thead>
@@ -126,14 +172,62 @@ export default function DriverDashboard() {
                   <tr key={sponsor.id}>
                     <td>{sponsor.email}</td>
                     <td>
-                      <button onClick={() => handleApply(sponsor.id)}>
-                        Apply
-                      </button>
+                    {(() => {
+                      const existing = myApplications.find(
+                        app => app.sponsor_id === sponsor.id && app.status === "pending"
+                      );
+
+                      if (existing) {
+                        return <span>Pending</span>;
+                      } 
+                      return(
+                        <button onClick={() => handleApply(sponsor.id)}>
+                          Apply
+                        </button>
+                      );
+                      
+                    })()}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            <div style={{ marginTop: "40px" }}>
+              <h2>My Sponsorship Status</h2>
+              <table className="dd-table">
+                <thead>
+                  <tr>
+                    <th>Sponsor</th>
+                    <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      {myApplications.map((app) => (
+                        <tr key={app.id}>
+                          <td>{app.sponsor_email}</td>
+                          <td>
+                            {app.status === "APPROVED" && (
+                              <span style={{ color: "green", fontWeight: "bold" }}>
+                                APPROVED
+                                </span>
+                            )}
+                            {app.status === "PENDING" && (
+                              <span style={{ color: "orange" }}>
+                                PENDING
+                                </span>
+                            )}
+                            {app.status === "REJECTED" && (
+                              <span style={{ color: "red" }}>
+                                REJECTED
+                                </span>
+                            )}
+                            </td>
+                            </tr>
+                          ))}
+                          </tbody>
+                          </table>
+                          </div>
 
             {sponsors.length === 0 && (
               <p style={{ marginTop: "20px" }}>

@@ -126,47 +126,60 @@ export default function SponsorDashboard() {
             <div className="sd-top-bar">
               <h1 className="sd-page-title">Manage Driver Applications</h1>
             </div>
-
-            <div className="sd-section">
-              <div className="sd-table-wrapper">
-                <table className="sd-table">
-                  <thead>
-                    <tr>
-                      <th className="sd-th">Application ID</th>
-                      <th className="sd-th">Driver</th>
-                      <th className="sd-th">Status</th>
-                      <th className="sd-th">Actions</th>
-                    </tr>
+            <h2>Pending Applications</h2>
+            <table className="sd-table">
+              <thead>
+                <tr>
+                  <th>Driver</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                  </tr>
                   </thead>
                   <tbody>
-                    {applications.map((app, i) => (
-                      <tr key={app.id} className={i % 2 === 0 ? "sd-tr-even" : ""}>
-                        <td className="sd-td">{app.id}</td>
-                        <td className="sd-td">{app.driver_email}</td>
-                        <td className="sd-td">{app.status}</td>
-                        <td className="sd-td">
-                          {app.status === "PENDING" && (
-                            <>
-                              <button onClick={() => handleApprove(app.id)}>
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleReject(app.id)}
-                                style={{ marginLeft: "10px" }}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                        </td>
+                    {applications
+                    .filter(app => app.status === "PENDING")
+                    .map((app) => (
+                    <tr key={app.id}>
+                      <td>{app.driver_email}</td>
+                      <td>{app.status}</td>
+                      <td>
+                        <button onClick={() => handleApprove(app.id)}>
+                          Approve
+                          </button>
+                          <button onClick={() => handleReject(app.id)}>
+                            Reject
+                            </button>
+                            </td>
+                            </tr>
+                          ))}
+                          </tbody>
+                          </table>
+                          </>
+                      
+        )}
+        <h2 style={{ marginTop: "40px" }}>Approved Drivers</h2>
+        <table className="sd-table">
+          <thead>
+            <tr>
+              <th>Driver</th>
+              <th>Status</th>
+              </tr>
+              </thead>
+              <tbody>
+                {applications
+                .filter(app => app.status === "APPROVED")
+                .map((app) => (
+                <tr key={app.id}>
+                  <td>{app.driver_email}</td>
+                  <td>
+                    <span style={{ color: "green", fontWeight: "bold" }}>
+                      APPROVED
+                      </span>
+                      </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
+                    </tbody>
+                    </table>
       </main>
     </div>
   );
