@@ -9,50 +9,36 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth('user');
-
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [sponsors, setSponsors] = useState([]);
   const [selectedSponsor, setSelectedSponsor] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!user) return;
-
-    fetch(`${API_BASE}/users/sponsors`, {
-      credentials: 'include',
-    })
+  if (user && activeTab === "apply") {
+    fetch(`${API_BASE}/applications/sponsors`)
       .then(res => res.json())
       .then(data => setSponsors(data))
-      .catch(err => console.error('Error fetching sponsors:', err));
-  }, [user]);
-
-  const handleApply = async () => {
-    if (!selectedSponsor) {
-      setMessage('Please select a sponsor.');
-      return;
+      .catch(err => console.error("Error fetching sponsors:", err));
     }
+  }, [user, activeTab]);
 
-    try {
-      const response = await fetch(`${API_BASE}/applications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          driver_id: user.id,
-          sponsor_id: parseInt(selectedSponsor),
-        }),
-      });
+  const handleApply = async (sponsorId) => {
+    await fetch(`${API_BASE}/applications/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        driver_id: user.id,
+        sponsor_id: sponsorId,
+      }),
+    });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage('Application submitted successfully.');
-      } else {
-        setMessage(data.detail || 'Error submitting application.');
-      }
-    } catch {
-      setMessage('Server error. Please try again.');
-    }
+  alert("Application submitted!");
   };
+
 
   const handleLogout = async () => {
     try {
@@ -78,11 +64,24 @@ export default function DriverDashboard() {
           <h2 className="dd-sidebar-title">Driver Portal</h2>
         </div>
         <nav className="dd-nav">
-          <a className="dd-nav-item active" href="#">Dashboard</a>
-          <a className="dd-nav-item" href="#">My Points</a>
-          <a className="dd-nav-item" href="#">Catalog</a>
-          <a className="dd-nav-item" href="#">My Orders</a>
-          <a className="dd-nav-item" href="#">Profile</a>
+          <button
+            className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
+          >
+          Dashboard
+          </button>
+
+          <button
+            className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`}
+            onClick={() => setActiveTab("apply")}
+          >
+          Apply for Sponsorship
+          </button>
+
+          <button className="dd-nav-item">My Points</button>
+          <button className="dd-nav-item">Catalog</button>
+          <button className="dd-nav-item">My Orders</button>
+          <button className="dd-nav-item">Profile</button>
         </nav>
         <button className="dd-logout-btn" onClick={handleLogout}>
           Sign Out
@@ -90,49 +89,62 @@ export default function DriverDashboard() {
       </div>
 
       <main className="dd-main">
-        <div className="dd-top-bar">
+
+        {activeTab === "dashboard" && (
+          <>
+          <div className="dd-top-bar">
           <h1 className="dd-page-title">Driver Dashboard</h1>
         </div>
 
         <div className="dd-stats-grid">
-          <div className="dd-stat-card">
-            <p className="dd-stat-label">Total Points</p>
-            <p className="dd-stat-value">1,250</p>
-          </div>
-          <div className="dd-stat-card">
-            <p className="dd-stat-label">Points This Month</p>
-            <p className="dd-stat-value">320</p>
-          </div>
-          <div className="dd-stat-card">
-            <p className="dd-stat-label">Items Redeemed</p>
-            <p className="dd-stat-value">4</p>
-          </div>
-          <div className="dd-stat-card">
-            <p className="dd-stat-label">Active Sponsors</p>
-            <p className="dd-stat-value">2</p>
-          </div>
+          ... your existing stat cards ...
         </div>
 
         <div className="dd-section">
-          <h2 className="dd-section-title">Recent Activity</h2>
-          <div className="dd-activity-list">
-            {[
-              { label: 'Points awarded by Sponsor A', points: '+100', date: 'Feb 15, 2026' },
-              { label: 'Redeemed: $10 Gift Card', points: '-500', date: 'Feb 10, 2026' },
-              { label: 'Points awarded by Sponsor B', points: '+220', date: 'Feb 5, 2026' },
-            ].map((item, i) => (
-              <div key={i} className="dd-activity-item">
-                <div>
-                  <p className="dd-activity-label">{item.label}</p>
-                  <p className="dd-activity-date">{item.date}</p>
-                </div>
-                <span className={`dd-activity-points ${item.points.startsWith('+') ? 'positive' : 'negative'}`}>
-                  {item.points} pts
-                </span>
-              </div>
-            ))}
+          ... your existing recent activity ...
+        </div>
+        </>
+      )}
+
+      {activeTab === "apply" && (
+        <>
+        <div className="dd-top-bar">
+          <h1 className="dd-page-title">Apply for Sponsorship</h1>
+        </div>
+
+        <div className="dd-section">
+          <div className="dd-table-wrapper">
+            <table className="dd-table">
+              <thead>
+                <tr>
+                  <th>Sponsor</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sponsors.map((sponsor, i) => (
+                  <tr key={sponsor.id}>
+                    <td>{sponsor.email}</td>
+                    <td>
+                      <button onClick={() => handleApply(sponsor.id)}>
+                        Apply
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {sponsors.length === 0 && (
+              <p style={{ marginTop: "20px" }}>
+                No sponsors available.
+              </p>
+            )}
           </div>
         </div>
+          </>
+        )}
+
       </main>
     </div>
   );

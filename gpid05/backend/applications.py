@@ -22,7 +22,7 @@ def create_application(
     driver = db.query(User).filter(User.id == body.driver_id).first()
     sponsor = db.query(User).filter(User.id == body.sponsor_id).first()
 
-    if not driver or driver.role != "driver":
+    if not driver or driver.role != "user":
         raise HTTPException(status_code=400, detail="Invalid driver")
 
     if not sponsor or sponsor.role != "sponsor":
@@ -52,16 +52,30 @@ def create_application(
     )
 
     return {"message": "Application submitted successfully"}
+
 @router.get("/sponsor/{sponsor_id}")
 def get_sponsor_applications(
     sponsor_id: int,
     db: Session = Depends(get_db)
 ):
-    applications = db.query(SponsorshipApplication).filter(
-        SponsorshipApplication.sponsor_id == sponsor_id
-    ).all()
+    applications = (
+        db.query(SponsorshipApplication, User.email)
+        .join(User, SponsorshipApplication.driver_id == User.id)
+        .filter(SponsorshipApplication.sponsor_id == sponsor_id)
+        .all()
+    )
 
-    return applications
+    result = []
+    for app, driver_email in applications:
+        result.append({
+            "id": app.id,
+            "driver_id": app.driver_id,
+            "driver_email": driver_email,
+            "status": app.status
+        })
+
+    return result
+
 
 @router.post("/{application_id}/approve")
 def approve_application(
@@ -135,4 +149,17 @@ def reject_application(
     )
 
     return {"message": "Application rejected"}
+
+@router.get("/sponsors")
+def get_all_sponsors(db: Session = Depends(get_db)):
+    sponsors = db.query(User).filter(User.role == "sponsor").all()
+
+    return [
+        {
+            "id": sponsor.id,
+            "email": sponsor.email
+        }
+        for sponsor in sponsors
+    ]
+
 
