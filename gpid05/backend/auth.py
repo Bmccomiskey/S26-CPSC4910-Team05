@@ -58,6 +58,10 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    pw_bytes = password.encode("utf-8")
+    if len(pw_bytes) > 72:
+        raise HTTPException(status_code=400, detail="password mustbe 72 bytes or less")
+
     user = User(email=email, role=role, password_hash=hash_password(password))
 
     db.add(user)
