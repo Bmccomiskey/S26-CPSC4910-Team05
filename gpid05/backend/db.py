@@ -69,8 +69,6 @@ def get_db_info() -> dict:
         "date": result[0][2]
     }
 
-print(get_db_info())
-
 # Close a raw connection
 def dbConnClose(conn):
     if conn:
