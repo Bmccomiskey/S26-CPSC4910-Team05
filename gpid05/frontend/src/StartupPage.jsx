@@ -21,7 +21,7 @@ export default function StartupPage() {
 
   // Fetch DB info from backend on mount
   useEffect(() => {
-    fetch("/health")
+    fetch("/api/health")
       .then((res) => res.json())
       .then((data) => setDbInfo(data))
       .catch(() => setDbInfo({ status: "disconnected" }));
