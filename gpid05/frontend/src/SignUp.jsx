@@ -2,7 +2,7 @@ import { useState } from "react";
 import './LoginPage.css';
 import { useNavigate, Link } from "react-router-dom";
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 function SignUp() {
   const [accountType, setAccountType] = useState('');
@@ -22,7 +22,7 @@ function SignUp() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/auth/register`, {
+      const response = await fetch(`/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

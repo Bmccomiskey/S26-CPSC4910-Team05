@@ -9,7 +9,7 @@ export default function SponsorManageDrivers() {
   const fetchApplications = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/applications/sponsor/${user.id}`,
+        `/applications/sponsor/${user.id}`,
         { credentials: "include" }
       );
 
@@ -30,7 +30,7 @@ export default function SponsorManageDrivers() {
 
   const handleApprove = async (applicationId) => {
     await fetch(
-      `http://localhost:8000/applications/${applicationId}/approve?sponsor_id=${user.id}`,
+      `/applications/${applicationId}/approve?sponsor_id=${user.id}`,
       {
         method: "POST",
         credentials: "include",
@@ -41,7 +41,7 @@ export default function SponsorManageDrivers() {
 
   const handleReject = async (applicationId) => {
     await fetch(
-      `http://localhost:8000/applications/${applicationId}/reject?sponsor_id=${user.id}`,
+      `/applications/${applicationId}/reject?sponsor_id=${user.id}`,
       {
         method: "POST",
         credentials: "include",

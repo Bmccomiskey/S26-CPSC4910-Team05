@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 
 export default function DriverDashboard() {
@@ -18,7 +18,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
   if (user && activeTab === "apply") {
-    fetch(`${API_BASE}/applications/sponsors`)
+    fetch(`/applications/sponsors`)
       .then(res => res.json())
       .then(data => setSponsors(data))
       .catch(err => console.error("Error fetching sponsors:", err));
@@ -27,7 +27,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     if (user) {
-      fetch(`${API_BASE}/applications/driver/${user.id}`)
+      fetch(`/applications/driver/${user.id}`)
         .then(res => res.json())
         .then(data => setMyApplications(data))
         .catch(err => console.error("Error fetching applications:", err));
@@ -35,7 +35,7 @@ export default function DriverDashboard() {
   }, [user]);
   const handleApply = async (sponsorId) => {
     try {
-      const res = await fetch(`${API_BASE}/applications/`, {
+      const res = await fetch(`/applications/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +59,7 @@ export default function DriverDashboard() {
 
       // Refresh applications so UI updates
       const refresh = await fetch(
-        `${API_BASE}/applications/driver/${user.id}`
+        `/applications/driver/${user.id}`
       );
       const refreshedData = await refresh.json();
       setMyApplications(refreshedData);
@@ -73,7 +73,7 @@ export default function DriverDashboard() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
+      await fetch(`/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

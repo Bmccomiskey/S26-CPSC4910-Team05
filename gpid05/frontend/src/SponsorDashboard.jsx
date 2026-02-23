@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 
 export default function SponsorDashboard() {
@@ -13,7 +13,7 @@ export default function SponsorDashboard() {
 
   const [applications, setApplications] = useState([]);
   const fetchApplications = () => {
-    fetch(`${API_BASE}/applications/sponsor/${user.id}`, {
+    fetch(`/applications/sponsor/${user.id}`, {
       credentials: 'include',
     })
       .then(res => res.json())
@@ -26,7 +26,7 @@ export default function SponsorDashboard() {
 
   const handleApprove = async (id) => {
     await fetch(
-      `${API_BASE}/applications/${id}/approve?sponsor_id=${user.id}`,
+      `/applications/${id}/approve?sponsor_id=${user.id}`,
       {
         method: 'POST',
         credentials: 'include',
@@ -36,7 +36,7 @@ export default function SponsorDashboard() {
   };
   const handleReject = async (id) => {
     await fetch(
-      `${API_BASE}/applications/${id}/reject?sponsor_id=${user.id}`,
+      `/applications/${id}/reject?sponsor_id=${user.id}`,
       {
         method: 'POST',
         credentials: 'include',
@@ -46,7 +46,7 @@ export default function SponsorDashboard() {
   };
   const handleLogout = async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
+      await fetch(`/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });

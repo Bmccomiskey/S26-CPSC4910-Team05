@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './LoginPage.css';
 import { Link, useNavigate } from "react-router-dom";
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const MAX_ATTEMPTS = 3;
 
 export default function LoginPage() {
@@ -27,7 +27,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const response = await fetch(`/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
