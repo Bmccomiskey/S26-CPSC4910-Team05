@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import AwardPoints from './AwardPoints';
+import SponsorProfile from './SponsorProfile';
 import { useAuth } from './useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
@@ -12,6 +14,8 @@ export default function SponsorDashboard() {
   const { user, loading } = useAuth('sponsor');
 
   const [applications, setApplications] = useState([]);
+  const [pointsHistory, setPointsHistory] = useState([]);
+
   const fetchApplications = () => {
     fetch(`/applications/sponsor/${user.id}`, {
       credentials: 'include',
@@ -20,8 +24,21 @@ export default function SponsorDashboard() {
       .then(data => setApplications(data))
       .catch(err => console.error('Error fetching applications:', err));
   };
+
+  const fetchPointsHistory = () => {
+    fetch(`/points/sponsor/${user.id}/history`, {
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => setPointsHistory(data))
+      .catch(err => console.error('Error fetching points history:', err));
+  };
+
   useEffect(() => {
-    if (user) fetchApplications();
+    if (user) {
+      fetchApplications();
+      fetchPointsHistory();
+    }
   }, [user]);
 
   const handleApprove = async (id) => {
@@ -81,9 +98,15 @@ export default function SponsorDashboard() {
             Manage Drivers
           </button>
 
-          <a className="sd-nav-item" href="#">Award Points</a>
+          <button
+            className={`sd-nav-item ${activeTab === "awardPoints" ? "active" : ""}`}
+            onClick={() => setActiveTab("awardPoints")}
+          >Award Points</button>
           <a className="sd-nav-item" href="#">Catalog</a>
-          <a className="sd-nav-item" href="#">Profile</a>
+          <button
+            className={`sd-nav-item ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >Profile</button>
         </nav>
         <button className="sd-logout-btn" onClick={handleLogout}>
           Sign Out
@@ -180,6 +203,19 @@ export default function SponsorDashboard() {
                     ))}
                     </tbody>
                     </table>
+        {activeTab === "awardPoints" && (
+          <AwardPoints
+            user={user}
+            approvedDrivers={applications.filter(a => a.status === "APPROVED")}
+            pointsHistory={pointsHistory}
+            onAward={fetchPointsHistory}
+          />
+        )}
+
+        {activeTab === "profile" && (
+          <SponsorProfile user={user} applications={applications} />
+        )}
+
       </main>
     </div>
   );

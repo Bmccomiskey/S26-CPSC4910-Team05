@@ -1,0 +1,373 @@
+/* SponsorProfile.css */
+
+.srp-root {
+  max-width: 820px;
+}
+
+/* ── Page header ── */
+.srp-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.srp-page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.4px;
+}
+
+.srp-page-sub {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.srp-edit-btn {
+  padding: 9px 20px;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.srp-edit-btn:hover {
+  background: #F59E0B;
+  color: #0f172a;
+}
+
+/* ── Alert ── */
+.srp-alert-success {
+  padding: 12px 18px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+/* ── Hero ── */
+.srp-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 12px;
+  padding: 26px 28px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+  flex-wrap: wrap;
+}
+
+.srp-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  background: #F59E0B;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.srp-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.srp-hero-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 3px;
+  letter-spacing: -0.3px;
+}
+
+.srp-hero-email {
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 10px;
+}
+
+.srp-hero-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Tags */
+.srp-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.srp-tag-role    { background: rgba(245,158,11,0.15); color: #F59E0B;  border: 1px solid rgba(245,158,11,0.35); }
+.srp-tag-active  { background: rgba(34,197,94,0.15);  color: #4ade80;  border: 1px solid rgba(34,197,94,0.3);  }
+.srp-tag-neutral { background: rgba(255,255,255,0.07); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+
+/* Hero stats */
+.srp-hero-stats {
+  display: flex;
+  align-items: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding-left: 24px;
+  flex-shrink: 0;
+}
+
+.srp-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 20px;
+}
+
+.srp-hero-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #F59E0B;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.srp-hero-stat-label {
+  font-size: 11px;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.srp-hero-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* ── Cards ── */
+.srp-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+
+.srp-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.srp-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: 0.1px;
+}
+
+.srp-card-icon {
+  font-size: 16px;
+  opacity: 0.55;
+}
+
+/* ── Grid + fields ── */
+.srp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 28px;
+}
+
+.srp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.srp-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+}
+
+.srp-field-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0;
+  padding: 2px 0;
+}
+
+.srp-muted {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* ── Input ── */
+.srp-input {
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: #1e293b;
+  background: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.srp-input:focus {
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* ── Budget bar ── */
+.srp-budget {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.srp-budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.srp-budget-pct {
+  font-weight: 700;
+  color: #F59E0B;
+}
+
+.srp-progress-track {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.srp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B, #FCD34D);
+  border-radius: 999px;
+  transition: width 0.8s ease;
+}
+
+.srp-budget-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── Password row ── */
+.srp-pw-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.srp-link-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F59E0B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.srp-link-btn:hover {
+  color: #b45309;
+}
+
+/* ── Form actions ── */
+.srp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.srp-cancel-btn {
+  padding: 10px 22px;
+  background: transparent;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.srp-cancel-btn:hover {
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.srp-save-btn {
+  padding: 10px 28px;
+  background: #F59E0B;
+  color: #0f172a;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.srp-save-btn:hover {
+  background: #FCD34D;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .srp-grid       { grid-template-columns: 1fr; }
+  .srp-hero       { flex-direction: column; align-items: flex-start; }
+  .srp-hero-stats { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; width: 100%; }
+  .srp-hero-stat  { padding: 0 16px; }
+}

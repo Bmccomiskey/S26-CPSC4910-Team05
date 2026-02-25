@@ -1,0 +1,330 @@
+/* DriverProfile.css */
+
+.drp-root {
+  max-width: 820px;
+}
+
+/* ── Page header ── */
+.drp-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.drp-page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.4px;
+}
+
+.drp-page-sub {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.drp-edit-btn {
+  padding: 9px 20px;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.drp-edit-btn:hover {
+  background: #F59E0B;
+  color: #0f172a;
+}
+
+/* ── Success alert ── */
+.drp-alert-success {
+  padding: 12px 18px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+/* ── Hero card ── */
+.drp-hero {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 26px 28px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.drp-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border: 3px solid #F59E0B;
+  color: #F59E0B;
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 1px;
+}
+
+.drp-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drp-hero-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 3px;
+  letter-spacing: -0.3px;
+}
+
+.drp-hero-email {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 10px;
+}
+
+.drp-hero-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Tags / pills */
+.drp-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.drp-tag-role    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.drp-tag-active  { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.drp-tag-neutral { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+/* Hero stats */
+.drp-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-left: 1px solid #f1f5f9;
+  padding-left: 24px;
+  flex-shrink: 0;
+}
+
+.drp-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 20px;
+}
+
+.drp-hero-stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.drp-hero-stat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drp-hero-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+
+/* ── Section cards ── */
+.drp-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+
+.drp-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.drp-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: 0.1px;
+}
+
+.drp-card-icon {
+  font-size: 16px;
+  opacity: 0.6;
+}
+
+/* ── Fields grid ── */
+.drp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 28px;
+}
+
+.drp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.drp-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+}
+
+.drp-field-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0;
+  padding: 2px 0;
+}
+
+/* ── Inputs ── */
+.drp-input {
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: #1e293b;
+  background: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.drp-input:focus {
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* ── Password row ── */
+.drp-pw-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.drp-link-btn {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #F59E0B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.drp-link-btn:hover {
+  color: #b45309;
+}
+
+/* ── Form actions ── */
+.drp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.drp-cancel-btn {
+  padding: 10px 22px;
+  background: transparent;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.drp-cancel-btn:hover {
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.drp-save-btn {
+  padding: 10px 28px;
+  background: #1e293b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.drp-save-btn:hover {
+  background: #F59E0B;
+  color: #0f172a;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .drp-grid           { grid-template-columns: 1fr; }
+  .drp-hero           { flex-direction: column; align-items: flex-start; }
+  .drp-hero-stats     { border-left: none; padding-left: 0; border-top: 1px solid #f1f5f9; padding-top: 16px; width: 100%; }
+  .drp-hero-stat      { padding: 0 16px; }
+}

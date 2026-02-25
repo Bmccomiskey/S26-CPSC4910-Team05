@@ -1,4 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import DriverOrders from './DriverOrders';
+import DriverPoints from './DriverPoints';
+import DriverProfile from './DriverProfile';
 import { useAuth } from './useAuth';
 import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
@@ -15,6 +18,7 @@ export default function DriverDashboard() {
   const [selectedSponsor, setSelectedSponsor] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
   if (user && activeTab === "apply") {
@@ -31,6 +35,11 @@ export default function DriverDashboard() {
         .then(res => res.json())
         .then(data => setMyApplications(data))
         .catch(err => console.error("Error fetching applications:", err));
+
+      fetch(`/points/driver/${user.id}/history`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setTransactions(data))
+        .catch(err => console.error("Error fetching points:", err));
     }
   }, [user]);
   const handleApply = async (sponsorId) => {
@@ -114,10 +123,19 @@ export default function DriverDashboard() {
           Apply for Sponsorship
           </button>
 
-          <button className="dd-nav-item">My Points</button>
+          <button
+            className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
+            onClick={() => setActiveTab("points")}
+          >My Points</button>
           <button className="dd-nav-item">Catalog</button>
-          <button className="dd-nav-item">My Orders</button>
-          <button className="dd-nav-item">Profile</button>
+          <button
+            className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`}
+            onClick={() => setActiveTab("orders")}
+          >My Orders</button>
+          <button
+            className={`dd-nav-item ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >Profile</button>
         </nav>
         <button className="dd-logout-btn" onClick={handleLogout}>
           Sign Out
@@ -238,6 +256,18 @@ export default function DriverDashboard() {
         </div>
           </>
         )}
+
+      {activeTab === "orders" && (
+        <DriverOrders user={user} orders={[]} />
+      )}
+
+      {activeTab === "points" && (
+        <DriverPoints user={user} transactions={transactions} />
+      )}
+
+      {activeTab === "profile" && (
+        <DriverProfile user={user} applications={myApplications} transactions={transactions} />
+      )}
 
       </main>
     </div>
