@@ -61,10 +61,10 @@ jobs:
         git fetch origin
         git merge origin/main
         npm run build
-        
-        sudorm-rf /var/www/team05/*
-        sudocp-r build/* /var/www/team05/
-        sudochown-R www-data:www-data /var/www/team05
+
+        sudo rm-rf /var/www/team05/*
+        sudo cp-r build/* /var/www/team05/
+        sudo chown-R www-data:www-data /var/www/team05
         sudo systemctl reload nginx
 
         echo "Starting application"
