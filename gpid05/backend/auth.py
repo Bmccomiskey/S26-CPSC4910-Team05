@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import secrets
 import os
 
-from sessions import create_session, delete_session
+import sessions
 from security import hash_password, verify_password
 from password_policy import validate_password_complexity
 from userModels import User
@@ -239,7 +239,6 @@ def get_me(
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    from sessions import get_session_and_refresh
     session = get_session_and_refresh(db, session_token)
     if not session:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
