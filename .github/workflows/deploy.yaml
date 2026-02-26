@@ -24,6 +24,9 @@ jobs:
         sudo rm -rf /var/log/* /tmp/*
         echo "Disk usage after cleanup:"
         df -h
+        sudo rm -rf /usr/local/share/boost
+        sudo apt-get clean
+        df -h
 
         echo "Current directory: $(pwd)"
         echo "Listing home directory:"
@@ -57,5 +60,5 @@ jobs:
         npm install
 
         echo "Starting application"
-        pm2 restart App.js || pm2 start App.js
+        pm2 restart index.js || pm2 start index.js
         '
