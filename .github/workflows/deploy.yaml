@@ -60,7 +60,8 @@ jobs:
         cd "$REPO_DIR/gpid05/frontend"
         git fetch origin
         git merge origin/main
-        npm build
+        
+        npm start
 
         echo "Starting application"
         sudo systemctl restart team05-backend
