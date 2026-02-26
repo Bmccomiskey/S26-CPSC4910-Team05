@@ -58,6 +58,8 @@ jobs:
         git merge origin/main
 
         cd "$REPO_DIR/gpid05/frontend"
+        git fetch origin
+        git merge origin/main
         
 
         echo "Starting application"
