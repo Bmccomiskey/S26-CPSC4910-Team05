@@ -18,6 +18,13 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
         ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
+
+        echo "Disk usage before cleanup:"
+        df -h
+        sudo rm -rf /var/log/* /tmp/*
+        echo "Disk usage after cleanup:"
+        df -h
+
         echo "Current directory: $(pwd)"
         echo "Listing home directory:"
         ls -la ~
@@ -34,7 +41,7 @@ jobs:
         fi
         REPO_URL="https://github.com/Bmccomiskey/S26-CPSC4910-Team05"
         BRANCH="main"
-        REPO_DIR="$HOME/S26-CPSC4910-Team05/gpid05"
+        REPO_DIR="$HOME/S26-CPSC4910-Team05"
         if [ -d "$REPO_DIR/.git" ]; then
           cd "$REPO_DIR"
           git pull origin "$BRANCH"
@@ -43,10 +50,10 @@ jobs:
           cd "$REPO_DIR"
         fi
 
-        cd "$REPO_DIR/backend"
+        cd "$REPO_DIR/gpid05/backend"
         sudo pip install -r "requirements.txt"
         cd ..
-        cd "$REPO_DIR/frontend"
+        cd "frontend"
         npm install
 
         echo "Starting application"
