@@ -56,6 +56,9 @@ jobs:
         cd "$REPO_DIR"
         git pull origin main
 
+        cd "$REPO_DIR/gpid05/frontend"
+        npm start
+
         echo "Starting application"
         sudo systemctl restart team05-backend
         '
