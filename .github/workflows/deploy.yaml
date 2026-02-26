@@ -34,7 +34,7 @@ jobs:
         fi
         REPO_URL="https://github.com/Bmccomiskey/S26-CPSC4910-Team05"
         BRANCH="main"
-        REPO_DIR="$HOME/S26-CPSC4910-Team05"
+        REPO_DIR="$HOME/S26-CPSC4910-Team05/gpid05"
         if [ -d "$REPO_DIR/.git" ]; then
           cd "$REPO_DIR"
           git pull origin "$BRANCH"
@@ -44,7 +44,7 @@ jobs:
         fi
 
         cd "$REPO_DIR/backend"
-        pip install -r "requirements.txt"
+        sudo pip install -r "requirements.txt"
         cd ..
         cd "$REPO_DIR/frontend"
         npm install
