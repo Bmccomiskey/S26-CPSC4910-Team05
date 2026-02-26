@@ -71,7 +71,7 @@ export default function StartupPage() {
         <div className="startup-hero-content">
           <p className="startup-eyebrow">⬡ &nbsp;THE ROAD NEVER STOPS&nbsp; ⬡</p>
           <h1 className="startup-headline">
-            <span className="startup-headline-top">MILES</span>
+            <span className="startup-headline-top">MILE</span>
             <span className="startup-headline-mid">AHEAD</span>
           </h1>
           <p className="startup-sub">
