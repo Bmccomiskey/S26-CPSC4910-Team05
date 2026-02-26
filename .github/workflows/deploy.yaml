@@ -42,6 +42,12 @@ jobs:
           git clone "$REPO_URL" "$REPO_DIR"
           cd "$REPO_DIR"
         fi
-        cd "$REPO_DIR/"
+
+        cd "$REPO_DIR/backend"
+        pip install -r "requirements.txt"
+        cd ..
+        cd "$REPO_DIR/frontend"
         npm install
 
+        echo "Starting application"
+        pm2 restart App.js || pm2 start App.js
