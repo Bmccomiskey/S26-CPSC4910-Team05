@@ -51,3 +51,4 @@ jobs:
 
         echo "Starting application"
         pm2 restart App.js || pm2 start App.js
+        '
