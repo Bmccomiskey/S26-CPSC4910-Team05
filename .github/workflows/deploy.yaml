@@ -61,5 +61,6 @@ jobs:
         
 
         echo "Starting application"
+        sudo systemctl daemon-reload
         sudo systemctl restart team05-backend
         '
