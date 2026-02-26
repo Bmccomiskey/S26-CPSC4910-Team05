@@ -60,8 +60,12 @@ jobs:
         cd "$REPO_DIR/gpid05/frontend"
         git fetch origin
         git merge origin/main
-        
-        npm start
+
+        npm run build
+        sudorm-rf /var/www/team05/*
+        sudocp-r build/* /var/www/team05/
+        sudochown-R www-data:www-data /var/www/team05
+        sudo systemctl reload nginx
 
         echo "Starting application"
         sudo systemctl restart team05-backend
