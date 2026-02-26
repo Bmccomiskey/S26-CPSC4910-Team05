@@ -56,9 +56,9 @@ jobs:
         cd "$REPO_DIR/gpid05/backend"
         sudo pip install -r "requirements.txt"
         cd ..
-        cd "frontend"
+        cd "frontend/src"
         npm install
 
         echo "Starting application"
-        pm2 restart index.js || pm2 start index.js
+        pm2 restart App.js || pm2 start App.js
         '
