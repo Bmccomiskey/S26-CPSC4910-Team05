@@ -1,9 +1,7 @@
 name: Deploy to EC2
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,7 +15,7 @@ jobs:
         USER: ${{ secrets.EC2_USER }}
       run: |
         echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
-        ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} '
+        ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} <<'EOF'
         echo "Current directory: $(pwd)"
         echo "Listing home directory:"
         ls -la ~
@@ -25,14 +23,14 @@ jobs:
         echo "Installing Node.js..."
         if ! command -v nvm &> /dev/null; then
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
         fi
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
         nvm install node
 
         echo "Installing PM2..."
         if ! command -v pm2 &> /dev/null; then
-        npm install -g pm2
+          npm install -g pm2
         fi
 
         REPO_URL="https://github.com/Bmccomiskey/S26-CPSC4910-Team05"
@@ -49,3 +47,4 @@ jobs:
 
         cd "$REPO_DIR/"
         npm install
+        EOF
