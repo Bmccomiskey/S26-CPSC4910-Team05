@@ -60,7 +60,7 @@ jobs:
         cd "$REPO_DIR/gpid05/frontend"
         git fetch origin
         git merge origin/main
-        
+        npm start
 
         echo "Starting application"
         sudo systemctl daemon-reload
