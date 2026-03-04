@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { useState } from 'react';
-import './SponsorDashboard.css'; // reuse sponsor dashboard layout/styles
+import './SponsorDashboard.css';
+import UserManagement from './admin/UserManagement';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`/auth/logout`, {
+      await fetch('/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });
@@ -18,9 +19,11 @@ export default function AdminDashboard() {
       console.error('Logout error:', err);
     }
 
+    // keep compatibility with current auth flow
     localStorage.removeItem('userRole');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userId');
+
     navigate('/login');
   };
 
@@ -52,6 +55,7 @@ export default function AdminDashboard() {
             User Management
           </button>
 
+          {/* Future admin stories can plug into these tabs */}
           <button
             className={`sd-nav-item ${activeTab === 'audit' ? 'active' : ''}`}
             onClick={() => setActiveTab('audit')}
@@ -80,6 +84,7 @@ export default function AdminDashboard() {
       </div>
 
       <main className="sd-main">
+        {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && (
           <>
             <div className="sd-top-bar">
@@ -88,47 +93,48 @@ export default function AdminDashboard() {
 
             <div className="sd-stats-grid">
               <div className="sd-stat-card">
-                <p className="sd-stat-label">Total Users</p>
-                <p className="sd-stat-value">--</p>
+                <p className="sd-stat-label">Role</p>
+                <p className="sd-stat-value">{user.role}</p>
               </div>
               <div className="sd-stat-card">
-                <p className="sd-stat-label">Sponsors</p>
-                <p className="sd-stat-value">--</p>
+                <p className="sd-stat-label">Email</p>
+                <p className="sd-stat-value" style={{ fontSize: '16px' }}>
+                  {user.email}
+                </p>
               </div>
               <div className="sd-stat-card">
-                <p className="sd-stat-label">Drivers</p>
-                <p className="sd-stat-value">--</p>
+                <p className="sd-stat-label">User Management</p>
+                <p className="sd-stat-value">Ready</p>
               </div>
               <div className="sd-stat-card">
-                <p className="sd-stat-label">Pending Actions</p>
-                <p className="sd-stat-value">--</p>
+                <p className="sd-stat-label">Sprint Focus</p>
+                <p className="sd-stat-value">Admin</p>
               </div>
             </div>
 
             <div className="sd-section">
               <h2>Welcome, Admin</h2>
               <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                This dashboard is the admin landing page and navigation hub.
-                Use the tabs on the left to access admin tools.
+                Use the User Management tab to lock and unlock user accounts for the current sprint stories.
               </p>
+
+              <div style={{ marginTop: '14px' }}>
+                <button
+                  className="sd-nav-item"
+                  style={{ width: 'auto' }}
+                  onClick={() => setActiveTab('users')}
+                >
+                  Go to User Management
+                </button>
+              </div>
             </div>
           </>
         )}
 
-        {activeTab === 'users' && (
-          <>
-            <div className="sd-top-bar">
-              <h1 className="sd-page-title">User Management</h1>
-            </div>
-            <div className="sd-section">
-              <h2>User Management</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Admin user-management tools will appear here in future stories.
-              </p>
-            </div>
-          </>
-        )}
+        {/* USER MANAGEMENT TAB (moved to separate component) */}
+        {activeTab === 'users' && <UserManagement currentUser={user} />}
 
+        {/* PLACEHOLDER TABS FOR FUTURE STORIES */}
         {activeTab === 'audit' && (
           <>
             <div className="sd-top-bar">
@@ -137,7 +143,7 @@ export default function AdminDashboard() {
             <div className="sd-section">
               <h2>Audit Logs</h2>
               <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Audit log monitoring tools will appear here in future stories.
+                Audit log features will be implemented in future admin stories.
               </p>
             </div>
           </>
@@ -151,7 +157,7 @@ export default function AdminDashboard() {
             <div className="sd-section">
               <h2>Catalog Administration</h2>
               <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Catalog administration features will appear here in future stories.
+                Catalog admin features will be implemented in future admin stories.
               </p>
             </div>
           </>
