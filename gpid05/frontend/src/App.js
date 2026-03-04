@@ -6,6 +6,8 @@ import ForgotPassword from "./ForgotPassword";
 import DriverDashboard from "./DriverDashboard";
 import SponsorDashboard from "./SponsorDashboard";
 import ResetPassword from "./ResetPassword";
+import AdminDashboard from "./AdminDashboard";
+
 
 function App() {
   return (
