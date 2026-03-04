@@ -127,20 +127,6 @@ export default function StartupPage() {
         </div>
       </main>
 
-      {/* ── STATS BAR ── */}
-      <div className="startup-stats-bar">
-        {[
-          { num: "12,400+", label: "Active Drivers" },
-          { num: "340+",    label: "Sponsor Partners" },
-          { num: "2.1M",    label: "Miles Rewarded" },
-          { num: "98%",     label: "Driver Satisfaction" },
-        ].map((s, i) => (
-          <div key={i} className="startup-stat-item">
-            <span className="startup-stat-num">{s.num}</span>
-            <span className="startup-stat-label">{s.label}</span>
-          </div>
-        ))}
-      </div>
 
       {/* ── DB STATUS BADGE ── */}
       <div style={{
