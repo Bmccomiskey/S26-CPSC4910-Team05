@@ -2,6 +2,7 @@ import secrets
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session as DbSession
 from fastapi import Depends, HTTPException, Cookie
+from userModels import User
 from db import get_db
 
 from sessionModels import Session
@@ -73,7 +74,7 @@ def require_current_user(
     return user
 
 def require_role(*allowed_roles: str):
-    def dependency(current_use = Depends(require_current_user)):
+    def dependency(current_user: User = Depends(require_current_user)):
         if current_user.role not in allowed_roles:
             raise HTTPException(status_code=403, detail="Forbidden")
         return current_user
