@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import DriverOrders from './DriverOrders';
 import DriverPoints from './DriverPoints';
 import DriverProfile from './DriverProfile';
-import { useAuth } from './useAuth';
+import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
 

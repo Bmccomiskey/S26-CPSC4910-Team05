@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from '../useAuth';
 
 export default function SponsorManageDrivers() {
   const { user, loading } = useAuth("sponsor");

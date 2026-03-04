@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './useAuth';
+import { useAuth } from '../useAuth';
 import { useState } from 'react';
-import './SponsorDashboard.css';
-import UserManagement from './UserManagement';
+import './sponsor-pages/SponsorDashboard.css';
+import UserManagement from '../UserManagement';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();

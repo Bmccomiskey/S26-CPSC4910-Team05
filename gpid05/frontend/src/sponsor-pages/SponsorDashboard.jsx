@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import AwardPoints from './AwardPoints';
 import SponsorProfile from './SponsorProfile';
 import SponsorGoals from './SponsorGoals';
-import { useAuth } from './useAuth';
+import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
 
