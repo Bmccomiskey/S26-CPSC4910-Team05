@@ -17,6 +17,7 @@ function App() {
         <Route path="/forgot-password"   element={<ForgotPassword />} />
         <Route path="/driver-dashboard"  element={<DriverDashboard />} />
         <Route path="/sponsor-dashboard" element={<SponsorDashboard />} />
+        <Route path="/admin-dashboard"   element={<AdminDashboard />} />
         <Route path="/reset-password"    element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
