@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./UserManagement.css";
 
 export default function UserManagement({ currentUser }) {
   const [users, setUsers] = useState([]);
@@ -83,80 +84,87 @@ export default function UserManagement({ currentUser }) {
 
   return (
     <>
-      <div className="sd-top-bar">
-        <h1 className="sd-page-title">User Management</h1>
+    <div className="sd-top-bar">
+      <h1 className="sd-page-title">User Management</h1>
+    </div>
+
+    <div className="sd-section">
+      <h2>Manage User Accounts</h2>
+      <p style={{ marginTop: "10px", color: "#c9c9c9" }}>
+        Lock or unlock user accounts.
+      </p>
+
+      <div className="um-toolbar">
+        <button className="um-btn refresh" onClick={fetchUsers}>
+          Refresh Users
+        </button>
       </div>
 
-      <div className="sd-section">
-        <h2>Manage User Accounts</h2>
-        <p style={{ marginTop: "10px", color: "#c9c9c9" }}>
-          Lock or unlock user accounts.
-        </p>
+      {userActionMsg && <p className="um-message">{userActionMsg}</p>}
 
-        <div style={{ marginTop: "16px", marginBottom: "12px" }}>
-          <button
-            className="sd-nav-item"
-            style={{ width: "auto" }}
-            onClick={fetchUsers}
-          >
-            Refresh Users
-          </button>
-        </div>
+      {usersLoading ? (
+        <p className="um-loading">Loading users...</p>
+      ) : (
+        <div className="um-table-wrap">
+          <table className="sd-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-        {userActionMsg && (
-          <p style={{ marginBottom: "12px", color: "#f3c94b" }}>{userActionMsg}</p>
-        )}
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td>{u.id}</td>
+                  <td>{u.email}</td>
 
-        {usersLoading ? (
-          <p>Loading users...</p>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table className="sd-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>{u.email}</td>
-                    <td>{u.role}</td>
-                    <td>
-                      <span
-                        style={{
-                          color: u.is_active ? "#6ad66a" : "#ff7a7a",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {u.is_active ? "Active" : "Locked"}
-                      </span>
-                    </td>
-                    <td>
+                  <td>
+                    <span className={`um-role ${u.role}`}>{u.role}</span>
+                  </td>
+
+                  <td>
+                    <span className={`um-status ${u.is_active ? "active" : "locked"}`}>
+                      {u.is_active ? "Active" : "Locked"}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="um-actions">
                       {u.id === currentUser?.id ? (
-                        <span style={{ color: "#999" }}>Current Admin</span>
+                        <span className="um-current-admin">Current Admin</span>
                       ) : u.is_active ? (
-                        <button onClick={() => handleLockUser(u.id)}>Lock</button>
+                        <button
+                          className="um-btn lock"
+                          onClick={() => handleLockUser(u.id)}
+                        >
+                          Lock
+                        </button>
                       ) : (
-                        <button onClick={() => handleUnlockUser(u.id)}>Unlock</button>
+                        <button
+                          className="um-btn unlock"
+                          onClick={() => handleUnlockUser(u.id)}
+                        >
+                          Unlock
+                        </button>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-            {!usersLoading && users.length === 0 && (
-              <p style={{ marginTop: "12px", color: "#c9c9c9" }}>No users found.</p>
-            )}
-          </div>
-        )}
-      </div>
-    </>
-  );
+          {!usersLoading && users.length === 0 && (
+            <p className="um-empty">No users found.</p>
+          )}
+        </div>
+      )}
+    </div>
+  </>
+);
 }
