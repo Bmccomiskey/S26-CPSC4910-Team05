@@ -34,18 +34,6 @@ class AwardPointsBody(BaseModel):
     description: str | None = None
 
 
-class SubtractPointsBody(BaseModel):
-    sponsor_id: int
-    driver_id: int
-    points: int
-    reason: str | None = None
-
-
-class ResetPointsBody(BaseModel):
-    sponsor_id: int
-    driver_id: int
-
-
 # ── Routes ─────────────────────────────────────────────────────────────────
 
 @router.post("/award")
@@ -92,105 +80,6 @@ def award_points(body: AwardPointsBody, request: Request, db: Session = Depends(
     )
 
     return {"message": "Points awarded successfully", "transaction_id": transaction.id}
-
-
-@router.post("/subtract")
-def subtract_points(body: SubtractPointsBody, request: Request, db: Session = Depends(get_db)):
-    # Validate sponsor exists
-    sponsor = db.query(User).filter(User.id == body.sponsor_id, User.role == "sponsor").first()
-    if not sponsor:
-        raise HTTPException(status_code=404, detail="Sponsor not found")
-
-    # Validate driver exists
-    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
-
-    # Ensure there is an approved relationship between them
-    approved = db.query(SponsorshipApplication).filter(
-        SponsorshipApplication.sponsor_id == body.sponsor_id,
-        SponsorshipApplication.driver_id == body.driver_id,
-        SponsorshipApplication.status == "APPROVED"
-    ).first()
-    if not approved:
-        raise HTTPException(status_code=403, detail="No approved sponsorship between this sponsor and driver")
-
-    if body.points <= 0:
-        raise HTTPException(status_code=400, detail="Points must be a positive number")
-
-    transaction = PointTransaction(
-        driver_id=body.driver_id,
-        sponsor_id=body.sponsor_id,
-        points=-body.points,  # stored as negative so balance math stays simple
-        description=body.reason,
-    )
-    db.add(transaction)
-    db.commit()
-    db.refresh(transaction)
-
-    log_audit_event(
-        db=db,
-        event_type="POINTS_SUBTRACTED",
-        success=True,
-        user_id=body.sponsor_id,
-        request=request,
-        metadata={"driver_id": body.driver_id, "points": body.points}
-    )
-
-    return {"message": "Points subtracted successfully", "transaction_id": transaction.id}
-
-
-@router.post("/reset")
-def reset_points(body: ResetPointsBody, request: Request, db: Session = Depends(get_db)):
-    # Validate sponsor exists
-    sponsor = db.query(User).filter(User.id == body.sponsor_id, User.role == "sponsor").first()
-    if not sponsor:
-        raise HTTPException(status_code=404, detail="Sponsor not found")
-
-    # Validate driver exists
-    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
-
-    # Ensure there is an approved relationship between them
-    approved = db.query(SponsorshipApplication).filter(
-        SponsorshipApplication.sponsor_id == body.sponsor_id,
-        SponsorshipApplication.driver_id == body.driver_id,
-        SponsorshipApplication.status == "APPROVED"
-    ).first()
-    if not approved:
-        raise HTTPException(status_code=403, detail="No approved sponsorship between this sponsor and driver")
-
-    # Calculate current balance for this sponsor<>driver pair and cancel it out
-    transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == body.driver_id,
-        PointTransaction.sponsor_id == body.sponsor_id,
-    ).all()
-    current_balance = sum(t.points for t in transactions)
-
-    if current_balance == 0:
-        return {"message": "Balance is already zero", "transaction_id": None}
-
-    transaction = PointTransaction(
-        driver_id=body.driver_id,
-        sponsor_id=body.sponsor_id,
-        points=-current_balance,  # exactly cancels the running balance
-        description="Points reset to zero by sponsor",
-    )
-    db.add(transaction)
-    db.commit()
-    db.refresh(transaction)
-
-    log_audit_event(
-        db=db,
-        event_type="POINTS_RESET",
-        success=True,
-        user_id=body.sponsor_id,
-        request=request,
-        metadata={"driver_id": body.driver_id, "cancelled_balance": current_balance}
-    )
-
-    return {"message": "Points reset to zero successfully", "transaction_id": transaction.id}
 
 
 @router.get("/sponsor/{sponsor_id}/history")
@@ -247,3 +136,150 @@ def get_driver_balance(driver_id: int, db: Session = Depends(get_db)):
     ).all()
     balance = sum(t.points for t in transactions)
     return {"driver_id": driver_id, "balance": balance}
+
+
+# ── Goal Model ─────────────────────────────────────────────────────────────
+class PointGoal(Base):
+    __tablename__ = "point_goals"
+
+    id:            Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
+    sponsor_id:    Mapped[int]      = mapped_column(Integer, nullable=False)
+    driver_id:     Mapped[int]      = mapped_column(Integer, nullable=False)
+    title:         Mapped[str]      = mapped_column(String(255), nullable=False)
+    description:   Mapped[str|None] = mapped_column(String(500), nullable=True)
+    target_points: Mapped[int]      = mapped_column(Integer, nullable=False)
+    deadline:      Mapped[str|None] = mapped_column(String(32), nullable=True)
+    created_at:    Mapped[str]      = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ── Goal Schemas ───────────────────────────────────────────────────────────
+class CreateGoalBody(BaseModel):
+    sponsor_id:    int
+    driver_id:     int
+    title:         str
+    description:   str | None = None
+    target_points: int
+    deadline:      str | None = None  # "YYYY-MM-DD"
+
+
+# ── Goal Routes ────────────────────────────────────────────────────────────
+
+@router.post("/goals")
+def create_goal(body: CreateGoalBody, request: Request, db: Session = Depends(get_db)):
+    sponsor = db.query(User).filter(User.id == body.sponsor_id, User.role == "sponsor").first()
+    if not sponsor:
+        raise HTTPException(status_code=404, detail="Sponsor not found")
+
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.sponsor_id == body.sponsor_id,
+        SponsorshipApplication.driver_id == body.driver_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+    if not approved:
+        raise HTTPException(status_code=403, detail="No approved sponsorship between this sponsor and driver")
+
+    if body.target_points <= 0:
+        raise HTTPException(status_code=400, detail="Target points must be positive")
+
+    goal = PointGoal(
+        sponsor_id=body.sponsor_id,
+        driver_id=body.driver_id,
+        title=body.title,
+        description=body.description,
+        target_points=body.target_points,
+        deadline=body.deadline,
+    )
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+
+    log_audit_event(
+        db=db,
+        event_type="GOAL_CREATED",
+        success=True,
+        user_id=body.sponsor_id,
+        request=request,
+        metadata={"driver_id": body.driver_id, "target_points": body.target_points}
+    )
+
+    return {"message": "Goal created successfully", "goal_id": goal.id}
+
+
+@router.get("/goals/sponsor/{sponsor_id}")
+def get_sponsor_goals(sponsor_id: int, db: Session = Depends(get_db)):
+    rows = (
+        db.query(PointGoal, User.email)
+        .join(User, PointGoal.driver_id == User.id)
+        .filter(PointGoal.sponsor_id == sponsor_id)
+        .order_by(PointGoal.created_at.desc())
+        .all()
+    )
+    result = []
+    for goal, driver_email in rows:
+        earned = db.query(PointTransaction).filter(
+            PointTransaction.driver_id == goal.driver_id,
+            PointTransaction.sponsor_id == sponsor_id,
+            PointTransaction.points > 0,
+            PointTransaction.created_at >= goal.created_at,
+        ).all()
+        current_points = sum(t.points for t in earned)
+        result.append({
+            "id": goal.id,
+            "driver_id": goal.driver_id,
+            "driver_email": driver_email,
+            "title": goal.title,
+            "description": goal.description,
+            "target_points": goal.target_points,
+            "current_points": current_points,
+            "deadline": goal.deadline,
+            "created_at": goal.created_at,
+            "completed": current_points >= goal.target_points,
+        })
+    return result
+
+
+@router.get("/goals/driver/{driver_id}")
+def get_driver_goals(driver_id: int, db: Session = Depends(get_db)):
+    rows = (
+        db.query(PointGoal, User.email)
+        .join(User, PointGoal.sponsor_id == User.id)
+        .filter(PointGoal.driver_id == driver_id)
+        .order_by(PointGoal.created_at.desc())
+        .all()
+    )
+    result = []
+    for goal, sponsor_email in rows:
+        earned = db.query(PointTransaction).filter(
+            PointTransaction.driver_id == driver_id,
+            PointTransaction.sponsor_id == goal.sponsor_id,
+            PointTransaction.points > 0,
+            PointTransaction.created_at >= goal.created_at,
+        ).all()
+        current_points = sum(t.points for t in earned)
+        result.append({
+            "id": goal.id,
+            "sponsor_id": goal.sponsor_id,
+            "sponsor_email": sponsor_email,
+            "title": goal.title,
+            "description": goal.description,
+            "target_points": goal.target_points,
+            "current_points": current_points,
+            "deadline": goal.deadline,
+            "created_at": goal.created_at,
+            "completed": current_points >= goal.target_points,
+        })
+    return result
+
+
+@router.delete("/goals/{goal_id}")
+def delete_goal(goal_id: int, sponsor_id: int, request: Request, db: Session = Depends(get_db)):
+    goal = db.query(PointGoal).filter(PointGoal.id == goal_id, PointGoal.sponsor_id == sponsor_id).first()
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    db.delete(goal)
+    db.commit()
+    return {"message": "Goal deleted"}

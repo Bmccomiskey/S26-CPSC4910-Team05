@@ -361,3 +361,105 @@
 .dd-activity-points { font-weight: 700; font-size: 14px; }
 .dd-activity-points.positive { color: #16a34a; }
 .dd-activity-points.negative { color: #dc2626; }
+
+/* ── Goals on Dashboard ── */
+.dd-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.dd-goal-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  transition: box-shadow 0.15s;
+}
+
+.dd-goal-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.dd-goal-completed  { border-color: #bbf7d0; background: #f0fdf4; }
+
+.dd-goal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.dd-goal-sponsor {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 3px;
+}
+
+.dd-goal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.dd-goal-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dd-badge-complete {
+  font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; background: #dcfce7; color: #16a34a;
+  border: 1px solid #bbf7d0; white-space: nowrap; flex-shrink: 0;
+}
+
+.dd-badge-overdue {
+  font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; background: #fef2f2; color: #dc2626;
+  border: 1px solid #fecaca; white-space: nowrap; flex-shrink: 0;
+}
+
+.dd-badge-urgent {
+  font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; background: #fff7ed; color: #ea580c;
+  border: 1px solid #fed7aa; white-space: nowrap; flex-shrink: 0;
+}
+
+.dd-goal-progress-bar {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.dd-goal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.dd-goal-progress-done {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.dd-goal-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.dd-goal-deadline {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}

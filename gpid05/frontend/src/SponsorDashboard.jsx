@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import AwardPoints from './AwardPoints';
 import SponsorProfile from './SponsorProfile';
+import SponsorGoals from './SponsorGoals';
 import { useAuth } from './useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
@@ -112,6 +113,12 @@ export default function SponsorDashboard() {
             onClick={() => setActiveTab("awardPoints")}
           >
             <span className="sd-nav-icon">◈</span> Award Points
+          </button>
+          <button
+            className={`sd-nav-item ${activeTab === "goals" ? "active" : ""}`}
+            onClick={() => setActiveTab("goals")}
+          >
+            <span className="sd-nav-icon">◎</span> Driver Goals
           </button>
           <a className="sd-nav-item" href="#">
             <span className="sd-nav-icon">⊙</span> Catalog
@@ -225,6 +232,13 @@ export default function SponsorDashboard() {
             approvedDrivers={applications.filter(a => a.status === "APPROVED")}
             pointsHistory={pointsHistory}
             onAward={fetchPointsHistory}
+          />
+        )}
+
+        {activeTab === "goals" && (
+          <SponsorGoals
+            user={user}
+            approvedDrivers={applications.filter(a => a.status === "APPROVED")}
           />
         )}
 

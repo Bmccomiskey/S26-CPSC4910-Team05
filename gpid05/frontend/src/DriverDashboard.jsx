@@ -19,6 +19,7 @@ export default function DriverDashboard() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [transactions, setTransactions] = useState([]);
+  const [goals, setGoals] = useState([]);
 
   useEffect(() => {
   if (user && activeTab === "apply") {
@@ -37,6 +38,14 @@ export default function DriverDashboard() {
       .catch(err => console.error("Error fetching points:", err));
   };
 
+  const fetchGoals = () => {
+    if (!user) return;
+    fetch(`/points/goals/driver/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setGoals(data))
+      .catch(err => console.error("Error fetching goals:", err));
+  };
+
   useEffect(() => {
     if (user) {
       fetch(`/applications/driver/${user.id}`)
@@ -45,6 +54,7 @@ export default function DriverDashboard() {
         .catch(err => console.error("Error fetching applications:", err));
 
       fetchTransactions();
+      fetchGoals();
     }
   }, [user]);
 
@@ -118,89 +128,108 @@ export default function DriverDashboard() {
     <div className="dd-container">
       <div className="dd-sidebar">
         <div className="dd-sidebar-header">
-          <div className="dd-sidebar-brand">
-            <div className="dd-sidebar-brand-icon">🚗</div>
-            <div>
-              <h2 className="dd-sidebar-title">Driver Portal</h2>
-            </div>
-          </div>
+          <h2 className="dd-sidebar-title">Driver Portal</h2>
         </div>
-
         <nav className="dd-nav">
           <button
             className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => setActiveTab("dashboard")}
           >
-            <span className="dd-nav-icon">⊞</span> Dashboard
+          Dashboard
           </button>
+
           <button
             className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`}
             onClick={() => setActiveTab("apply")}
           >
-            <span className="dd-nav-icon">✦</span> Apply for Sponsorship
+          Apply for Sponsorship
           </button>
-
-          <div className="dd-nav-divider" />
 
           <button
             className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
             onClick={() => setActiveTab("points")}
-          >
-            <span className="dd-nav-icon">◈</span> My Points
-          </button>
-          <button className="dd-nav-item">
-            <span className="dd-nav-icon">⊙</span> Catalog
-          </button>
+          >My Points</button>
+          <button className="dd-nav-item">Catalog</button>
           <button
             className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`}
             onClick={() => setActiveTab("orders")}
-          >
-            <span className="dd-nav-icon">◫</span> My Orders
-          </button>
-
-          <div className="dd-nav-divider" />
-
+          >My Orders</button>
           <button
             className={`dd-nav-item ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
-          >
-            <span className="dd-nav-icon">◯</span> Profile
-          </button>
+          >Profile</button>
         </nav>
-
-        <div className="dd-sidebar-footer">
-          <div className="dd-user-card">
-            <div className="dd-user-avatar">
-              {user?.email?.[0]?.toUpperCase() || 'D'}
-            </div>
-            <div className="dd-user-info">
-              <p className="dd-user-name">{user?.email || 'Driver'}</p>
-              <p className="dd-user-role">Driver account</p>
-            </div>
-          </div>
-          <button className="dd-logout-btn" onClick={handleLogout}>
-            ⎋ Sign Out
-          </button>
-        </div>
+        <button className="dd-logout-btn" onClick={handleLogout}>
+          Sign Out
+        </button>
       </div>
 
       <main className="dd-main">
 
         {activeTab === "dashboard" && (
           <>
-          <div className="dd-top-bar">
-          <h1 className="dd-page-title">Driver Dashboard</h1>
-        </div>
+            <div className="dd-top-bar">
+              <h1 className="dd-page-title">Driver Dashboard</h1>
+            </div>
 
-        <div className="dd-stats-grid">
-          ... your existing stat cards ...
-        </div>
+            {goals.length === 0 ? (
+              <div className="dd-section">
+                <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>
+                  No active goals yet. Your sponsor will set point goals for you here.
+                </p>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 14px' }}>
+                  Your Active Goals
+                </h2>
+                <div className="dd-goals-grid">
+                  {goals.map(goal => {
+                    const pct = Math.min(100, Math.round((goal.current_points / goal.target_points) * 100));
+                    const daysLeft = goal.deadline
+                      ? Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+                      : null;
+                    const overdue = daysLeft !== null && daysLeft < 0;
 
-        <div className="dd-section">
-          ... your existing recent activity ...
-        </div>
-        </>
-      )}
+                    return (
+                      <div key={goal.id} className={`dd-goal-card ${goal.completed ? 'dd-goal-completed' : ''}`}>
+                        <div className="dd-goal-top">
+                          <div>
+                            <p className="dd-goal-sponsor">{goal.sponsor_email}</p>
+                            <h3 className="dd-goal-title">{goal.title}</h3>
+                            {goal.description && <p className="dd-goal-desc">{goal.description}</p>}
+                          </div>
+                          {goal.completed && <span className="dd-badge-complete">✓ Done</span>}
+                          {!goal.completed && overdue && <span className="dd-badge-overdue">Overdue</span>}
+                          {!goal.completed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3 && (
+                            <span className="dd-badge-urgent">{daysLeft}d left</span>
+                          )}
+                        </div>
+
+                        <div className="dd-goal-progress-bar">
+                          <div
+                            className={`dd-goal-progress-fill ${goal.completed ? 'dd-goal-progress-done' : ''}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <div className="dd-goal-progress-labels">
+                          <span>{goal.current_points.toLocaleString()} / {goal.target_points.toLocaleString()} pts</span>
+                          <span>{pct}%</span>
+                        </div>
+
+                        {goal.deadline && (
+                          <p className="dd-goal-deadline">
+                            Deadline: {new Date(goal.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </>
+        )}
 
       {activeTab === "apply" && (
         <>
