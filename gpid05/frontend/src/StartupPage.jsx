@@ -46,7 +46,7 @@ export default function StartupPage() {
       {/* ── NAV ── */}
       <nav className="startup-nav">
         <div className="startup-nav-logo">
-          <span className="startup-logo-icon">🚛</span>
+          <span className="startup-logo-icon"></span>
           <span className="startup-logo-text">
             Good Driver<span className="startup-logo-accent"> Incentive Program</span>
           </span>
