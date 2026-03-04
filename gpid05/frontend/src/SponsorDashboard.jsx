@@ -82,35 +82,65 @@ export default function SponsorDashboard() {
     <div className="sd-container">
       <div className="sd-sidebar">
         <div className="sd-sidebar-header">
-          <h2 className="sd-sidebar-title">Sponsor Portal</h2>
+          <div className="sd-sidebar-brand">
+            <div className="sd-sidebar-brand-icon">⭑</div>
+            <div>
+              <h2 className="sd-sidebar-title">Sponsor Portal</h2>
+              <p className="sd-sidebar-subtitle">Fleet Rewards</p>
+            </div>
+          </div>
         </div>
+
         <nav className="sd-nav">
           <button
-          className={`sd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
-          onClick={() => setActiveTab("dashboard")}
+            className={`sd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
           >
-            Dashboard
+            <span className="sd-nav-icon">⊞</span> Dashboard
           </button>
           <button
             className={`sd-nav-item ${activeTab === "manageDrivers" ? "active" : ""}`}
             onClick={() => setActiveTab("manageDrivers")}
           >
-            Manage Drivers
+            <span className="sd-nav-icon">◧</span> Manage Drivers
           </button>
+
+          <div className="sd-nav-divider" />
 
           <button
             className={`sd-nav-item ${activeTab === "awardPoints" ? "active" : ""}`}
             onClick={() => setActiveTab("awardPoints")}
-          >Award Points</button>
-          <a className="sd-nav-item" href="#">Catalog</a>
+          >
+            <span className="sd-nav-icon">◈</span> Award Points
+          </button>
+          <a className="sd-nav-item" href="#">
+            <span className="sd-nav-icon">⊙</span> Catalog
+          </a>
+
+          <div className="sd-nav-divider" />
+
           <button
             className={`sd-nav-item ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
-          >Profile</button>
+          >
+            <span className="sd-nav-icon">◯</span> Profile
+          </button>
         </nav>
-        <button className="sd-logout-btn" onClick={handleLogout}>
-          Sign Out
-        </button>
+
+        <div className="sd-sidebar-footer">
+          <div className="sd-user-card">
+            <div className="sd-user-avatar">
+              {user?.email?.[0]?.toUpperCase() || 'S'}
+            </div>
+            <div className="sd-user-info">
+              <p className="sd-user-name">{user?.email || 'Sponsor'}</p>
+              <p className="sd-user-role">Sponsor account</p>
+            </div>
+          </div>
+          <button className="sd-logout-btn" onClick={handleLogout}>
+            ⎋ Sign Out
+          </button>
+        </div>
       </div>
 
       <main className="sd-main">
@@ -119,28 +149,25 @@ export default function SponsorDashboard() {
             <div className="sd-top-bar">
               <h1 className="sd-page-title">Sponsor Dashboard</h1>
             </div>
-
-            <div className="sd-stats-grid"> 
-              <div className="sd-stat-card"> 
-                <p className="sd-stat-label">Active Drivers</p> 
-                <p className="sd-stat-value">14</p> 
-              </div> 
-            <div className="sd-stat-card"> 
-              <p className="sd-stat-label">Points Awarded</p> 
-              <p className="sd-stat-value">8,400</p> 
-            </div> 
-            <div className="sd-stat-card"> 
-              <p className="sd-stat-label">Points Redeemed</p> 
-              <p className="sd-stat-value">3,120</p> 
-            </div> 
-            <div className="sd-stat-card"> 
-              <p className="sd-stat-label">Catalog Items</p> 
-              <p className="sd-stat-value">32</p> </div>
-          </div>
-
-            <div className="sd-section">
-            ...
+            <div className="sd-stats-grid">
+              <div className="sd-stat-card">
+                <p className="sd-stat-label">Active Drivers</p>
+                <p className="sd-stat-value">14</p>
+              </div>
+              <div className="sd-stat-card">
+                <p className="sd-stat-label">Points Awarded</p>
+                <p className="sd-stat-value">8,400</p>
+              </div>
+              <div className="sd-stat-card">
+                <p className="sd-stat-label">Points Redeemed</p>
+                <p className="sd-stat-value">3,120</p>
+              </div>
+              <div className="sd-stat-card">
+                <p className="sd-stat-label">Catalog Items</p>
+                <p className="sd-stat-value">32</p>
+              </div>
             </div>
+            <div className="sd-section">...</div>
           </>
         )}
 
@@ -156,53 +183,42 @@ export default function SponsorDashboard() {
                   <th>Driver</th>
                   <th>Status</th>
                   <th>Actions</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                    {applications
-                    .filter(app => app.status === "PENDING")
-                    .map((app) => (
-                    <tr key={app.id}>
-                      <td>{app.driver_email}</td>
-                      <td>{app.status}</td>
-                      <td>
-                        <button onClick={() => handleApprove(app.id)}>
-                          Approve
-                          </button>
-                          <button onClick={() => handleReject(app.id)}>
-                            Reject
-                            </button>
-                            </td>
-                            </tr>
-                          ))}
-                          </tbody>
-                          </table>
-                          </>
-                      
-        )}
-        <h2 style={{ marginTop: "40px" }}>Approved Drivers</h2>
-        <table className="sd-table">
-          <thead>
-            <tr>
-              <th>Driver</th>
-              <th>Status</th>
-              </tr>
+                </tr>
               </thead>
               <tbody>
-                {applications
-                .filter(app => app.status === "APPROVED")
-                .map((app) => (
-                <tr key={app.id}>
-                  <td>{app.driver_email}</td>
-                  <td>
-                    <span style={{ color: "green", fontWeight: "bold" }}>
-                      APPROVED
-                      </span>
-                      </td>
-                      </tr>
-                    ))}
-                    </tbody>
-                    </table>
+                {applications.filter(app => app.status === "PENDING").map((app) => (
+                  <tr key={app.id}>
+                    <td>{app.driver_email}</td>
+                    <td>{app.status}</td>
+                    <td>
+                      <button onClick={() => handleApprove(app.id)}>Approve</button>
+                      <button onClick={() => handleReject(app.id)}>Reject</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h2 style={{ marginTop: "40px" }}>Approved Drivers</h2>
+            <table className="sd-table">
+              <thead>
+                <tr>
+                  <th>Driver</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {applications.filter(app => app.status === "APPROVED").map((app) => (
+                  <tr key={app.id}>
+                    <td>{app.driver_email}</td>
+                    <td><span style={{ color: "green", fontWeight: "bold" }}>APPROVED</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
         {activeTab === "awardPoints" && (
           <AwardPoints
             user={user}
@@ -215,7 +231,6 @@ export default function SponsorDashboard() {
         {activeTab === "profile" && (
           <SponsorProfile user={user} applications={applications} />
         )}
-
       </main>
     </div>
   );

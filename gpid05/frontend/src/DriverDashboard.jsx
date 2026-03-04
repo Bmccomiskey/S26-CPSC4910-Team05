@@ -29,6 +29,14 @@ export default function DriverDashboard() {
     }
   }, [user, activeTab]);
 
+  const fetchTransactions = () => {
+    if (!user) return;
+    fetch(`/points/driver/${user.id}/history`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setTransactions(data))
+      .catch(err => console.error("Error fetching points:", err));
+  };
+
   useEffect(() => {
     if (user) {
       fetch(`/applications/driver/${user.id}`)
@@ -36,12 +44,16 @@ export default function DriverDashboard() {
         .then(data => setMyApplications(data))
         .catch(err => console.error("Error fetching applications:", err));
 
-      fetch(`/points/driver/${user.id}/history`, { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => setTransactions(data))
-        .catch(err => console.error("Error fetching points:", err));
+      fetchTransactions();
     }
   }, [user]);
+
+  // Re-fetch transactions every time the points tab is opened
+  useEffect(() => {
+    if (activeTab === "points") {
+      fetchTransactions();
+    }
+  }, [activeTab]);
   const handleApply = async (sponsorId) => {
     try {
       const res = await fetch(`/applications/`, {
@@ -106,40 +118,70 @@ export default function DriverDashboard() {
     <div className="dd-container">
       <div className="dd-sidebar">
         <div className="dd-sidebar-header">
-          <h2 className="dd-sidebar-title">Driver Portal</h2>
+          <div className="dd-sidebar-brand">
+            <div className="dd-sidebar-brand-icon">🚗</div>
+            <div>
+              <h2 className="dd-sidebar-title">Driver Portal</h2>
+            </div>
+          </div>
         </div>
+
         <nav className="dd-nav">
           <button
             className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => setActiveTab("dashboard")}
           >
-          Dashboard
+            <span className="dd-nav-icon">⊞</span> Dashboard
           </button>
-
           <button
             className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`}
             onClick={() => setActiveTab("apply")}
           >
-          Apply for Sponsorship
+            <span className="dd-nav-icon">✦</span> Apply for Sponsorship
           </button>
+
+          <div className="dd-nav-divider" />
 
           <button
             className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
             onClick={() => setActiveTab("points")}
-          >My Points</button>
-          <button className="dd-nav-item">Catalog</button>
+          >
+            <span className="dd-nav-icon">◈</span> My Points
+          </button>
+          <button className="dd-nav-item">
+            <span className="dd-nav-icon">⊙</span> Catalog
+          </button>
           <button
             className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`}
             onClick={() => setActiveTab("orders")}
-          >My Orders</button>
+          >
+            <span className="dd-nav-icon">◫</span> My Orders
+          </button>
+
+          <div className="dd-nav-divider" />
+
           <button
             className={`dd-nav-item ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
-          >Profile</button>
+          >
+            <span className="dd-nav-icon">◯</span> Profile
+          </button>
         </nav>
-        <button className="dd-logout-btn" onClick={handleLogout}>
-          Sign Out
-        </button>
+
+        <div className="dd-sidebar-footer">
+          <div className="dd-user-card">
+            <div className="dd-user-avatar">
+              {user?.email?.[0]?.toUpperCase() || 'D'}
+            </div>
+            <div className="dd-user-info">
+              <p className="dd-user-name">{user?.email || 'Driver'}</p>
+              <p className="dd-user-role">Driver account</p>
+            </div>
+          </div>
+          <button className="dd-logout-btn" onClick={handleLogout}>
+            ⎋ Sign Out
+          </button>
+        </div>
       </div>
 
       <main className="dd-main">

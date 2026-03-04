@@ -34,6 +34,18 @@ class AwardPointsBody(BaseModel):
     description: str | None = None
 
 
+class SubtractPointsBody(BaseModel):
+    sponsor_id: int
+    driver_id: int
+    points: int
+    reason: str | None = None
+
+
+class ResetPointsBody(BaseModel):
+    sponsor_id: int
+    driver_id: int
+
+
 # ── Routes ─────────────────────────────────────────────────────────────────
 
 @router.post("/award")
@@ -80,6 +92,105 @@ def award_points(body: AwardPointsBody, request: Request, db: Session = Depends(
     )
 
     return {"message": "Points awarded successfully", "transaction_id": transaction.id}
+
+
+@router.post("/subtract")
+def subtract_points(body: SubtractPointsBody, request: Request, db: Session = Depends(get_db)):
+    # Validate sponsor exists
+    sponsor = db.query(User).filter(User.id == body.sponsor_id, User.role == "sponsor").first()
+    if not sponsor:
+        raise HTTPException(status_code=404, detail="Sponsor not found")
+
+    # Validate driver exists
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    # Ensure there is an approved relationship between them
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.sponsor_id == body.sponsor_id,
+        SponsorshipApplication.driver_id == body.driver_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+    if not approved:
+        raise HTTPException(status_code=403, detail="No approved sponsorship between this sponsor and driver")
+
+    if body.points <= 0:
+        raise HTTPException(status_code=400, detail="Points must be a positive number")
+
+    transaction = PointTransaction(
+        driver_id=body.driver_id,
+        sponsor_id=body.sponsor_id,
+        points=-body.points,  # stored as negative so balance math stays simple
+        description=body.reason,
+    )
+    db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
+
+    log_audit_event(
+        db=db,
+        event_type="POINTS_SUBTRACTED",
+        success=True,
+        user_id=body.sponsor_id,
+        request=request,
+        metadata={"driver_id": body.driver_id, "points": body.points}
+    )
+
+    return {"message": "Points subtracted successfully", "transaction_id": transaction.id}
+
+
+@router.post("/reset")
+def reset_points(body: ResetPointsBody, request: Request, db: Session = Depends(get_db)):
+    # Validate sponsor exists
+    sponsor = db.query(User).filter(User.id == body.sponsor_id, User.role == "sponsor").first()
+    if not sponsor:
+        raise HTTPException(status_code=404, detail="Sponsor not found")
+
+    # Validate driver exists
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    # Ensure there is an approved relationship between them
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.sponsor_id == body.sponsor_id,
+        SponsorshipApplication.driver_id == body.driver_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+    if not approved:
+        raise HTTPException(status_code=403, detail="No approved sponsorship between this sponsor and driver")
+
+    # Calculate current balance for this sponsor<>driver pair and cancel it out
+    transactions = db.query(PointTransaction).filter(
+        PointTransaction.driver_id == body.driver_id,
+        PointTransaction.sponsor_id == body.sponsor_id,
+    ).all()
+    current_balance = sum(t.points for t in transactions)
+
+    if current_balance == 0:
+        return {"message": "Balance is already zero", "transaction_id": None}
+
+    transaction = PointTransaction(
+        driver_id=body.driver_id,
+        sponsor_id=body.sponsor_id,
+        points=-current_balance,  # exactly cancels the running balance
+        description="Points reset to zero by sponsor",
+    )
+    db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
+
+    log_audit_event(
+        db=db,
+        event_type="POINTS_RESET",
+        success=True,
+        user_id=body.sponsor_id,
+        request=request,
+        metadata={"driver_id": body.driver_id, "cancelled_balance": current_balance}
+    )
+
+    return {"message": "Points reset to zero successfully", "transaction_id": transaction.id}
 
 
 @router.get("/sponsor/{sponsor_id}/history")

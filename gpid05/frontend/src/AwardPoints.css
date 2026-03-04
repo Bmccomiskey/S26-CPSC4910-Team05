@@ -59,6 +59,7 @@
   border-radius: 10px;
   padding: 4px;
   width: fit-content;
+  flex-wrap: wrap;
 }
 
 .awp-mode-btn {
@@ -82,6 +83,22 @@
 
 .awp-mode-btn:not(.active):hover {
   color: #0f172a;
+}
+
+/* Danger mode buttons (subtract / reset) */
+.awp-mode-btn-danger {
+  color: #b91c1c;
+}
+
+.awp-mode-btn-danger:not(.active):hover {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.awp-mode-btn-danger.active {
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(220,38,38,0.25);
 }
 
 /* ── Cards ── */
@@ -112,6 +129,20 @@
 .awp-card-icon {
   font-size: 16px;
   opacity: 0.6;
+}
+
+/* Danger card variant */
+.awp-card-danger {
+  border-color: #fecaca;
+}
+
+.awp-card-header-danger {
+  background: #fff5f5;
+  border-bottom-color: #fecaca;
+}
+
+.awp-card-header-danger .awp-card-title {
+  color: #991b1b;
 }
 
 /* ── Form ── */
@@ -167,12 +198,60 @@
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
+/* ── Reset warning box ── */
+.awp-reset-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.awp-reset-warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.awp-reset-warning p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+.awp-reset-warning strong {
+  color: #991b1b;
+}
+
+/* ── Confirm checkbox ── */
+.awp-confirm-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.awp-confirm-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #dc2626;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 /* ── Multi table ── */
 .awp-multi-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  margin: 0 0 0 0;
+  margin: 16px 0 0 0;
 }
 
 .awp-multi-table thead tr {
@@ -220,12 +299,6 @@
   padding: 4px 0 0;
 }
 
-/* when outside the grid (multi mode) */
-.awp-card > .awp-form-actions {
-  padding: 16px 22px;
-  border-top: 1px solid #f1f5f9;
-}
-
 .awp-submit-btn {
   padding: 10px 28px;
   background: #0f172a;
@@ -245,8 +318,19 @@
 }
 
 .awp-submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Danger submit button */
+.awp-submit-btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.awp-submit-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #fff;
 }
 
 /* ── Empty text ── */
@@ -343,8 +427,17 @@
   white-space: nowrap;
 }
 
+/* Negative points badge */
+.awp-pts-badge-negative {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .awp-form { grid-template-columns: 1fr; }
   .awp-field-full { grid-column: 1; }
+  .awp-mode-toggle { width: 100%; }
+  .awp-mode-btn { flex: 1; text-align: center; }
 }
