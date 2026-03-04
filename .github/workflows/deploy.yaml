@@ -21,7 +21,7 @@ jobs:
 
         echo "Disk usage before cleanup:"
         df -h
-        sudo rm -rf /var/log/* /tmp/*
+        sudo rm -rf /tmp/*
         echo "Disk usage after cleanup:"
         df -h
         sudo rm -rf /usr/local/share/boost
@@ -65,6 +65,15 @@ jobs:
         sudo rm -rf /var/www/team05/*
         sudo cp -r build/* /var/www/team05/
         sudo chown -R www-data:www-data /var/www/team05
+
+        echo "Reloading Logs"
+        sudo mkdir -p /var/log/nginx
+        sudo touch /var/log/nginx/error.log /var/log/nginx/access.log
+        sudo chown -R www-data:adm /var/log/nginx
+        sudo chmod 755 /var/log/nginx
+        sudo chmod 640 /var/log/nginx/*.log
+        
+        sudo nginx -t
         sudo systemctl reload nginx
 
         echo "Starting application"
