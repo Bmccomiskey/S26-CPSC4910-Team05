@@ -72,6 +72,7 @@ function SignUp() {
               <option value="">Select account type</option>
               <option value="user">Driver</option>
               <option value="sponsor">Sponsor</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
 
