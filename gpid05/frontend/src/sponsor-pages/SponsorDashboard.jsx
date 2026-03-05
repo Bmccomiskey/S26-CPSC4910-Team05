@@ -161,7 +161,6 @@ export default function SponsorDashboard() {
           <button
             className={`sd-nav-item ${activeTab === "awardPoints" ? "active" : ""}`}
             onClick={() => setActiveTab("awardPoints")}
-<<<<<<< Updated upstream:gpid05/frontend/src/sponsor-pages/SponsorDashboard.jsx
           >
             <span className="sd-nav-icon">◈</span> Award Points
           </button>
@@ -177,15 +176,6 @@ export default function SponsorDashboard() {
 
           <div className="sd-nav-divider" />
 
-=======
-          >Award Points
-          </button>
-          <button
-          className={`sd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
-          onClick={() => setActiveTab("catalog")}
-          >Catalog
-          </button>
->>>>>>> Stashed changes:gpid05/frontend/src/SponsorDashboard.jsx
           <button
             className={`sd-nav-item ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
@@ -305,8 +295,6 @@ export default function SponsorDashboard() {
         {activeTab === "profile" && (
           <SponsorProfile user={user} applications={applications} />
         )}
-<<<<<<< Updated upstream:gpid05/frontend/src/sponsor-pages/SponsorDashboard.jsx
-=======
 
         {activeTab === "catalog" && (
           <div className="sd-section">
@@ -374,7 +362,6 @@ export default function SponsorDashboard() {
           )}
           </div>
         )}
->>>>>>> Stashed changes:gpid05/frontend/src/SponsorDashboard.jsx
       </main>
       </div>
       );

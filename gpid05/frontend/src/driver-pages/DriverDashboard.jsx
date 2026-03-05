@@ -19,9 +19,7 @@ export default function DriverDashboard() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [transactions, setTransactions] = useState([]);
-<<<<<<< Updated upstream:gpid05/frontend/src/driver-pages/DriverDashboard.jsx
   const [goals, setGoals] = useState([]);
-=======
   const [driverCatalog, setDriverCatalog] = useState([]);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
@@ -66,7 +64,6 @@ useEffect(() => {
     fetchDriverCatalog();
   }
 }, [user, activeTab, catalogSearch]);
->>>>>>> Stashed changes:gpid05/frontend/src/DriverDashboard.jsx
 
   useEffect(() => {
   if (user && activeTab === "apply") {
@@ -104,7 +101,6 @@ useEffect(() => {
       fetchGoals();
     }
   }, [user]);
-<<<<<<< Updated upstream:gpid05/frontend/src/driver-pages/DriverDashboard.jsx
 
   // Re-fetch transactions every time the points tab is opened
   useEffect(() => {
@@ -112,9 +108,6 @@ useEffect(() => {
       fetchTransactions();
     }
   }, [activeTab]);
-=======
-  
->>>>>>> Stashed changes:gpid05/frontend/src/DriverDashboard.jsx
   const handleApply = async (sponsorId) => {
     try {
       const res = await fetch(`/applications/`, {
