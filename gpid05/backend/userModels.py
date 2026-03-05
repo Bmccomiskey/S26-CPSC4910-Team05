@@ -1,7 +1,8 @@
 
-from sqlalchemy import String, Integer, Boolean
+from sqlalchemy import String, Integer, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db import Base
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
