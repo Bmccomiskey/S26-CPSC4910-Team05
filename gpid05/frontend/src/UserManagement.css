@@ -72,3 +72,13 @@
     justify-content: flex-start;
   }
 }
+
+/* Force UserManagement styles to win if other dashboard CSS overrides them */
+.sd-main .um-toolbar { display: flex !important; gap: 12px !important; }
+.sd-main .um-btn { border: none !important; border-radius: 10px !important; padding: 8px 12px !important; font-weight: 700 !important; }
+.sd-main .um-btn.refresh { background: #1d4ed8 !important; color: #fff !important; }
+.sd-main .um-btn.create { background: #7c3aed !important; color: #fff !important; }
+.sd-main .um-btn.lock { background: #b91c1c !important; color: #fff !important; }
+.sd-main .um-btn.unlock { background: #047857 !important; color: #fff !important; }
+.sd-main .um-btn.delete { background: #374151 !important; color: #fff !important; }
+.sd-main .um-table-wrap { border-radius: 14px !important; overflow: hidden !important; border: 1px solid #d1d5db !important; }
