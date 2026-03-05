@@ -5,13 +5,13 @@ from db import get_db
 from userModels import User
 from audit import log_audit_event
 from sessions import require_role
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from security import hash_password
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 class AdminCreateUserBody(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     role: str
 
