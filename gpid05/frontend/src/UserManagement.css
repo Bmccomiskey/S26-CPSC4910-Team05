@@ -1,170 +1,160 @@
 
 .um-toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+  margin-top: 14px;
+  margin-bottom: 10px;
 }
 
 .um-message {
-  margin-bottom: 12px;
+  margin-top: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  font-size: 14px;
-  background: rgba(243, 201, 75, 0.12);
-  border: 1px solid rgba(243, 201, 75, 0.35);
-  color: #f3c94b;
+  background: #111827;    
+  color: #f9fafb;        
+  border: 1px solid #374151; 
+}
+
+.um-loading,
+.um-empty {
+  margin-top: 12px;
+  color: #111827; 
+  font-weight: 600;
 }
 
 .um-table-wrap {
-  margin-top: 8px;
-  overflow-x: auto;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 12px;
   border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 .sd-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+}
+
+.sd-table thead tr {
+  background: #111827; 
 }
 
 .sd-table thead th {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: #f9fafb; 
+  padding: 14px 14px;
   text-align: left;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #d7d7d7;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  white-space: nowrap;
 }
 
 .sd-table tbody td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: #f3f3f3;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  vertical-align: middle;
+  padding: 14px 14px;
+  border-top: 1px solid #e5e7eb;
+  color: #111827;
+  font-weight: 500;
+}
+
+.sd-table tbody tr:nth-child(even) {
+  background: #f9fafb;
 }
 
 .sd-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.sd-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.um-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  border: 1px solid transparent;
-}
-
-.um-status.active {
-  color: #7df08d;
-  background: rgba(80, 200, 120, 0.12);
-  border-color: rgba(80, 200, 120, 0.28);
-}
-
-.um-status.locked {
-  color: #ff8d8d;
-  background: rgba(255, 99, 99, 0.12);
-  border-color: rgba(255, 99, 99, 0.28);
-}
-
-.um-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  background: #eef2ff;
 }
 
 .um-btn {
   border: none;
   border-radius: 10px;
   padding: 8px 12px;
-  font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.05s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.08s ease, opacity 0.12s ease;
 }
 
 .um-btn:hover {
-  opacity: 0.95;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  opacity: 0.92;
 }
 
 .um-btn:active {
   transform: translateY(1px);
 }
 
+.um-btn.refresh {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
 .um-btn.lock {
-  background: #a93b3b;
-  color: #fff;
+  background: #b91c1c;
+  color: #ffffff;
 }
 
 .um-btn.unlock {
-  background: #2f8f57;
-  color: #fff;
+  background: #047857;
+  color: #ffffff;
 }
 
-.um-btn.refresh {
-  background: #3b82f6;
-  color: #fff;
-}
-
-.um-current-admin {
-  font-size: 12px;
-  color: #a8a8a8;
-  font-style: italic;
-}
-
-.um-empty {
-  margin-top: 12px;
-  color: #c9c9c9;
-  font-size: 14px;
-}
-
-.um-loading {
-  margin-top: 10px;
-  color: #d2d2d2;
-  font-size: 14px;
-}
-
-/* optional subtle role badges */
 .um-role {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.06);
-  color: #e5e5e5;
-}
-
-.um-role.admin {
-  background: rgba(168, 85, 247, 0.16);
-  color: #d9b3ff;
-}
-
-.um-role.sponsor {
-  background: rgba(59, 130, 246, 0.16);
-  color: #9ec5ff;
+  font-weight: 800;
+  text-transform: capitalize;
+  border: 1px solid transparent;
 }
 
 .um-role.user {
-  background: rgba(34, 197, 94, 0.14);
-  color: #a6f3c4;
+  background: #dcfce7;
+  color: #14532d;
+  border-color: #86efac;
+}
+
+.um-role.sponsor {
+  background: #dbeafe;
+  color: #1e3a8a;
+  border-color: #93c5fd;
+}
+
+.um-role.admin {
+  background: #fef3c7;
+  color: #78350f;
+  border-color: #fcd34d;
+}
+
+.um-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.um-status.active {
+  background: #dcfce7;
+  color: #14532d;
+  border-color: #86efac;
+}
+
+.um-status.locked {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border-color: #fca5a5;
+}
+
+.um-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.um-current-admin {
+  color: #6b7280;
+  font-weight: 700;
+  font-size: 13px;
 }

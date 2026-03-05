@@ -102,22 +102,10 @@ export default function AdminDashboard() {
                   {user.email}
                 </p>
               </div>
-              <div className="sd-stat-card">
-                <p className="sd-stat-label">User Management</p>
-                <p className="sd-stat-value">Ready</p>
-              </div>
-              <div className="sd-stat-card">
-                <p className="sd-stat-label">Sprint Focus</p>
-                <p className="sd-stat-value">Admin</p>
-              </div>
             </div>
 
             <div className="sd-section">
               <h2>Welcome, Admin</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Use the User Management tab to lock and unlock user accounts for the current sprint stories.
-              </p>
-
               <div style={{ marginTop: '14px' }}>
                 <button
                   className="sd-nav-item"
