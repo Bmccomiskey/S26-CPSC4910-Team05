@@ -100,14 +100,14 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
         if user:
             user.failed_login_attempts += 1
 
-            if user.failed_login_attempts >= 3:
-                user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+            if user.failed_login_attempts >= 5:
+                user.locked_until = datetime.utcnow() + timedelta(minutes=5)
                 db.commit()
 
                 send_notification(
                     user.email,
                     "Account Locked",
-                    f"Your account has been locked due to multiple failed login attempts. It will be unlocked in 30 minutes."
+                    f"Your account has been locked due to multiple failed login attempts. It will be unlocked in 5 minutes."
                 )
 
                 log_audit_event(
