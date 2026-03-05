@@ -92,7 +92,36 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
 
     user = db.query(User).filter(User.email == email).first()
 
+    if user and user.locked_until and datetime.utcnow() < user.locked_until:
+        time_remaining = (user.locked_until - datetime.utcnow()).seconds // 60
+        raise HTTPException(status_code=403, detail=f"Account is locked. Try again in {time_remaining} minutes.")
+
     if not user or not verify_password(password, user.password_hash) or not user.is_active:
+        if user:
+            user.failed_login_attempts += 1
+
+            if user.failed_login_attempts >= 3:
+                user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+                db.commit()
+
+                send_notification(
+                    user.email,
+                    "Account Locked",
+                    f"Your account has been locked due to multiple failed login attempts. It will be unlocked in 30 minutes."
+                )
+
+                log_audit_event(
+                    db=db,
+                    event_type="ACCOUNT_LOCKED",
+                    success=True,
+                    user_id=user.id,
+                    request=request
+                )
+
+                raise HTTPException(status_code=403, detail="Account has been locked due to too many failed login attempts. You will receive a notification.")
+
+            db.commit()
+
         log_audit_event(
             db=db,
             event_type="LOGIN_ATTEMPT",
@@ -101,6 +130,10 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
             request=request
         )
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    db.commit()
 
     log_audit_event(
         db=db,
@@ -121,9 +154,9 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
     )
 
     return {
-    "message": "User logged in successfully",
-    "role": user.role,
-    "id": user.id
+        "message": "User logged in successfully",
+        "role": user.role,
+        "id": user.id
     }
 
 
