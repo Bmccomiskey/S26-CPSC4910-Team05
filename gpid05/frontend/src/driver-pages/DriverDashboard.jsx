@@ -6,7 +6,7 @@ import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
 
-// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 
 export default function DriverDashboard() {
@@ -20,6 +20,50 @@ export default function DriverDashboard() {
   const [errorMessage, setErrorMessage] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [driverCatalog, setDriverCatalog] = useState([]);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(false);
+
+  const fetchDriverCatalog = async () => {
+    setCatalogLoading(true);
+    try {
+      const resApps = await fetch(
+        `${API_BASE}/applications/driver/${user.id}`
+      );
+      const applications = await resApps.json();
+      const approved = applications.filter(
+        app => app.status === "APPROVED"
+      );
+
+      const catalogs = [];
+
+      for (let app of approved) {
+        const resCatalog = await fetch(
+          `${API_BASE}/catalog/sponsor/${app.sponsor_id}?search=${catalogSearch}`
+        );
+        const data = await resCatalog.json();
+
+        catalogs.push({
+          sponsor_email: app.sponsor_email,
+          last_updated: data.last_updated,
+          items: data.items
+        });
+      }
+
+      setDriverCatalog(catalogs);
+
+    } catch (err) {
+      console.error("Driver catalog fetch error:", err);
+  }
+  
+  setCatalogLoading(false);
+};
+
+useEffect(() => {
+  if (user && activeTab === "catalog") {
+    fetchDriverCatalog();
+  }
+}, [user, activeTab, catalogSearch]);
 
   useEffect(() => {
   if (user && activeTab === "apply") {
@@ -149,7 +193,12 @@ export default function DriverDashboard() {
             className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
             onClick={() => setActiveTab("points")}
           >My Points</button>
-          <button className="dd-nav-item">Catalog</button>
+          <button
+            className={`dd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
+            onClick={() => setActiveTab("catalog")}
+          >
+            Catalog
+          </button>
           <button
             className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`}
             onClick={() => setActiveTab("orders")}
@@ -327,7 +376,53 @@ export default function DriverDashboard() {
         </div>
           </>
         )}
-
+      
+      {activeTab === "catalog" && (
+        <div className="dd-section">
+          <h2>Available Rewards</h2>
+          <input
+          type="text"
+          placeholder="Search catalog..."
+          value={catalogSearch}
+          onChange={(e) => setCatalogSearch(e.target.value)}
+          style={{ marginBottom: "15px", padding: "5px" }}
+          />
+          {catalogLoading ? (
+            <p>Loading...</p>
+          ) : driverCatalog.length === 0 ? (
+          <p>No approved sponsors or no catalog available.</p>
+        ) : (
+          driverCatalog.map((catalog, idx) => (
+          <div key={idx} style={{ marginBottom: "40px" }}>
+            <h3>{catalog.sponsor_email}</h3>
+            {catalog.last_updated && (
+              <p>
+                Last Updated: {new Date(catalog.last_updated).toLocaleString()}
+              </p>
+            )}
+            <table className="dd-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Points</th>
+                  <th>Price (USD)</th>
+                  </tr>
+                  </thead>
+                <tbody>
+                  {catalog.items.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td>{item.point_cost}</td>
+                      <td>${item.price_usd}</td>
+                  </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+            ))
+            )}
+            </div>
+          )}
       {activeTab === "orders" && (
         <DriverOrders user={user} orders={[]} />
       )}

@@ -6,7 +6,7 @@ import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
 
-// const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 
 export default function SponsorDashboard() {
@@ -16,6 +16,11 @@ export default function SponsorDashboard() {
 
   const [applications, setApplications] = useState([]);
   const [pointsHistory, setPointsHistory] = useState([]);
+
+  const [catalogItems, setCatalogItems] = useState([]);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [catalogLoading, setCatalogLoading] = useState(false);
 
   const fetchApplications = () => {
     fetch(`/applications/sponsor/${user.id}`, {
@@ -35,6 +40,37 @@ export default function SponsorDashboard() {
       .catch(err => console.error('Error fetching points history:', err));
   };
 
+  const fetchCatalog = async () => {
+    setCatalogLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/catalog/sponsor/${user.id}?search=${catalogSearch}&include_inactive=true`
+      );
+      const data = await res.json();
+      setCatalogItems(data.items || []);
+      setLastUpdated(data.last_updated);
+    } catch (err) {
+      console.error("Catalog fetch error:", err);
+    }
+    setCatalogLoading(false);
+  };
+
+  const refreshCatalog = async () => {
+    try {
+      await fetch(`${API_BASE}/catalog/${user.id}/refresh`, {
+        method: "POST",
+      });
+      fetchCatalog();
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user && activeTab === "catalog") {
+      fetchCatalog();
+    }
+  }, [user, activeTab, catalogSearch]);
   useEffect(() => {
     if (user) {
       fetchApplications();
@@ -52,6 +88,20 @@ export default function SponsorDashboard() {
     );
     fetchApplications();
   };
+
+  const removeItem = async (itemId) => {
+    await fetch(`${API_BASE}/catalog/${user.id}/remove/${itemId}`, {
+      method: "POST"
+    });
+    fetchCatalog();
+  };
+  const activateItem = async (itemId) => {
+    await fetch(`${API_BASE}/catalog/${user.id}/activate/${itemId}`, {
+      method: "POST"
+    });
+    fetchCatalog();
+  };
+
   const handleReject = async (id) => {
     await fetch(
       `/applications/${id}/reject?sponsor_id=${user.id}`,
@@ -245,7 +295,74 @@ export default function SponsorDashboard() {
         {activeTab === "profile" && (
           <SponsorProfile user={user} applications={applications} />
         )}
+
+        {activeTab === "catalog" && (
+          <div className="sd-section">
+            <h2>Catalog</h2>
+            <div style={{ marginBottom: "15px" }}>
+              <button onClick={refreshCatalog}>
+                Refresh Catalog
+              </button>
+            </div>
+            {lastUpdated && (
+              <p>
+                Last Updated: {new Date(lastUpdated).toLocaleString()}
+              </p>
+            )}
+            <input
+            type="text"
+            placeholder="Search catalog..."
+            value={catalogSearch}
+            onChange={(e) => setCatalogSearch(e.target.value)}
+            style={{ marginBottom: "15px", padding: "5px" }}
+            />
+            {catalogLoading ? (
+              <p>Loading...</p>
+            ) : (
+            <table className="sd-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Points</th>
+                  <th>Price (USD)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {catalogItems.map((item) => (
+                  <tr
+                  key={item.id}
+                  style={{
+                    opacity: item.is_active ? 1 : 0.4
+                  }}
+                  >
+                    <td>{item.name}</td>
+                    <td>{item.point_cost}</td>
+                    <td>${item.price_usd}</td>
+                    <td>
+                      {!item.is_active && (
+                        <span style={{ color: "red", marginRight: "10px"}}>
+                          Outside Budget
+                        </span>
+                      )}
+                      {item.is_active ? (
+                        <button onClick={() => removeItem(item.id)}>
+                          Remove
+                          </button>
+                          ) : (
+                          <button onClick={() => activateItem(item.id)}>
+                            Add Back
+                          </button>
+                        )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          </div>
+        )}
       </main>
-    </div>
-  );
-}
+      </div>
+      );
+    }

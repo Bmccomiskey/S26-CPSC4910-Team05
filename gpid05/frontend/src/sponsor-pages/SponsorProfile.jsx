@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SponsorProfile.css';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 export default function SponsorProfile({ user, applications = [] }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -14,6 +15,8 @@ export default function SponsorProfile({ user, applications = [] }) {
     address:      'your address',
     industry:     'Industry',
     pointBudget:  '200000',
+    minPointCost: '0',
+    maxPointCost: '10000',
   });
 
   const set = (key, val) => setProfile(p => ({ ...p, [key]: val }));
@@ -23,12 +26,19 @@ export default function SponsorProfile({ user, applications = [] }) {
   const budgetTotal = parseInt(profile.pointBudget) || 1;
   const budgetPct   = Math.min(100, Math.round((budgetUsed / budgetTotal) * 100));
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
+ const handleSave = async (e) => {
+  e.preventDefault();
+  await fetch(
+    `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}`,
+    {
+      method: 'POST',
+      credentials: 'include'
+    }
+  );
+  setEditing(false);
+  setSaved(true);
+  setTimeout(() => setSaved(false), 3000);
+};
 
   return (
     <div className="srp-root">
@@ -149,6 +159,21 @@ export default function SponsorProfile({ user, applications = [] }) {
               <label className="srp-field-label">Member Since</label>
               <p className="srp-field-value">January 2026</p>
             </div>
+
+            <Field
+            label="Minimum Catalog Points"
+            editing={editing}
+            value={profile.minPointCost}
+            onChange={v => set('minPointCost', v)}
+            type="number"
+            />
+            <Field
+            label="Maximum Catalog Points"
+            editing={editing}
+            value={profile.maxPointCost}
+            onChange={v => set('maxPointCost', v)}
+            type="number"
+            />
           </div>
 
           {/* Budget bar */}
