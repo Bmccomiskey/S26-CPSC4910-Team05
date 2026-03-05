@@ -8,7 +8,6 @@ import './SponsorDashboard.css';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-
 export default function SponsorDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const navigate = useNavigate();
@@ -170,9 +169,12 @@ export default function SponsorDashboard() {
           >
             <span className="sd-nav-icon">◎</span> Driver Goals
           </button>
-          <a className="sd-nav-item" href="#">
+          <button
+            className={`sd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
+            onClick={() => setActiveTab("catalog")}
+          >
             <span className="sd-nav-icon">⊙</span> Catalog
-          </a>
+          </button>
 
           <div className="sd-nav-divider" />
 
