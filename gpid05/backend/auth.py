@@ -19,6 +19,18 @@ SESSION_COOKIE = "session_token"
 TOKEN_EXPIRY_MINUTES = 30
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+
+#sends a notification to a user, will be replaced with AWS SES when fully implemented
+def send_notification(to_email: str, subject: str, message: str):
+    """
+    Sends a notification to a user.
+    In dev mode, prints to terminal. Will be replaced with AWS SES.
+    """
+    print(f"\n[NOTIFICATION] To: {to_email}")
+    print(f"Subject: {subject}")
+    print(f"Message: {message}\n")
+
+
 # uses the pydantic "BaseModel" to define and validate expected request body
 class RegisterBody(BaseModel):
     email: str
@@ -302,3 +314,84 @@ def reactivate_user(user_id: int, request: Request, db: Session = Depends(get_db
 def get_sponsors(db: Session = Depends(get_db)):
     sponsors = db.query(User).filter(User.role == "sponsor").all()
     return [{"id": s.id, "email": s.email} for s in sponsors]
+
+#admin sends notification to drivers
+@router.post("/admin/notify-drivers")
+def admin_notify_drivers(
+        subject: str,
+        message: str,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    drivers = db.query(User).filter(User.role == "user").all()
+
+    if not drivers:
+        raise HTTPException(status_code=404, detail="No drivers found.")
+
+    for driver in drivers:
+        send_notification(driver.email, subject, message)
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_NOTIFIED_DRIVERS",
+        success=True,
+        user_id=None,
+        request=request
+    )
+
+    return {"message": f"Notification sent to {len(drivers)} drivers."}
+
+
+#admin sends notification to sponsors
+@router.post("/admin/notify-sponsors")
+def admin_notify_sponsors(
+        subject: str,
+        message: str,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    sponsors = db.query(User).filter(User.role == "sponsor").all()
+
+    if not sponsors:
+        raise HTTPException(status_code=404, detail="No sponsors found.")
+
+    for sponsor in sponsors:
+        send_notification(sponsor.email, subject, message)
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_NOTIFIED_SPONSORS",
+        success=True,
+        user_id=None,
+        request=request
+    )
+
+    return {"message": f"Notification sent to {len(sponsors)} sponsors."}
+
+
+#sponsor sends notification to drivers
+@router.post("/sponsor/notify-drivers")
+def sponsor_notify_drivers(
+        subject: str,
+        message: str,
+        sponsor_id: int,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    drivers = db.query(User).filter(User.role == "user").all()
+
+    if not drivers:
+        raise HTTPException(status_code=404, detail="No drivers found for this sponsor.")
+
+    for driver in drivers:
+        send_notification(driver.email, subject, message)
+
+    log_audit_event(
+        db=db,
+        event_type="SPONSOR_NOTIFIED_DRIVERS",
+        success=True,
+        user_id=sponsor_id,
+        request=request
+    )
+
+    return {"message": f"Notification sent to {len(drivers)} drivers."}
