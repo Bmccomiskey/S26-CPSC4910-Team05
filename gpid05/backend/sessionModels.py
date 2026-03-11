@@ -11,3 +11,4 @@ class Session(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     last_activity_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     expires_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    impersonated_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

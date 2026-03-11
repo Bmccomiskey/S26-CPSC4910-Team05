@@ -184,3 +184,89 @@ def unlock_user_account(
     )
 
     return {"message": f"User {user.email} has been unlocked."}
+
+@router.post("/impersonate/{target_user_id}")
+def start_impersonation(
+    target_user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin_user),
+    sess: SessionModel = Depends(require_session),
+):
+    target = db.query(User).filter(User.id == target_user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    if target.role not in {"user", "sponsor"}:
+        raise HTTPException(status_code=400, detail="Can only impersonate driver or sponsor accounts")
+
+    if not target.is_active:
+        raise HTTPException(status_code=400, detail="Target user is locked/inactive")
+
+    sess.impersonated_user_id = target.id
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_IMPERSONATION_START",
+        success=True,
+        user_id=admin_user.id,
+        request=request,
+        metadata={"target_user_id": target.id, "target_email": target.email, "target_role": target.role},
+    )
+
+    return {
+        "message": "Impersonation started",
+        "user": {"id": target.id, "email": target.email, "role": target.role},
+    }
+
+@router.post("/impersonate/stop")
+def stop_impersonation(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin_user),
+    sess: SessionModel = Depends(require_session),
+):
+    if sess.impersonated_user_id is None:
+        return {
+            "message": "Not impersonating",
+            "user": {"id": admin_user.id, "email": admin_user.email, "role": admin_user.role},
+        }
+
+    old_target_id = sess.impersonated_user_id
+    sess.impersonated_user_id = None
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_IMPERSONATION_STOP",
+        success=True,
+        user_id=admin_user.id,
+        request=request,
+        metadata={"previous_target_user_id": old_target_id},
+    )
+
+    return {
+        "message": "Impersonation stopped",
+        "user": {"id": admin_user.id, "email": admin_user.email, "role": admin_user.role},
+    }
+
+@router.get("/impersonate")
+def impersonation_status(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin_user),
+    sess: SessionModel = Depends(require_session),
+):
+    if not sess.impersonated_user_id:
+        return {"is_impersonating": False, "target": None}
+
+    target = db.query(User).filter(User.id == sess.impersonated_user_id).first()
+    if not target:
+        sess.impersonated_user_id = None
+        db.commit()
+        return {"is_impersonating": False, "target": None}
+
+    return {
+        "is_impersonating": True,
+        "target": {"id": target.id, "email": target.email, "role": target.role},
+    }

@@ -62,15 +62,11 @@ def require_session(
         raise HTTPException(401, detail="Session expired")
     return sess
 
-def require_current_user(
-        db = Depends(get_db),
-        sess = Depends(require_session)
-):
-    user = db.query(User).filter(User.id == sess.user_id).first()
-    
+def require_current_user(db = Depends(get_db), sess = Depends(require_session)):
+    effective_user_id = sess.impersonated_user_id or sess.user_id
+    user = db.query(User).filter(User.id == effective_user_id).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User account unavailable")
-
     return user
 
 def require_role(*allowed_roles: str):
@@ -79,5 +75,16 @@ def require_role(*allowed_roles: str):
             raise HTTPException(status_code=403, detail="Forbidden")
         return current_user
     return dependency
+
+def require_original_user(db = Depends(get_db), sess = Depends(require_session)):
+    user = db.query(User).filter(User.id == sess.user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User account unavailable")
+    return user
+
+def require_admin_user(original_user: User = Depends(require_original_user)):
+    if original_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return original_user
 
 
