@@ -160,6 +160,25 @@ useEffect(() => {
     navigate('/login');
   };
 
+  const isImpersonating = localStorage.getItem("isImpersonating") === "true";
+  const exitImpersonation = async () => {
+    try {
+      await fetch("/admin/impersonate/stop", { method: "POST", credentials: "include" });
+    } catch (e) {}
+
+    // restore original admin identity
+    localStorage.setItem("userRole", localStorage.getItem("impersonatorRole") || "admin");
+    localStorage.setItem("userEmail", localStorage.getItem("impersonatorEmail") || "");
+    localStorage.setItem("userId", localStorage.getItem("impersonatorId") || "");
+
+    localStorage.removeItem("isImpersonating");
+    localStorage.removeItem("impersonatorRole");
+    localStorage.removeItem("impersonatorEmail");
+    localStorage.removeItem("impersonatorId");
+
+    window.location.href = "/admin-dashboard";
+  };
+
   useEffect(() => {
     setSuccessMessage('');
     setErrorMessage('');
@@ -214,6 +233,14 @@ useEffect(() => {
       </div>
 
       <main className="dd-main">
+        {isImpersonating && (
+          <div style={{ padding: "10px 14px", background: "#fff3cd", border: "1px solid #ffeeba", borderRadius: 8, marginBottom: 12 }}>
+            <strong>Impersonation mode:</strong> You are viewing this account as an admin.
+            <button style={{ marginLeft: 12 }} onClick={exitImpersonation}>
+              Exit
+            </button>
+          </div>
+        )}
 
         {activeTab === "dashboard" && (
           <>

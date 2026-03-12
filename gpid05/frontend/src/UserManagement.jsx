@@ -60,6 +60,44 @@ export default function UserManagement({ currentUser }) {
     }
   };
 
+  const handleAssumeUser = async (u) => {
+    setUserActionMsg("");
+
+    if (u.role === "admin") {
+      setUserActionMsg("Cannot impersonate an admin account.");
+      return;
+    }
+
+    //saves the real admin identity in localStorage once
+    if (!localStorage.getItem("impersonatorRole")) {
+      localStorage.setItem("impersonatorRole", localStorage.getItem("userRole") || "");
+      localStorage.setItem("impersonatorEmail", localStorage.getItem("userEmail") || "");
+      localStorage.setItem("impersonatorId", localStorage.getItem("userId") || "");
+    }
+
+    try {
+      const res = await fetch(`/admin/impersonate/${u.id}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed to impersonate");
+
+      //switch the “identity” to the target
+      localStorage.setItem("userRole", data.user.role);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("isImpersonating", "true");
+
+      //navigate to the correct dashboard
+      if (data.user.role === "sponsor") window.location.href = "/sponsor-dashboard";
+      else window.location.href = "/driver-dashboard";
+    } catch (err) {
+      setUserActionMsg(err.message || "Failed to impersonate");
+    }
+  };
+
   const handleUnlockUser = async (userId) => {
     setUserActionMsg("");
 
@@ -302,6 +340,13 @@ export default function UserManagement({ currentUser }) {
                               onClick={() => handleDeleteUser(u)}
                             >
                               Delete
+                            </button>
+                            
+                            <button
+                              className="um-btn assume"
+                              onClick={() => handleAssumeUser(u)}
+                            >
+                              Assume
                             </button>
                           </>
                         )}
