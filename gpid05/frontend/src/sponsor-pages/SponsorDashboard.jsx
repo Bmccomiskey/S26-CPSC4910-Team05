@@ -6,7 +6,10 @@ import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE =
+  process.env.NODE_ENV === "production"
+    ? "http://23.22.72.87"
+    : "http://localhost:8000";
 
 export default function SponsorDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
