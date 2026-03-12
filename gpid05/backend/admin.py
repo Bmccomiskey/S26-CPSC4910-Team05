@@ -155,7 +155,6 @@ def lock_user_account(
 
     return {"message": f"User {user.email} has been locked."}
 
-
 @router.post("/users/{user_id}/unlock")
 def unlock_user_account(
     user_id: int,
@@ -184,41 +183,6 @@ def unlock_user_account(
     )
 
     return {"message": f"User {user.email} has been unlocked."}
-
-@router.post("/impersonate/{target_user_id}")
-def start_impersonation(
-    target_user_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin_user),
-    sess = Depends(require_session),
-):
-    target = db.query(User).filter(User.id == target_user_id).first()
-    if not target:
-        raise HTTPException(status_code=404, detail="Target user not found")
-
-    if target.role not in {"user", "sponsor"}:
-        raise HTTPException(status_code=400, detail="Can only impersonate driver or sponsor accounts")
-
-    if not target.is_active:
-        raise HTTPException(status_code=400, detail="Target user is locked/inactive")
-
-    sess.impersonated_user_id = target.id
-    db.commit()
-
-    log_audit_event(
-        db=db,
-        event_type="ADMIN_IMPERSONATION_START",
-        success=True,
-        user_id=admin_user.id,
-        request=request,
-        metadata={"target_user_id": target.id, "target_email": target.email, "target_role": target.role},
-    )
-
-    return {
-        "message": "Impersonation started",
-        "user": {"id": target.id, "email": target.email, "role": target.role},
-    }
 
 @router.post("/impersonate/stop")
 def stop_impersonation(
@@ -260,6 +224,41 @@ def stop_impersonation(
             "email": admin_user.email,
             "role": admin_user.role,
         },
+    }
+
+@router.post("/impersonate/{target_user_id}")
+def start_impersonation(
+    target_user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin_user),
+    sess = Depends(require_session),
+):
+    target = db.query(User).filter(User.id == target_user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    if target.role not in {"user", "sponsor"}:
+        raise HTTPException(status_code=400, detail="Can only impersonate driver or sponsor accounts")
+
+    if not target.is_active:
+        raise HTTPException(status_code=400, detail="Target user is locked/inactive")
+
+    sess.impersonated_user_id = target.id
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_IMPERSONATION_START",
+        success=True,
+        user_id=admin_user.id,
+        request=request,
+        metadata={"target_user_id": target.id, "target_email": target.email, "target_role": target.role},
+    )
+
+    return {
+        "message": "Impersonation started",
+        "user": {"id": target.id, "email": target.email, "role": target.role},
     }
 
 @router.get("/impersonate")
