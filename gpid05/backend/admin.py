@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from userModels import User
 from audit import log_audit_event
-from sessions import require_role, require_admin_user, require_session, SessionModel
+from sessions import require_role, require_admin_user, require_session
 from pydantic import BaseModel
 from security import hash_password
 
