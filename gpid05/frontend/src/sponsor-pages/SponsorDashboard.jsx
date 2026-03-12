@@ -139,10 +139,10 @@ export default function SponsorDashboard() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || "Failed to stop impersonation");
+        throw new Error(data.detail || "Failed to exit impersonation");
       }
 
-      localStorage.setItem("userRole", "admin");
+      localStorage.setItem("userRole", localStorage.getItem("impersonatorRole") || "admin");
       localStorage.setItem("userEmail", localStorage.getItem("impersonatorEmail") || "");
       localStorage.setItem("userId", localStorage.getItem("impersonatorId") || "");
 
@@ -153,7 +153,6 @@ export default function SponsorDashboard() {
 
       window.location.href = "/admin-dashboard";
     } catch (err) {
-      console.error("Exit impersonation failed:", err);
       alert("Failed to exit impersonation. Please try again.");
     }
   };
