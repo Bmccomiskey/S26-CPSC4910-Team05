@@ -5,7 +5,6 @@ import SponsorGoals from './SponsorGoals';
 import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
-
 console.log("API_BASE in production:", API_BASE);
 const API_BASE =
   process.env.NODE_ENV === "production"
