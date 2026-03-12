@@ -24,6 +24,7 @@ export default function SponsorDashboard() {
   const [catalogSearch, setCatalogSearch] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [priceSort, setPriceSort] = useState("none");
 
   const fetchApplications = () => {
     fetch(`/applications/sponsor/${user.id}`, {
@@ -353,6 +354,15 @@ export default function SponsorDashboard() {
                 Last Updated: {new Date(lastUpdated).toLocaleString()}
               </p>
             )}
+            <select
+              value={priceSort}
+              onChange={(e) => setPriceSort(e.target.value)}
+              style={{ marginBottom: "15px", padding: "5px" }}
+              >
+                <option value="none">Sort by Price</option>
+                <option value="asc">Price: Low to High</option>
+                <option value="desc">Price: High to Low</option>
+              </select>
             <input
             type="text"
             placeholder="Search catalog..."

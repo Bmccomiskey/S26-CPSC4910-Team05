@@ -35,6 +35,7 @@ export default function DriverDashboard() {
   const [driverCatalog, setDriverCatalog] = useState([]);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [priceSort, setPriceSort] = useState("none");
 
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
@@ -488,6 +489,15 @@ useEffect(() => {
       {activeTab === "catalog" && (
         <div className="dd-section">
           <h2>Available Rewards</h2>
+          <select
+            value={priceSort}
+            onChange={(e) => setPriceSort(e.target.value)}
+            style={{ marginBottom: "15px", padding: "5px" }}
+            >
+              <option value="none">Sort by Price</option>
+              <option value="asc">Low to High</option>
+              <option value="desc">High to Low</option>
+            </select>
           <input
           type="text"
           placeholder="Search catalog..."
