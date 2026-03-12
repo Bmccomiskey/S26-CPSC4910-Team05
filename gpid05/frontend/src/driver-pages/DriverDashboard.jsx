@@ -23,6 +23,15 @@ export default function DriverDashboard() {
   const [errorMessage, setErrorMessage] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [personalGoals, setPersonalGoals] = useState([]);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalSubmitting, setGoalSubmitting] = useState(false);
+  const [goalSuccessMsg, setGoalSuccessMsg] = useState('');
+  const [goalErrorMsg, setGoalErrorMsg] = useState('');
+  const [goalTitle, setGoalTitle] = useState('');
+  const [goalDescription, setGoalDescription] = useState('');
+  const [goalTargetPoints, setGoalTargetPoints] = useState('');
+  const [goalDeadline, setGoalDeadline] = useState('');
   const [driverCatalog, setDriverCatalog] = useState([]);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
@@ -89,9 +98,64 @@ useEffect(() => {
     if (!user) return;
     fetch(`/points/goals/driver/${user.id}`, { credentials: 'include' })
       .then(res => res.json())
-      .then(data => setGoals(data))
+      .then(data => setGoals(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error fetching goals:", err));
   };
+
+  const fetchPersonalGoals = () => {
+    if (!user) return;
+    fetch(`/points/goals/personal/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setPersonalGoals(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error fetching personal goals:", err));
+  };
+
+  const flashGoal = (msg, isError = false) => {
+    if (isError) { setGoalErrorMsg(msg); setGoalSuccessMsg(''); }
+    else { setGoalSuccessMsg(msg); setGoalErrorMsg(''); }
+    setTimeout(() => { setGoalSuccessMsg(''); setGoalErrorMsg(''); }, 3500);
+  };
+
+  const handleGoalSubmit = async () => {
+    if (!goalTitle.trim()) return flashGoal('Please enter a goal title.', true);
+    if (!goalTargetPoints || Number(goalTargetPoints) <= 0) return flashGoal('Please enter a valid target.', true);
+    setGoalSubmitting(true);
+    try {
+      const res = await fetch('/points/goals/personal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          driver_id: user.id,
+          title: goalTitle,
+          description: goalDescription,
+          target_points: Number(goalTargetPoints),
+          deadline: goalDeadline || null,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        flashGoal(d.detail || 'Something went wrong.', true);
+      } else {
+        flashGoal('Personal goal created!');
+        setShowGoalForm(false);
+        setGoalTitle(''); setGoalDescription(''); setGoalTargetPoints(''); setGoalDeadline('');
+        fetchPersonalGoals();
+      }
+    } catch { flashGoal('Network error.', true); }
+    setGoalSubmitting(false);
+  };
+
+  const handleDeletePersonalGoal = async (goalId) => {
+    if (!window.confirm('Delete this goal?')) return;
+    await fetch(`/points/goals/personal/${goalId}?driver_id=${user.id}`, {
+      method: 'DELETE', credentials: 'include',
+    });
+    fetchPersonalGoals();
+  };
+
+  const formatDate = (d) =>
+    d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
   useEffect(() => {
     if (user) {
@@ -102,14 +166,14 @@ useEffect(() => {
 
       fetchTransactions();
       fetchGoals();
+      fetchPersonalGoals();
     }
   }, [user]);
 
   // Re-fetch transactions every time the points tab is opened
   useEffect(() => {
-    if (activeTab === "points") {
-      fetchTransactions();
-    }
+    if (activeTab === "points") fetchTransactions();
+    if (activeTab === "goals") { fetchGoals(); fetchPersonalGoals(); }
   }, [activeTab]);
   const handleApply = async (sponsorId) => {
     try {
@@ -225,6 +289,10 @@ useEffect(() => {
             className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
             onClick={() => setActiveTab("points")}
           >My Points</button>
+          <button
+            className={`dd-nav-item ${activeTab === "goals" ? "active" : ""}`}
+            onClick={() => setActiveTab("goals")}
+          >My Goals</button>
           <button
             className={`dd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
             onClick={() => setActiveTab("catalog")}
@@ -463,6 +531,132 @@ useEffect(() => {
             )}
             </div>
           )}
+      {/* ── My Goals tab ── */}
+      {activeTab === "goals" && (
+        <div className="dd-goals-tab">
+          <div className="dd-top-bar">
+            <h1 className="dd-page-title">My Goals</h1>
+            <button
+              className="dd-new-goal-btn"
+              onClick={() => { setShowGoalForm(v => !v); setGoalSuccessMsg(''); setGoalErrorMsg(''); }}
+            >
+              {showGoalForm ? '✕ Cancel' : '+ Personal Goal'}
+            </button>
+          </div>
+
+          {goalSuccessMsg && <div className="dd-alert dd-alert-success">✓ {goalSuccessMsg}</div>}
+          {goalErrorMsg   && <div className="dd-alert dd-alert-error">⚠ {goalErrorMsg}</div>}
+
+          {showGoalForm && (
+            <div className="dd-goal-form-card">
+              <div className="dd-goal-form-header">
+                <h2>Create Personal Goal</h2>
+                <span>🎯</span>
+              </div>
+              <div className="dd-goal-form-grid">
+                <div className="dd-goal-form-field dd-goal-form-full">
+                  <label className="dd-goal-label">Goal Title</label>
+                  <input className="dd-goal-input" type="text" placeholder="e.g. Reach 1,000 points by June"
+                    value={goalTitle} onChange={e => setGoalTitle(e.target.value)} />
+                </div>
+                <div className="dd-goal-form-field">
+                  <label className="dd-goal-label">Target Points</label>
+                  <input className="dd-goal-input" type="number" min="1" placeholder="e.g. 1000"
+                    value={goalTargetPoints} onChange={e => setGoalTargetPoints(e.target.value)} />
+                </div>
+                <div className="dd-goal-form-field">
+                  <label className="dd-goal-label">Deadline <span className="dd-goal-optional">(optional)</span></label>
+                  <input className="dd-goal-input" type="date"
+                    value={goalDeadline} onChange={e => setGoalDeadline(e.target.value)} />
+                </div>
+                <div className="dd-goal-form-field dd-goal-form-full">
+                  <label className="dd-goal-label">Description <span className="dd-goal-optional">(optional)</span></label>
+                  <input className="dd-goal-input" type="text" placeholder="e.g. Stay consistent with safe driving this month"
+                    value={goalDescription} onChange={e => setGoalDescription(e.target.value)} />
+                </div>
+                <div className="dd-goal-form-actions">
+                  <button className="dd-goal-submit-btn" onClick={handleGoalSubmit} disabled={goalSubmitting}>
+                    {goalSubmitting ? 'Saving…' : 'Create Goal'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(() => {
+            const allGoals = [
+              ...personalGoals.map(g => ({ ...g, type: 'personal' })),
+              ...goals.map(g => ({ ...g, type: 'sponsor' })),
+            ];
+
+            if (allGoals.length === 0) {
+              return (
+                <div className="dd-section">
+                  <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>
+                    No goals yet. Create a personal goal or wait for your sponsor to assign one.
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="dd-goals-grid">
+                {allGoals.map(goal => {
+                  const pct = Math.min(100, Math.round(((goal.current_points || 0) / goal.target_points) * 100));
+                  const daysLeft = goal.deadline
+                    ? Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+                    : null;
+                  const overdue = daysLeft !== null && daysLeft < 0;
+                  const urgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+                  const isPersonal = goal.type === 'personal';
+
+                  return (
+                    <div key={`${goal.type}-${goal.id}`} className={`dd-goal-card ${goal.completed ? 'dd-goal-completed' : ''}`}>
+                      <div className="dd-goal-top">
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span className={isPersonal ? 'dd-goal-type-personal' : 'dd-goal-type-sponsor'}>
+                              {isPersonal ? '👤 Personal' : '🤝 Sponsor'}
+                            </span>
+                            {!isPersonal && goal.sponsor_email && (
+                              <span className="dd-goal-sponsor-name">{goal.sponsor_email}</span>
+                            )}
+                          </div>
+                          <h3 className="dd-goal-title">{goal.title}</h3>
+                          {goal.description && <p className="dd-goal-desc">{goal.description}</p>}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                          {goal.completed && <span className="dd-badge-complete">✓ Done</span>}
+                          {!goal.completed && overdue && <span className="dd-badge-overdue">Overdue</span>}
+                          {!goal.completed && urgent && <span className="dd-badge-urgent">{daysLeft}d left</span>}
+                          {isPersonal && !goal.completed && (
+                            <button className="dd-goal-delete-btn" onClick={() => handleDeletePersonalGoal(goal.id)} title="Delete goal">✕</button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="dd-goal-progress-bar">
+                        <div
+                          className={`dd-goal-progress-fill ${goal.completed ? 'dd-goal-progress-done' : ''} ${isPersonal ? 'dd-goal-progress-personal' : ''}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="dd-goal-progress-labels">
+                        <span>{(goal.current_points || 0).toLocaleString()} / {goal.target_points.toLocaleString()} pts</span>
+                        <span>{pct}%</span>
+                      </div>
+                      {goal.deadline && (
+                        <p className="dd-goal-deadline">Deadline: {formatDate(goal.deadline)}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {activeTab === "orders" && (
         <DriverOrders user={user} orders={[]} />
       )}
