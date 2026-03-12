@@ -283,3 +283,113 @@ def delete_goal(goal_id: int, sponsor_id: int, request: Request, db: Session = D
     db.delete(goal)
     db.commit()
     return {"message": "Goal deleted"}
+
+# ── Personal Goal Model ────────────────────────────────────────────────────
+class PersonalGoal(Base):
+    __tablename__ = "personal_goals"
+
+    id:            Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
+    driver_id:     Mapped[int]      = mapped_column(Integer, nullable=False)
+    title:         Mapped[str]      = mapped_column(String(255), nullable=False)
+    description:   Mapped[str|None] = mapped_column(String(500), nullable=True)
+    target_points: Mapped[int]      = mapped_column(Integer, nullable=False)
+    deadline:      Mapped[str|None] = mapped_column(String(32), nullable=True)
+    created_at:    Mapped[str]      = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# ── Personal Goal Schema ───────────────────────────────────────────────────
+class CreatePersonalGoalBody(BaseModel):
+    driver_id:     int
+    title:         str
+    description:   str | None = None
+    target_points: int
+    deadline:      str | None = None  # "YYYY-MM-DD"
+
+
+# ── Personal Goal Routes ───────────────────────────────────────────────────
+
+@router.post("/goals/personal")
+def create_personal_goal(body: CreatePersonalGoalBody, request: Request, db: Session = Depends(get_db)):
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    if body.target_points <= 0:
+        raise HTTPException(status_code=400, detail="Target points must be positive")
+
+    goal = PersonalGoal(
+        driver_id=body.driver_id,
+        title=body.title,
+        description=body.description,
+        target_points=body.target_points,
+        deadline=body.deadline,
+    )
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+
+    log_audit_event(
+        db=db,
+        event_type="PERSONAL_GOAL_CREATED",
+        success=True,
+        user_id=body.driver_id,
+        request=request,
+        metadata={"target_points": body.target_points, "title": body.title}
+    )
+
+    return {"message": "Personal goal created successfully", "goal_id": goal.id}
+
+
+@router.get("/goals/personal/{driver_id}")
+def get_personal_goals(driver_id: int, db: Session = Depends(get_db)):
+    goals = (
+        db.query(PersonalGoal)
+        .filter(PersonalGoal.driver_id == driver_id)
+        .order_by(PersonalGoal.created_at.desc())
+        .all()
+    )
+
+    result = []
+    for goal in goals:
+        # current_points = all points earned by this driver since the goal was created
+        earned = db.query(PointTransaction).filter(
+            PointTransaction.driver_id == driver_id,
+            PointTransaction.points > 0,
+            PointTransaction.created_at >= goal.created_at,
+        ).all()
+        current_points = sum(t.points for t in earned)
+        result.append({
+            "id": goal.id,
+            "driver_id": goal.driver_id,
+            "title": goal.title,
+            "description": goal.description,
+            "target_points": goal.target_points,
+            "current_points": current_points,
+            "deadline": goal.deadline,
+            "created_at": goal.created_at,
+            "completed": current_points >= goal.target_points,
+        })
+    return result
+
+
+@router.delete("/goals/personal/{goal_id}")
+def delete_personal_goal(goal_id: int, driver_id: int, request: Request, db: Session = Depends(get_db)):
+    goal = db.query(PersonalGoal).filter(
+        PersonalGoal.id == goal_id,
+        PersonalGoal.driver_id == driver_id
+    ).first()
+    if not goal:
+        raise HTTPException(status_code=404, detail="Personal goal not found")
+    db.delete(goal)
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="PERSONAL_GOAL_DELETED",
+        success=True,
+        user_id=driver_id,
+        request=request,
+        metadata={"goal_id": goal_id}
+    )
+
+    return {"message": "Personal goal deleted"}
