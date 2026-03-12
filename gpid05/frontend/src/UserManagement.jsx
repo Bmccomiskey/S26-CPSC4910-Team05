@@ -76,7 +76,7 @@ export default function UserManagement({ currentUser }) {
     }
 
     try {
-      const res = await fetch(`/admin/impersonate/${u.id}`, {
+      const res = await fetch(`/admin/impersonate/start/${u.id}`, {
         method: "POST",
         credentials: "include",
       });
@@ -341,7 +341,7 @@ export default function UserManagement({ currentUser }) {
                             >
                               Delete
                             </button>
-                            
+
                             <button
                               className="um-btn assume"
                               onClick={() => handleAssumeUser(u)}
