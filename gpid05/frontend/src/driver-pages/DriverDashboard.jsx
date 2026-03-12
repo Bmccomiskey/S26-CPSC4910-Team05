@@ -527,18 +527,24 @@ useEffect(() => {
                   </tr>
                   </thead>
                 <tbody>
-                  {catalog.items.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.name}</td>
-                      <td>{item.point_cost}</td>
-                      <td>${item.price_usd}</td>
-                  </tr>
-                ))}
-                </tbody>
-              </table>
-            </div>
-            ))
-            )}
+                  {[...catalog.items]
+                  .sort((a, b) => {
+                    if (priceSort === "asc") return a.price_usd - b.price_usd;
+                    if (priceSort === "desc") return b.price_usd - a.price_usd;
+                    return 0;
+                  })
+                  .map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.name}</td>
+                    <td>{item.point_cost}</td>
+                    <td>${item.price_usd}</td>
+                    </tr>
+                  ))}
+                  </tbody>
+                  </table>
+                  </div>
+                  ))
+                  )}
             </div>
           )}
       {/* ── My Goals tab ── */}

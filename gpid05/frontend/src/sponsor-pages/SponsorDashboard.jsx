@@ -383,20 +383,26 @@ export default function SponsorDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {catalogItems.map((item) => (
-                  <tr
-                  key={item.id}
-                  style={{
-                    opacity: item.is_active ? 1 : 0.4
-                  }}
-                  >
-                    <td>{item.name}</td>
-                    <td>{item.point_cost}</td>
-                    <td>${item.price_usd}</td>
-                    <td>
-                      {!item.is_active && (
-                        <span style={{ color: "red", marginRight: "10px"}}>
-                          Outside Budget
+                {[...catalogItems]
+                .sort((a, b) => {
+                  if (priceSort === "asc") return a.price_usd - b.price_usd;
+                  if (priceSort === "desc") return b.price_usd - a.price_usd;
+                  return 0;
+                })
+                .map((item) => (
+                <tr
+                key={item.id}
+                style={{
+                  opacity: item.is_active ? 1 : 0.4
+                }}
+                >
+                  <td>{item.name}</td>
+                  <td>{item.point_cost}</td>
+                  <td>${item.price_usd}</td>
+                  <td>
+                    {!item.is_active && (
+                      <span style={{ color: "red", marginRight: "10px" }}>
+                        Outside Budget
                         </span>
                       )}
                       {item.is_active ? (
@@ -406,11 +412,11 @@ export default function SponsorDashboard() {
                           ) : (
                           <button onClick={() => activateItem(item.id)}>
                             Add Back
-                          </button>
-                        )}
-                    </td>
-                  </tr>
-                ))}
+                            </button>
+                          )}
+                          </td>
+                          </tr>
+                        ))}
               </tbody>
             </table>
           )}
