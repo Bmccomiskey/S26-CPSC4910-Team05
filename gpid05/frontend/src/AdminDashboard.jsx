@@ -55,6 +55,13 @@ export default function AdminDashboard() {
             User Management
           </button>
 
+          <button
+            className={`sd-nav-iem' ${activeTab === 'system' ? 'active' : ''}`}
+            onClick={() => setActiveTab('system')}
+          >
+            System Management
+          </button>
+
           {/* Future admin stories can plug into these tabs */}
           <button
             className={`sd-nav-item ${activeTab === 'audit' ? 'active' : ''}`}
@@ -121,6 +128,20 @@ export default function AdminDashboard() {
 
         {/* USER MANAGEMENT TAB (moved to separate component) */}
         {activeTab === 'users' && <UserManagement currentUser={user} />}
+
+        {activeTab === 'system' && (
+          <>
+            <div className="sd-top-bar">
+              <h1 className="sd-page-title">System Management</h1>
+            </div>
+            <div className="sd-section">
+              <h2>System Management</h2>
+              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
+                Catalog admin features will be implemented in future admin stories.
+              </p>
+            </div>
+          </>
+        )}
 
         {/* PLACEHOLDER TABS FOR FUTURE STORIES */}
         {activeTab === 'audit' && (
