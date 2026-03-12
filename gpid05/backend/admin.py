@@ -226,7 +226,7 @@ def stop_impersonation(
         },
     }
 
-@router.post("/impersonate/{target_user_id}")
+@router.post("/impersonate/start/{target_user_id}")
 def start_impersonation(
     target_user_id: int,
     request: Request,
