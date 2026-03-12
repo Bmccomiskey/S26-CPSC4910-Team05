@@ -5,7 +5,6 @@ from db import get_db
 from userModels import User
 from audit import log_audit_event
 from sessions import require_role, require_admin_user, require_session, require_original_user
-from sessionModels import Session 
 from pydantic import BaseModel
 from security import hash_password
 
@@ -192,7 +191,7 @@ def start_impersonation(
     request: Request,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin_user),
-    sess: Session = Depends(require_session),
+    sess = Depends(require_session),
 ):
     target = db.query(User).filter(User.id == target_user_id).first()
     if not target:
@@ -226,7 +225,7 @@ def stop_impersonation(
     request: Request,
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_original_user),
-    sess: Session = Depends(require_session),
+    sess = Depends(require_session),
 ):
     if admin_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -267,7 +266,7 @@ def stop_impersonation(
 def impersonation_status(
     db: Session = Depends(get_db),
     admin_user: User = Depends(require_admin_user),
-    sess: Session = Depends(require_session),
+    sess = Depends(require_session),
 ):
     if not sess.impersonated_user_id:
         return {"is_impersonating": False, "target": None}
