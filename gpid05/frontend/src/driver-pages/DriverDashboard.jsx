@@ -163,20 +163,31 @@ useEffect(() => {
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
   const exitImpersonation = async () => {
     try {
-      await fetch("/admin/impersonate/stop", { method: "POST", credentials: "include" });
-    } catch (e) {}
+      const res = await fetch("/admin/impersonate/stop", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    // restore original admin identity
-    localStorage.setItem("userRole", localStorage.getItem("impersonatorRole") || "admin");
-    localStorage.setItem("userEmail", localStorage.getItem("impersonatorEmail") || "");
-    localStorage.setItem("userId", localStorage.getItem("impersonatorId") || "");
+      const data = await res.json();
 
-    localStorage.removeItem("isImpersonating");
-    localStorage.removeItem("impersonatorRole");
-    localStorage.removeItem("impersonatorEmail");
-    localStorage.removeItem("impersonatorId");
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to stop impersonation");
+      }
 
-    window.location.href = "/admin-dashboard";
+      localStorage.setItem("userRole", "admin");
+      localStorage.setItem("userEmail", localStorage.getItem("impersonatorEmail") || "");
+      localStorage.setItem("userId", localStorage.getItem("impersonatorId") || "");
+
+      localStorage.removeItem("isImpersonating");
+      localStorage.removeItem("impersonatorRole");
+      localStorage.removeItem("impersonatorEmail");
+      localStorage.removeItem("impersonatorId");
+
+      window.location.href = "/admin-dashboard";
+    } catch (err) {
+      console.error("Exit impersonation failed:", err);
+      alert("Failed to exit impersonation. Please try again.");
+    }
   };
 
   useEffect(() => {

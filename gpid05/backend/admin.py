@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from userModels import User
 from audit import log_audit_event
-from sessions import require_role, require_admin_user, require_session
+from sessions import require_role, require_admin_user, require_session, require_original_user
 from sessionModels import Session 
 from pydantic import BaseModel
 from security import hash_password
@@ -225,13 +225,20 @@ def start_impersonation(
 def stop_impersonation(
     request: Request,
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin_user),
+    admin_user: User = Depends(require_original_user),
     sess: Session = Depends(require_session),
 ):
+    if admin_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
     if sess.impersonated_user_id is None:
         return {
             "message": "Not impersonating",
-            "user": {"id": admin_user.id, "email": admin_user.email, "role": admin_user.role},
+            "user": {
+                "id": admin_user.id,
+                "email": admin_user.email,
+                "role": admin_user.role,
+            },
         }
 
     old_target_id = sess.impersonated_user_id
@@ -249,7 +256,11 @@ def stop_impersonation(
 
     return {
         "message": "Impersonation stopped",
-        "user": {"id": admin_user.id, "email": admin_user.email, "role": admin_user.role},
+        "user": {
+            "id": admin_user.id,
+            "email": admin_user.email,
+            "role": admin_user.role,
+        },
     }
 
 @router.get("/impersonate")
