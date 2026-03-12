@@ -551,7 +551,7 @@ useEffect(() => {
             <div className="dd-goal-form-card">
               <div className="dd-goal-form-header">
                 <h2>Create Personal Goal</h2>
-                <span>🎯</span>
+                <span></span>
               </div>
               <div className="dd-goal-form-grid">
                 <div className="dd-goal-form-field dd-goal-form-full">
@@ -616,7 +616,7 @@ useEffect(() => {
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                             <span className={isPersonal ? 'dd-goal-type-personal' : 'dd-goal-type-sponsor'}>
-                              {isPersonal ? '👤 Personal' : '🤝 Sponsor'}
+                              {isPersonal ? 'Personal' : 'Sponsor'}
                             </span>
                             {!isPersonal && goal.sponsor_email && (
                               <span className="dd-goal-sponsor-name">{goal.sponsor_email}</span>
