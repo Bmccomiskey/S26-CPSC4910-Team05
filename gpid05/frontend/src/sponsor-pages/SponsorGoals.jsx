@@ -66,6 +66,55 @@ export default function SponsorGoals({ user, approvedDrivers = [] }) {
     setSubmitting(false);
   };
 
+  // Edit state
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editTarget, setEditTarget] = useState('');
+  const [editDeadline, setEditDeadline] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  const startEdit = (goal) => {
+    setEditingId(goal.id);
+    setEditTitle(goal.title);
+    setEditDesc(goal.description || '');
+    setEditTarget(String(goal.target_points));
+    setEditDeadline(goal.deadline || '');
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const handleEditSubmit = async (goalId) => {
+    if (!editTitle.trim()) return flash('Please enter a goal title.', true);
+    if (!editTarget || Number(editTarget) <= 0) return flash('Please enter a valid target.', true);
+    setEditSubmitting(true);
+    try {
+      const res = await fetch(`/points/goals/${goalId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          sponsor_id: user.id,
+          title: editTitle,
+          description: editDesc || null,
+          target_points: Number(editTarget),
+          deadline: editDeadline || null,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        flash(d.detail || 'Update failed.', true);
+      } else {
+        flash('Goal updated!');
+        cancelEdit();
+        fetchGoals();
+      }
+    } catch {
+      flash('Network error.', true);
+    }
+    setEditSubmitting(false);
+  };
+
   const handleDelete = async (goalId) => {
     if (!window.confirm('Delete this goal?')) return;
     await fetch(`/points/goals/${goalId}?sponsor_id=${user.id}`, {
@@ -170,37 +219,69 @@ export default function SponsorGoals({ user, approvedDrivers = [] }) {
                 <div className="sg-goal-header">
                   <div>
                     <p className="sg-goal-driver">{goal.driver_email}</p>
-                    <h3 className="sg-goal-title">{goal.title}</h3>
+                    {editingId !== goal.id && <h3 className="sg-goal-title">{goal.title}</h3>}
                   </div>
                   <div className="sg-goal-header-right">
                     {goal.completed && <span className="sg-badge-complete">✓ Complete</span>}
                     {!goal.completed && overdue && <span className="sg-badge-overdue">Overdue</span>}
                     {!goal.completed && urgent && <span className="sg-badge-urgent">{days}d left</span>}
+                    {editingId !== goal.id && (
+                      <button className="sg-delete-btn" style={{ marginRight: 4 }} onClick={() => startEdit(goal)}>✎</button>
+                    )}
                     <button className="sg-delete-btn" onClick={() => handleDelete(goal.id)}>✕</button>
                   </div>
                 </div>
 
-                {goal.description && <p className="sg-goal-desc">{goal.description}</p>}
-
-                <div className="sg-progress-wrap">
-                  <div className="sg-progress-bar">
-                    <div
-                      className={`sg-progress-fill ${goal.completed ? 'sg-progress-done' : ''}`}
-                      style={{ width: `${pct}%` }}
-                    />
+                {editingId === goal.id ? (
+                  <div className="sg-form" style={{ marginTop: 8 }}>
+                    <div className="sg-field sg-field-full">
+                      <label className="sg-label">Goal Title</label>
+                      <input className="sg-input" type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} />
+                    </div>
+                    <div className="sg-field">
+                      <label className="sg-label">Target Points</label>
+                      <input className="sg-input" type="number" min="1" value={editTarget} onChange={e => setEditTarget(e.target.value)} />
+                    </div>
+                    <div className="sg-field">
+                      <label className="sg-label">Deadline <span className="sg-optional">(optional)</span></label>
+                      <input className="sg-input" type="date" value={editDeadline} onChange={e => setEditDeadline(e.target.value)} />
+                    </div>
+                    <div className="sg-field sg-field-full">
+                      <label className="sg-label">Description <span className="sg-optional">(optional)</span></label>
+                      <input className="sg-input" type="text" value={editDesc} onChange={e => setEditDesc(e.target.value)} />
+                    </div>
+                    <div className="sg-form-actions">
+                      <button className="sg-submit-btn" onClick={() => handleEditSubmit(goal.id)} disabled={editSubmitting}>
+                        {editSubmitting ? 'Saving…' : 'Save Changes'}
+                      </button>
+                      <button style={{ marginLeft: 8 }} onClick={cancelEdit}>Cancel</button>
+                    </div>
                   </div>
-                  <div className="sg-progress-labels">
-                    <span className="sg-progress-current">{goal.current_points.toLocaleString()} pts earned</span>
-                    <span className="sg-progress-pct">{pct}% of {goal.target_points.toLocaleString()}</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    {goal.description && <p className="sg-goal-desc">{goal.description}</p>}
 
-                <div className="sg-goal-footer">
-                  <span className="sg-goal-meta">
-                    {goal.deadline ? `Deadline: ${formatDate(goal.deadline)}` : 'No deadline'}
-                  </span>
-                  <span className="sg-goal-meta">Created {formatDate(goal.created_at)}</span>
-                </div>
+                    <div className="sg-progress-wrap">
+                      <div className="sg-progress-bar">
+                        <div
+                          className={`sg-progress-fill ${goal.completed ? 'sg-progress-done' : ''}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="sg-progress-labels">
+                        <span className="sg-progress-current">{goal.current_points.toLocaleString()} pts earned</span>
+                        <span className="sg-progress-pct">{pct}% of {goal.target_points.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="sg-goal-footer">
+                      <span className="sg-goal-meta">
+                        {goal.deadline ? `Deadline: ${formatDate(goal.deadline)}` : 'No deadline'}
+                      </span>
+                      <span className="sg-goal-meta">Created {formatDate(goal.created_at)}</span>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

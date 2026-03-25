@@ -34,7 +34,47 @@ class AwardPointsBody(BaseModel):
     description: str | None = None
 
 
+# ── Schemas ────────────────────────────────────────────────────────────────
+class UpdateTransactionBody(BaseModel):
+    sponsor_id: int
+    points: int
+    description: str | None = None
+
+
 # ── Routes ─────────────────────────────────────────────────────────────────
+
+@router.put("/transactions/{transaction_id}")
+def update_transaction(
+    transaction_id: int,
+    body: UpdateTransactionBody,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    txn = db.query(PointTransaction).filter(PointTransaction.id == transaction_id).first()
+    if not txn:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    if txn.sponsor_id != body.sponsor_id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this transaction")
+
+    if body.points == 0:
+        raise HTTPException(status_code=400, detail="Points cannot be zero")
+
+    txn.points = body.points
+    txn.description = body.description
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="TRANSACTION_UPDATED",
+        success=True,
+        user_id=body.sponsor_id,
+        request=request,
+        metadata={"transaction_id": transaction_id, "new_points": body.points},
+    )
+
+    return {"message": "Transaction updated successfully"}
+
 
 @router.post("/award")
 def award_points(body: AwardPointsBody, request: Request, db: Session = Depends(get_db)):
@@ -273,6 +313,41 @@ def get_driver_goals(driver_id: int, db: Session = Depends(get_db)):
             "completed": current_points >= goal.target_points,
         })
     return result
+
+
+class UpdateGoalBody(BaseModel):
+    sponsor_id:    int
+    title:         str
+    description:   str | None = None
+    target_points: int
+    deadline:      str | None = None
+
+
+@router.put("/goals/{goal_id}")
+def update_goal(goal_id: int, body: UpdateGoalBody, request: Request, db: Session = Depends(get_db)):
+    goal = db.query(PointGoal).filter(PointGoal.id == goal_id, PointGoal.sponsor_id == body.sponsor_id).first()
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+
+    if body.target_points <= 0:
+        raise HTTPException(status_code=400, detail="Target points must be positive")
+
+    goal.title = body.title
+    goal.description = body.description
+    goal.target_points = body.target_points
+    goal.deadline = body.deadline
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="GOAL_UPDATED",
+        success=True,
+        user_id=body.sponsor_id,
+        request=request,
+        metadata={"goal_id": goal_id, "new_target": body.target_points},
+    )
+
+    return {"message": "Goal updated successfully"}
 
 
 @router.delete("/goals/{goal_id}")

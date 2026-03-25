@@ -151,6 +151,41 @@ def reject_application(
 
     return {"message": "Application rejected"}
 
+@router.post("/{application_id}/drop")
+def drop_driver(
+    application_id: int,
+    sponsor_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    application = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.id == application_id
+    ).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    if application.sponsor_id != sponsor_id:
+        raise HTTPException(status_code=403, detail="Not authorized to drop this driver")
+
+    if application.status != "APPROVED":
+        raise HTTPException(status_code=400, detail="Can only drop an approved driver")
+
+    application.status = "DROPPED"
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="DRIVER_DROPPED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"application_id": application.id, "driver_id": application.driver_id}
+    )
+
+    return {"message": "Driver dropped successfully"}
+
+
 @router.get("/sponsors")
 def get_all_sponsors(db: Session = Depends(get_db)):
     sponsors = db.query(User).filter(User.role == "sponsor").all()

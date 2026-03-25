@@ -116,6 +116,15 @@ export default function SponsorDashboard() {
     );
     fetchApplications();
   };
+
+  const handleDropDriver = async (id) => {
+    if (!window.confirm('Are you sure you want to drop this driver? They will lose access to your sponsorship.')) return;
+    await fetch(`/applications/${id}/drop?sponsor_id=${user.id}`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    fetchApplications();
+  };
   const handleLogout = async () => {
     try {
       await fetch(`/auth/logout`, {
@@ -306,8 +315,8 @@ export default function SponsorDashboard() {
                     <td>{app.driver_email}</td>
                     <td>{app.status}</td>
                     <td>
-                      <button onClick={() => handleApprove(app.id)}>Approve</button>
-                      <button onClick={() => handleReject(app.id)}>Reject</button>
+                      <button className="sd-btn sd-btn-approve" onClick={() => handleApprove(app.id)}>Approve</button>
+                      <button className="sd-btn sd-btn-reject" onClick={() => handleReject(app.id)}>Reject</button>
                     </td>
                   </tr>
                 ))}
@@ -329,8 +338,11 @@ export default function SponsorDashboard() {
                     <td>{app.driver_email}</td>
                     <td><span style={{ color: "green", fontWeight: "bold" }}>APPROVED</span></td>
                     <td>
-                      <button onClick={() => handleViewAsDriver(app.driver_email, app.driver_id)}>
+                      <button className="sd-btn sd-btn-approve" onClick={() => handleViewAsDriver(app.driver_email, app.driver_id)}>
                         View as Driver
+                      </button>
+                      <button className="sd-btn sd-btn-drop" onClick={() => handleDropDriver(app.id)}>
+                        Drop Driver
                       </button>
                     </td>
                   </tr>

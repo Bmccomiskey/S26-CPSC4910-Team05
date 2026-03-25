@@ -3,6 +3,12 @@ import './AwardPoints.css';
 
 export default function AwardPoints({ user, approvedDrivers = [], pointsHistory = [], onAward }) {
   const [mode, setMode] = useState('single'); // 'single' | 'multi' | 'subtract' | 'reset'
+
+  // Edit transaction state
+  const [editingId, setEditingId] = useState(null);
+  const [editPoints, setEditPoints] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState('');
   const [points, setPoints] = useState('');
   const [description, setDescription] = useState('');
@@ -155,6 +161,48 @@ export default function AwardPoints({ user, approvedDrivers = [], pointsHistory 
       flash('Network error.', true);
     }
     setSubmitting(false);
+  };
+
+  const startEdit = (h) => {
+    setEditingId(h.id);
+    setEditPoints(String(Math.abs(h.points)));
+    setEditDesc(h.description || h.reason || '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditPoints('');
+    setEditDesc('');
+  };
+
+  const handleEditSubmit = async (h) => {
+    if (!editPoints || isNaN(editPoints) || Number(editPoints) === 0)
+      return flash('Enter a valid points amount.', true);
+    setEditSubmitting(true);
+    try {
+      const newPoints = h.points < 0 ? -Math.abs(Number(editPoints)) : Math.abs(Number(editPoints));
+      const res = await fetch(`/points/transactions/${h.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          sponsor_id: user.id,
+          points: newPoints,
+          description: editDesc || null,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        flash(d.detail || 'Update failed.', true);
+      } else {
+        flash('Transaction updated.');
+        cancelEdit();
+        if (onAward) onAward();
+      }
+    } catch {
+      flash('Network error.', true);
+    }
+    setEditSubmitting(false);
   };
 
   const formatDate = (d) =>
@@ -381,20 +429,60 @@ export default function AwardPoints({ user, approvedDrivers = [], pointsHistory 
         ) : (
           <table className="awp-history-table">
             <thead>
-              <tr><th>Driver</th><th>Description</th><th>Date</th><th>Points</th></tr>
+              <tr><th>Driver</th><th>Description</th><th>Date</th><th>Points</th><th></th></tr>
             </thead>
             <tbody>
               {pointsHistory.map(h => (
-                <tr key={h.id}>
-                  <td className="awp-td-driver">{h.driver_email}</td>
-                  <td className="awp-td-desc">{h.description || h.reason || '—'}</td>
-                  <td className="awp-td-date">{formatDate(h.created_at)}</td>
-                  <td>
-                    <span className={h.points < 0 ? 'awp-pts-badge awp-pts-badge-negative' : 'awp-pts-badge'}>
-                      {h.points < 0 ? '' : '+'}{Number(h.points).toLocaleString()}
-                    </span>
-                  </td>
-                </tr>
+                editingId === h.id ? (
+                  <tr key={h.id}>
+                    <td className="awp-td-driver">{h.driver_email}</td>
+                    <td>
+                      <input
+                        className="awp-input"
+                        type="text"
+                        placeholder="Description"
+                        value={editDesc}
+                        onChange={e => setEditDesc(e.target.value)}
+                        style={{ minWidth: 140 }}
+                      />
+                    </td>
+                    <td className="awp-td-date">{formatDate(h.created_at)}</td>
+                    <td>
+                      <input
+                        className="awp-input awp-points-input"
+                        type="number"
+                        min="1"
+                        value={editPoints}
+                        onChange={e => setEditPoints(e.target.value)}
+                        style={{ width: 80 }}
+                      />
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <button className="awp-submit-btn" style={{ padding: '4px 10px', fontSize: 13 }} onClick={() => handleEditSubmit(h)} disabled={editSubmitting}>
+                        {editSubmitting ? '…' : 'Save'}
+                      </button>
+                      <button style={{ marginLeft: 6, padding: '4px 10px', fontSize: 13 }} onClick={cancelEdit}>
+                        Cancel
+                      </button>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={h.id}>
+                    <td className="awp-td-driver">{h.driver_email}</td>
+                    <td className="awp-td-desc">{h.description || h.reason || '—'}</td>
+                    <td className="awp-td-date">{formatDate(h.created_at)}</td>
+                    <td>
+                      <span className={h.points < 0 ? 'awp-pts-badge awp-pts-badge-negative' : 'awp-pts-badge'}>
+                        {h.points < 0 ? '' : '+'}{Number(h.points).toLocaleString()}
+                      </span>
+                    </td>
+                    <td>
+                      <button style={{ padding: '3px 10px', fontSize: 13 }} onClick={() => startEdit(h)}>
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                )
               ))}
             </tbody>
           </table>
