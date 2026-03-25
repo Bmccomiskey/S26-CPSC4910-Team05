@@ -228,6 +228,20 @@ useEffect(() => {
     navigate('/login');
   };
 
+  const isSponsorViewing = localStorage.getItem("isSponsorViewing") === "true";
+  const exitSponsorView = () => {
+    localStorage.setItem("userRole", localStorage.getItem("sponsorViewerRole") || "sponsor");
+    localStorage.setItem("userEmail", localStorage.getItem("sponsorViewerEmail") || "");
+    localStorage.setItem("userId", localStorage.getItem("sponsorViewerId") || "");
+
+    localStorage.removeItem("isSponsorViewing");
+    localStorage.removeItem("sponsorViewerRole");
+    localStorage.removeItem("sponsorViewerEmail");
+    localStorage.removeItem("sponsorViewerId");
+
+    window.location.href = "/sponsor-dashboard";
+  };
+
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
   const exitImpersonation = async () => {
     try {
@@ -315,6 +329,14 @@ useEffect(() => {
       </div>
 
       <main className="dd-main">
+        {isSponsorViewing && (
+          <div style={{ padding: "10px 14px", background: "#d1ecf1", border: "1px solid #bee5eb", borderRadius: 8, marginBottom: 12 }}>
+            <strong>Sponsor View:</strong> You are viewing the driver dashboard as {localStorage.getItem("userEmail")}.
+            <button style={{ marginLeft: 12 }} onClick={exitSponsorView}>
+              Return to Sponsor Dashboard
+            </button>
+          </div>
+        )}
         {isImpersonating && (
           <div style={{ padding: "10px 14px", background: "#fff3cd", border: "1px solid #ffeeba", borderRadius: 8, marginBottom: 12 }}>
             <strong>Impersonation mode:</strong> You are viewing this account as an admin.

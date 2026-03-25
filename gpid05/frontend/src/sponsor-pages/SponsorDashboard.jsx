@@ -130,6 +130,19 @@ export default function SponsorDashboard() {
     navigate('/login');
   };
 
+  const handleViewAsDriver = (driverEmail, driverId) => {
+    localStorage.setItem("sponsorViewerRole", localStorage.getItem("userRole"));
+    localStorage.setItem("sponsorViewerEmail", localStorage.getItem("userEmail"));
+    localStorage.setItem("sponsorViewerId", localStorage.getItem("userId"));
+    localStorage.setItem("isSponsorViewing", "true");
+
+    localStorage.setItem("userRole", "user");
+    localStorage.setItem("userEmail", driverEmail);
+    localStorage.setItem("userId", String(driverId));
+
+    navigate("/driver-dashboard");
+  };
+
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
   const exitImpersonation = async () => {
     try {
@@ -307,6 +320,7 @@ export default function SponsorDashboard() {
                 <tr>
                   <th>Driver</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -314,6 +328,11 @@ export default function SponsorDashboard() {
                   <tr key={app.id}>
                     <td>{app.driver_email}</td>
                     <td><span style={{ color: "green", fontWeight: "bold" }}>APPROVED</span></td>
+                    <td>
+                      <button onClick={() => handleViewAsDriver(app.driver_email, app.driver_id)}>
+                        View as Driver
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
