@@ -1,23 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SponsorProfile.css';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+const DEFAULTS = {
+  companyName: '', contactName: '', phone: '', website: '',
+  address: '', industry: '', pointBudget: '200000',
+  minPointCost: '0', maxPointCost: '10000',
+};
+
 export default function SponsorProfile({ user, applications = [] }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved]     = useState(false);
-  const [profile, setProfile] = useState({
-    companyName:  'Company Name',
-    contactName:  'Your Name',
-    phone:        '(###) - ### - ####',
-    website:      'website',
-    address:      'your address',
-    industry:     'Industry',
-    pointBudget:  '200000',
-    minPointCost: '0',
-    maxPointCost: '10000',
-  });
+  const [profile, setProfile] = useState(DEFAULTS);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/profile/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setProfile({
+            companyName:  data.company_name   || '',
+            contactName:  data.contact_name   || '',
+            phone:        data.phone          || '',
+            website:      data.website        || '',
+            address:      data.address        || '',
+            industry:     data.industry       || '',
+            pointBudget:  data.point_budget   || '200000',
+            minPointCost: data.min_point_cost || '0',
+            maxPointCost: data.max_point_cost || '10000',
+          });
+        }
+      })
+      .catch(err => console.error('Error fetching profile:', err));
+  }, [user]);
 
   const set = (key, val) => setProfile(p => ({ ...p, [key]: val }));
 
@@ -26,19 +45,37 @@ export default function SponsorProfile({ user, applications = [] }) {
   const budgetTotal = parseInt(profile.pointBudget) || 1;
   const budgetPct   = Math.min(100, Math.round((budgetUsed / budgetTotal) * 100));
 
- const handleSave = async (e) => {
-  e.preventDefault();
-  await fetch(
-    `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}`,
-    {
-      method: 'POST',
-      credentials: 'include'
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      await fetch(`/profile/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          company_name:   profile.companyName,
+          contact_name:   profile.contactName,
+          phone:          profile.phone,
+          website:        profile.website,
+          address:        profile.address,
+          industry:       profile.industry,
+          point_budget:   profile.pointBudget,
+          min_point_cost: profile.minPointCost,
+          max_point_cost: profile.maxPointCost,
+        }),
+      });
+      // Also update catalog config
+      await fetch(
+        `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}`,
+        { method: 'POST', credentials: 'include' }
+      );
+    } catch (err) {
+      console.error('Error saving profile:', err);
     }
-  );
-  setEditing(false);
-  setSaved(true);
-  setTimeout(() => setSaved(false), 3000);
-};
+    setEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
 
   return (
     <div className="srp-root">
@@ -64,7 +101,7 @@ export default function SponsorProfile({ user, applications = [] }) {
 
       {/* Hero card */}
       <div className="srp-hero">
-        <div className="srp-avatar">{profile.companyName[0]}</div>
+        <div className="srp-avatar">{profile.companyName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'S'}</div>
         <div className="srp-hero-info">
           <p className="srp-hero-name">{profile.companyName}</p>
           <p className="srp-hero-email">{user?.email}</p>

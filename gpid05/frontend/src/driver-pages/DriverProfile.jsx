@@ -1,29 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DriverProfile.css';
 
+const DEFAULTS = {
+  firstName: '', lastName: '', phone: '', city: '',
+  state: '', cdlNumber: '', cdlClass: 'Class A', yearsExp: '',
+};
+
 export default function DriverProfile({ user, applications = [], transactions = [] }) {
   const navigate = useNavigate();
-  const [editing, setEditing]     = useState(false);
-  const [saved, setSaved]         = useState(false);
-  const [profile, setProfile]     = useState({
-    firstName: 'Your',
-    lastName:  'Name',
-    phone:     '(---) - --- - ---',
-    city:      'City',
-    state:     'State',
-    cdlNumber: 'CDL-TX-48821',
-    cdlClass:  'Class A',
-    yearsExp:  '-',
-  });
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved]     = useState(false);
+  const [profile, setProfile] = useState(DEFAULTS);
 
-  const approved = applications.filter(a => a.status === 'APPROVED').length;
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/profile/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setProfile({
+            firstName: data.first_name  || '',
+            lastName:  data.last_name   || '',
+            phone:     data.phone       || '',
+            city:      data.city        || '',
+            state:     data.state       || '',
+            cdlNumber: data.cdl_number  || '',
+            cdlClass:  data.cdl_class   || 'Class A',
+            yearsExp:  data.years_exp   || '',
+          });
+        }
+      })
+      .catch(err => console.error('Error fetching profile:', err));
+  }, [user]);
+
+  const approved    = applications.filter(a => a.status === 'APPROVED').length;
   const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
 
   const set = (key, val) => setProfile(p => ({ ...p, [key]: val }));
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
+    try {
+      await fetch(`/profile/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          first_name:  profile.firstName,
+          last_name:   profile.lastName,
+          phone:       profile.phone,
+          city:        profile.city,
+          state:       profile.state,
+          cdl_number:  profile.cdlNumber,
+          cdl_class:   profile.cdlClass,
+          years_exp:   profile.yearsExp,
+        }),
+      });
+    } catch (err) {
+      console.error('Error saving profile:', err);
+    }
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
