@@ -35,7 +35,7 @@ export default function DriverDashboard() {
   const [driverCatalog, setDriverCatalog] = useState([]);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
-  const [priceSort, setPriceSort] = useState("none");
+  const [sortOption, setSortOption] = useState("none");
 
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
@@ -512,14 +512,16 @@ useEffect(() => {
         <div className="dd-section">
           <h2>Available Rewards</h2>
           <select
-            value={priceSort}
-            onChange={(e) => setPriceSort(e.target.value)}
-            style={{ marginBottom: "15px", padding: "5px" }}
-            >
-              <option value="none">Sort by Price</option>
-              <option value="asc">Low to High</option>
-              <option value="desc">High to Low</option>
-            </select>
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          style={{ marginBottom: "15px", padding: "5px" }}
+          >
+            <option value="none">Sort</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+            <option value="points_asc">Points: Low → High</option>
+            <option value="points_desc">Points: High → Low</option>
+          </select>
           <input
           type="text"
           placeholder="Search catalog..."
@@ -551,10 +553,18 @@ useEffect(() => {
                 <tbody>
                   {[...catalog.items]
                   .sort((a, b) => {
-                    if (priceSort === "asc") return a.price_usd - b.price_usd;
-                    if (priceSort === "desc") return b.price_usd - a.price_usd;
-                    return 0;
-                  })
+                    switch (sortOption) {
+                      case "price_asc":
+                        return a.price_usd - b.price_usd;
+                      case "price_desc":
+                        return b.price_usd - a.price_usd;
+                      case "points_asc":
+                        return a.point_cost - b.point_cost;
+                      case "points_desc":
+                        return b.point_cost - a.point_cost;
+                      default:
+                        return 0;}
+                      })
                   .map((item) => (
                   <tr key={item.id}>
                     <td>{item.name}</td>
