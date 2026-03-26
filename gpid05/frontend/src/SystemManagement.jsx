@@ -153,7 +153,7 @@ const submitEdit = async (teamNum) => {
         value={teamNum}
         onChange={(e) => setTeamNum(e.target.value)}
         required
-        style={{ padding: '6px', width: '200px' }}
+        style={{ padding: '6px', width: '200px', color: '#184530'}}
       />
     </div>
 
@@ -173,7 +173,7 @@ const submitEdit = async (teamNum) => {
         value={verNum}
         onChange={(e) => setVerNum(e.target.value)}
         required
-        style={{ padding: '6px', width: '200px' }}
+        style={{ padding: '6px', width: '200px', color: '#184530'}}
       />
     </div>
 
