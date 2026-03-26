@@ -5,7 +5,7 @@ from redemptionModels import CatalogRedemption
 from catalogModels import CatalogItem
 from userModels import User
 from sponsorshipModels import SponsorshipApplication
-from points import PointsTransaction
+from points import PointTransaction
 
 router = APIRouter(prefix="/redemptions", tags=["redemptions"])
 
