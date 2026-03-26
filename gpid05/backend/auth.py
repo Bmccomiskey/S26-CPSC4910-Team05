@@ -108,7 +108,7 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @router.post("/login")
-def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
+async def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     password = body.password
 
@@ -129,7 +129,7 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
                 user.locked_until = datetime.utcnow() + timedelta(minutes=5)
                 db.commit()
 
-                send_notification(
+                await send_notification(
                     user.email,
                     "Account Locked",
                     f"Your account has been locked due to multiple failed login attempts. It will be unlocked in 5 minutes."
@@ -202,7 +202,7 @@ def logout(
 
 # accepts an email and sends a reset link if the account exists
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = Depends(get_db)):
+async def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
 
@@ -233,7 +233,11 @@ def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = De
         )
 
         reset_link = f"{FRONTEND_URL}/reset-password?token={raw_token}"
-        print(f"\nPassword reset link for {email}:\n  {reset_link}\n")
+        await send_notification(
+            to_email=email,
+            subject="Password Reset Request",
+            message=f"Click this link to reset your password: {reset_link}\n\nThis link expires in 30 minutes."
+        )
 
     return {"message": "If an account with that email exists, a reset link has been sent."}
 
@@ -375,7 +379,7 @@ def get_sponsors(db: Session = Depends(get_db)):
 
 #admin sends notification to drivers
 @router.post("/admin/notify-drivers")
-def admin_notify_drivers(
+async def admin_notify_drivers(
         subject: str,
         message: str,
         request: Request,
@@ -387,7 +391,7 @@ def admin_notify_drivers(
         raise HTTPException(status_code=404, detail="No drivers found.")
 
     for driver in drivers:
-        send_notification(driver.email, subject, message)
+        await send_notification(driver.email, subject, message)
 
     log_audit_event(
         db=db,
@@ -402,7 +406,7 @@ def admin_notify_drivers(
 
 #admin sends notification to sponsors
 @router.post("/admin/notify-sponsors")
-def admin_notify_sponsors(
+async def admin_notify_sponsors(
         subject: str,
         message: str,
         request: Request,
@@ -414,7 +418,7 @@ def admin_notify_sponsors(
         raise HTTPException(status_code=404, detail="No sponsors found.")
 
     for sponsor in sponsors:
-        send_notification(sponsor.email, subject, message)
+        await send_notification(sponsor.email, subject, message)
 
     log_audit_event(
         db=db,
@@ -429,7 +433,7 @@ def admin_notify_sponsors(
 
 #sponsor sends notification to drivers
 @router.post("/sponsor/notify-drivers")
-def sponsor_notify_drivers(
+async def sponsor_notify_drivers(
         subject: str,
         message: str,
         sponsor_id: int,
@@ -442,7 +446,7 @@ def sponsor_notify_drivers(
         raise HTTPException(status_code=404, detail="No drivers found for this sponsor.")
 
     for driver in drivers:
-        send_notification(driver.email, subject, message)
+        await send_notification(driver.email, subject, message)
 
     log_audit_event(
         db=db,
