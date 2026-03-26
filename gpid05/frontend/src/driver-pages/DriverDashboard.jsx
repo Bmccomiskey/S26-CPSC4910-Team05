@@ -576,10 +576,6 @@ const redeemItem = async (item, sponsorId) => {
                   <th>Name</th>
                   <th>Points</th>
                   <th>Price (USD)</th>
-                  <td>
-                    <button onClick={() => redeemItem(item.id)}>
-                      Redeem
-                  </button></td>
                   </tr>
                   </thead>
                 <tbody>
@@ -602,6 +598,11 @@ const redeemItem = async (item, sponsorId) => {
                     <td>{item.name}</td>
                     <td>{item.point_cost}</td>
                     <td>${item.price_usd}</td>
+                    <td>
+                      <button onClick={() => redeemItem(item.id)}>
+                        Redeem
+                        </button>
+                        </td>
                     </tr>
                   ))}
                   </tbody>
