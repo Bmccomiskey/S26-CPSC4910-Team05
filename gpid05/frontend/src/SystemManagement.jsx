@@ -106,36 +106,58 @@ export default function SystemManagement() {
     <>
       {/* FORM SECTION */}
       <div className="sd-section">
-        <h2 className="sd-section-title">Update Version Info</h2>
+  <h2 className="sd-section-title">Update Version Info</h2>
 
-        <form onSubmit={handleCreateOrUpdate} style={{ marginTop: '10px' }}>
-          <input
-            type="number"
-            placeholder="Team Number"
-            value={teamNum}
-            onChange={(e) => setTeamNum(e.target.value)}
-            required
-            style={{ marginRight: '10px', padding: '6px' }}
-          />
+  <form onSubmit={handleCreateOrUpdate} style={{ marginTop: '10px' }}>
+    <div style={{ marginBottom: '12px' }}>
+      <label
+        style={{
+          display: 'block',
+          fontSize: '13px',
+          color: '#64748b',
+          marginBottom: '4px',
+        }}
+      >
+        Team Number
+      </label>
+      <input
+        type="number"
+        value={teamNum}
+        onChange={(e) => setTeamNum(e.target.value)}
+        required
+        style={{ padding: '6px', width: '200px' }}
+      />
+    </div>
 
-          <input
-            type="number"
-            placeholder="Version Number"
-            value={verNum}
-            onChange={(e) => setVerNum(e.target.value)}
-            required
-            style={{ marginRight: '10px', padding: '6px' }}
-          />
+    <div style={{ marginBottom: '12px' }}>
+      <label
+        style={{
+          display: 'block',
+          fontSize: '13px',
+          color: '#64748b',
+          marginBottom: '4px',
+        }}
+      >
+        Version Number
+      </label>
+      <input
+        type="number"
+        value={verNum}
+        onChange={(e) => setVerNum(e.target.value)}
+        required
+        style={{ padding: '6px', width: '200px' }}
+      />
+    </div>
 
-          <button type="submit" className="sd-nav-item">
-            Save
-          </button>
-        </form>
+    <button type="submit" className="sd-nav-item">
+      Save
+    </button>
+  </form>
 
-        {message && (
-          <p style={{ marginTop: '10px', color: '#64748b' }}>{message}</p>
-        )}
-      </div>
+  {message && (
+    <p style={{ marginTop: '10px', color: '#64748b' }}>{message}</p>
+  )}
+</div>
 
       {/* TABLE SECTION */}
       <div className="sd-section" style={{ marginTop: '20px' }}>
