@@ -9,31 +9,24 @@ export default function SystemManagement() {
   const [editVerNum, setEditVerNum] = useState('');
 
   const fetchVersions = async () => {
-  try {
-    const res = await fetch('/admin/version', {
-      credentials: 'include',
-    });
+    try {
+      const res = await fetch('/admin/version', {
+        credentials: 'include',
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      console.error('Failed to fetch versions:', data);
-      setVersions([]); // prevent crash
-      return;
+      if (!res.ok || !Array.isArray(data)) {
+        setVersions([]);
+        return;
+      }
+
+      setVersions(data);
+    } catch (err) {
+      console.error(err);
+      setVersions([]);
     }
-
-    if (!Array.isArray(data)) {
-      setVersions([]); // safety fallback
-      return;
-    }
-
-    setVersions(data);
-
-  } catch (err) {
-    console.error(err);
-    setVersions([]); // prevent crash
-  }
-};
+  };
 
   useEffect(() => {
     fetchVersions();
@@ -61,7 +54,7 @@ export default function SystemManagement() {
         setVerNum('');
         fetchVersions();
       } else {
-        setMessage(data.detail);
+        setMessage(data.detail || 'Error');
       }
     } catch {
       setMessage('Server error.');
@@ -77,9 +70,7 @@ export default function SystemManagement() {
         credentials: 'include',
       });
 
-      if (res.ok) {
-        fetchVersions();
-      }
+      if (res.ok) fetchVersions();
     } catch (err) {
       console.error(err);
     }
@@ -112,86 +103,105 @@ export default function SystemManagement() {
   };
 
   return (
-    <div className="sd-section">
-      <h2>Version Management</h2>
+    <>
+      {/* FORM SECTION */}
+      <div className="sd-section">
+        <h2 className="sd-section-title">Update Version Info</h2>
 
-      {/* CREATE / UPDATE FORM */}
-      <form onSubmit={handleCreateOrUpdate} style={{ marginTop: '15px' }}>
-        <input
-          type="number"
-          placeholder="Team Number"
-          value={teamNum}
-          onChange={(e) => setTeamNum(e.target.value)}
-          required
-        />
+        <form onSubmit={handleCreateOrUpdate} style={{ marginTop: '10px' }}>
+          <input
+            type="number"
+            placeholder="Team Number"
+            value={teamNum}
+            onChange={(e) => setTeamNum(e.target.value)}
+            required
+            style={{ marginRight: '10px', padding: '6px' }}
+          />
 
-        <input
-          type="number"
-          placeholder="Version Number"
-          value={verNum}
-          onChange={(e) => setVerNum(e.target.value)}
-          required
-          style={{ marginLeft: '10px' }}
-        />
+          <input
+            type="number"
+            placeholder="Version Number"
+            value={verNum}
+            onChange={(e) => setVerNum(e.target.value)}
+            required
+            style={{ marginRight: '10px', padding: '6px' }}
+          />
 
-        <button type="submit" className="sd-nav-item" style={{ marginLeft: '10px' }}>
-          Save
-        </button>
-      </form>
+          <button type="submit" className="sd-nav-item">
+            Save
+          </button>
+        </form>
 
-      {message && <p style={{ marginTop: '10px' }}>{message}</p>}
-
-      {/* TABLE */}
-      <div style={{ marginTop: '25px' }}>
-        <h3>Existing Versions</h3>
-
-        <table style={{ width: '100%', marginTop: '10px' }}>
-          <thead>
-            <tr>
-              <th>Team</th>
-              <th>Version</th>
-              <th>Updated</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {Array.isArray(versions) && versions.map((row) => (
-              <tr key={row.teamNum}>
-                <td>{row.teamNum}</td>
-
-                <td>
-                  {editingTeam === row.teamNum ? (
-                    <input
-                      type="number"
-                      value={editVerNum}
-                      onChange={(e) => setEditVerNum(e.target.value)}
-                    />
-                  ) : (
-                    row.verNum
-                  )}
-                </td>
-
-                <td>{row.updated}</td>
-
-                <td>
-                  {editingTeam === row.teamNum ? (
-                    <>
-                     <button type="button" onClick={() => submitEdit(row.teamNum)}>Save</button>
-                     <button type="button" onClick={() => setEditingTeam(null)}>Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <button type="button" onClick={() => startEdit(row)}>Edit</button>
-                      <button type="button" onClick={() => handleDelete(row.teamNum)}>Delete</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {message && (
+          <p style={{ marginTop: '10px', color: '#64748b' }}>{message}</p>
+        )}
       </div>
-    </div>
+
+      {/* TABLE SECTION */}
+      <div className="sd-section" style={{ marginTop: '20px' }}>
+        <h2 className="sd-section-title">Existing Versions</h2>
+
+        <div className="sd-table-wrapper">
+          <table className="sd-table">
+            <thead>
+              <tr>
+                <th className="sd-th">Team</th>
+                <th className="sd-th">Version</th>
+                <th className="sd-th">Updated</th>
+                <th className="sd-th">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {Array.isArray(versions) &&
+                versions.map((row, index) => (
+                  <tr
+                    key={row.teamNum}
+                    className={index % 2 === 0 ? 'sd-tr-even' : ''}
+                  >
+                    <td className="sd-td">{row.teamNum}</td>
+
+                    <td className="sd-td">
+                      {editingTeam === row.teamNum ? (
+                        <input
+                          type="number"
+                          value={editVerNum}
+                          onChange={(e) => setEditVerNum(e.target.value)}
+                        />
+                      ) : (
+                        row.verNum
+                      )}
+                    </td>
+
+                    <td className="sd-td">{row.updated}</td>
+
+                    <td className="sd-td">
+                      {editingTeam === row.teamNum ? (
+                        <>
+                          <button type="button" onClick={() => submitEdit(row.teamNum)}>
+                            Save
+                          </button>
+                          <button type="button" onClick={() => setEditingTeam(null)}>
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button type="button" onClick={() => startEdit(row)}>
+                            Edit
+                          </button>
+                          <button type="button" onClick={() => handleDelete(row.teamNum)}>
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
   );
 }
