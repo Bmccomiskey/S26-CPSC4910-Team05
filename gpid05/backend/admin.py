@@ -516,3 +516,36 @@ def admin_update_system(
             "VerNum": body.vernum
         }
     }
+
+@router.delete("/version/{team_num}")
+def delete_version(
+    team_num: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin"))
+):
+    try:
+        result = db.query(VersionInfo).filter(VersionInfo.TeamNum == team_num)
+
+        if not result.first():
+         raise HTTPException(status_code=404, detail="Version info not found for the specified team number.")
+
+        result.delete()
+        db.commit()
+
+        log_audit_event(
+            db=db,
+            event_type="VERSION_INFO_DELETED",
+            success=True,
+            user_id=current_user.id,
+            request=request,
+            metadata={"team_num": team_num}
+        )
+
+        return {"message": "Deleted successfully."}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Delete failed.")
