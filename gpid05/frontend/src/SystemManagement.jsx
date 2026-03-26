@@ -49,9 +49,9 @@ export default function SystemManagement() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        teamNum: team,
-        verNum: version,
-      }),
+       teamnum: Number(teamNum),
+       vernum: Number(verNum),
+    }),
     });
 
     let data;
