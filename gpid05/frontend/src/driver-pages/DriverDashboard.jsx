@@ -242,6 +242,34 @@ useEffect(() => {
     window.location.href = "/sponsor-dashboard";
   };
 
+const redeemItem = async (item, sponsorId) => {
+  const res = await fetch(`${API_BASE}/points/redeem`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      driver_id: user.id,
+      sponsor_id: sponsorId,
+      item_id: item.id,
+      item_name: item.name,
+      point_cost: item.point_cost
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.detail);
+    return;
+  }
+
+  alert("Redemption successful!");
+
+  // Refresh balance + history
+  fetchTransactions();
+};
+
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
   const exitImpersonation = async () => {
     try {
@@ -548,6 +576,10 @@ useEffect(() => {
                   <th>Name</th>
                   <th>Points</th>
                   <th>Price (USD)</th>
+                  <td>
+                    <button onClick={() => redeemItem(item.id)}>
+                      Redeem
+                  </button></td>
                   </tr>
                   </thead>
                 <tbody>

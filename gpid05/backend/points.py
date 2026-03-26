@@ -468,3 +468,63 @@ def delete_personal_goal(goal_id: int, driver_id: int, request: Request, db: Ses
     )
 
     return {"message": "Personal goal deleted"}
+
+class RedeemItemBody(BaseModel):
+    driver_id: int
+    sponsor_id: int
+    item_id: int
+    item_name: str
+    point_cost: int
+
+@router.post("/redeem")
+def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(get_db)):
+
+    # Validate driver
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    # Validate sponsor relationship
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.driver_id == body.driver_id,
+        SponsorshipApplication.sponsor_id == body.sponsor_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+
+    if not approved:
+        raise HTTPException(status_code=403, detail="Not approved with this sponsor")
+
+    # Calculate balance
+    transactions = db.query(PointTransaction).filter(
+        PointTransaction.driver_id == body.driver_id
+    ).all()
+
+    balance = sum(t.points for t in transactions)
+
+    if balance < body.point_cost:
+        raise HTTPException(status_code=400, detail="Insufficient points")
+
+    # Deduct points (negative transaction)
+    redemption = PointTransaction(
+        driver_id=body.driver_id,
+        sponsor_id=body.sponsor_id,
+        points=-body.point_cost,
+        description=f"Redeemed: {body.item_name}"
+    )
+
+    db.add(redemption)
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ITEM_REDEEMED",
+        success=True,
+        user_id=body.driver_id,
+        request=request,
+        metadata={
+            "item_id": body.item_id,
+            "points_spent": body.point_cost
+        }
+    )
+
+    return {"message": "Item redeemed successfully"}
