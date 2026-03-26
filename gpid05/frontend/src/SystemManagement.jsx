@@ -9,16 +9,31 @@ export default function SystemManagement() {
   const [editVerNum, setEditVerNum] = useState('');
 
   const fetchVersions = async () => {
-    try {
-      const res = await fetch('/admin/version', {
-        credentials: 'include',
-      });
-      const data = await res.json();
-      setVersions(data);
-    } catch (err) {
-      console.error(err);
+  try {
+    const res = await fetch('/admin/version', {
+      credentials: 'include',
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('Failed to fetch versions:', data);
+      setVersions([]); // prevent crash
+      return;
     }
-  };
+
+    if (!Array.isArray(data)) {
+      setVersions([]); // safety fallback
+      return;
+    }
+
+    setVersions(data);
+
+  } catch (err) {
+    console.error(err);
+    setVersions([]); // prevent crash
+  }
+};
 
   useEffect(() => {
     fetchVersions();
@@ -141,7 +156,7 @@ export default function SystemManagement() {
           </thead>
 
           <tbody>
-            {versions.map((row) => (
+            {Array.isArray(versions) && versions.map((row) => (
               <tr key={row.teamNum}>
                 <td>{row.teamNum}</td>
 
@@ -162,13 +177,13 @@ export default function SystemManagement() {
                 <td>
                   {editingTeam === row.teamNum ? (
                     <>
-                      <button onClick={() => submitEdit(row.teamNum)}>Save</button>
-                      <button onClick={() => setEditingTeam(null)}>Cancel</button>
+                     <button type="button" onClick={() => submitEdit(row.teamNum)}>Save</button>
+                     <button type="button" onClick={() => setEditingTeam(null)}>Cancel</button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => startEdit(row)}>Edit</button>
-                      <button onClick={() => handleDelete(row.teamNum)}>Delete</button>
+                      <button type="button" onClick={() => startEdit(row)}>Edit</button>
+                      <button type="button" onClick={() => handleDelete(row.teamNum)}>Delete</button>
                     </>
                   )}
                 </td>
