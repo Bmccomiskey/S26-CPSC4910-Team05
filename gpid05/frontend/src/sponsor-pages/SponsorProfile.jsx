@@ -47,34 +47,66 @@ export default function SponsorProfile({ user, applications = [] }) {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
     try {
-      await fetch(`/profile/${user.id}`, {
+      const profileRes = await fetch(`/profile/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          company_name:   profile.companyName,
-          contact_name:   profile.contactName,
-          phone:          profile.phone,
-          website:        profile.website,
-          address:        profile.address,
-          industry:       profile.industry,
-          point_budget:   profile.pointBudget,
+          company_name: profile.companyName,
+          contact_name: profile.contactName,
+          phone: profile.phone,
+          website: profile.website,
+          address: profile.address,
+          industry: profile.industry,
+          point_budget: profile.pointBudget,
           min_point_cost: profile.minPointCost,
           max_point_cost: profile.maxPointCost,
         }),
       });
-      // Also update catalog config
-      await fetch(
+
+      const profileData = await profileRes.json();
+
+      if (!profileRes.ok) {
+        throw new Error(profileData.detail || profileData.message || 'Failed to save sponsor profile');
+      }
+
+      const configRes = await fetch(
         `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}`,
-        { method: 'POST', credentials: 'include' }
+        {
+          method: 'POST',
+          credentials: 'include',
+        }
       );
+
+      const configText = await configRes.text();
+
+      if (!configRes.ok) {
+        throw new Error(configText || 'Failed to save catalog config');
+      }
+
+      if (profileData.profile) {
+        setProfile({
+          companyName: profileData.profile.company_name || '',
+          contactName: profileData.profile.contact_name || '',
+          phone: profileData.profile.phone || '',
+          website: profileData.profile.website || '',
+          address: profileData.profile.address || '',
+          industry: profileData.profile.industry || '',
+          pointBudget: profileData.profile.point_budget || '200000',
+          minPointCost: profileData.profile.min_point_cost || '0',
+          maxPointCost: profileData.profile.max_point_cost || '10000',
+        });
+      }
+
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Error saving profile:', err);
+      alert(err.message || 'Failed to save sponsor profile');
     }
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   };
 
   return (
