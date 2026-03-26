@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -6,7 +6,6 @@ from db import get_db
 from profileModels import UserProfile
 
 router = APIRouter(prefix="/profile", tags=["profile"])
-
 
 class ProfileBody(BaseModel):
     phone:          str | None = None
@@ -26,12 +25,10 @@ class ProfileBody(BaseModel):
     min_point_cost: str | None = None
     max_point_cost: str | None = None
 
-
-@router.get("/{user_id}")
-def get_profile(user_id: int, db: Session = Depends(get_db)):
-    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+def serialize_profile(profile: UserProfile | None):
     if not profile:
         return {}
+
     return {
         "phone":          profile.phone,
         "first_name":     profile.first_name,
@@ -51,6 +48,10 @@ def get_profile(user_id: int, db: Session = Depends(get_db)):
         "max_point_cost": profile.max_point_cost,
     }
 
+@router.get("/{user_id}")
+def get_profile(user_id: int, db: Session = Depends(get_db)):
+    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    return serialize_profile(profile)
 
 @router.put("/{user_id}")
 def save_profile(user_id: int, body: ProfileBody, db: Session = Depends(get_db)):
@@ -63,4 +64,9 @@ def save_profile(user_id: int, body: ProfileBody, db: Session = Depends(get_db))
         setattr(profile, field, value)
 
     db.commit()
-    return {"message": "Profile saved"}
+    db.refresh(profile)
+
+    return {
+        "message": "Profile saved",
+        "profile": serialize_profile(profile),
+    }
