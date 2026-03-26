@@ -542,7 +542,7 @@ export default function UserManagement({ currentUser }) {
           <p className="um-loading">Loading users...</p>
         ) : (
           <div className="um-table-wrap">
-            <table className="sd-table">
+            <table className="um-table">
               <thead>
                 <tr>
                   <th>ID</th>

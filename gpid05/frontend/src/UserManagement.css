@@ -1,6 +1,51 @@
+.um-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+.um-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+
+.um-btn:hover {
+  opacity: 0.92;
+}
+
+.um-btn:active {
+  transform: translateY(1px);
+}
+
+.um-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.um-btn.refresh {
+  background: #1d4ed8;
+  color: #ffffff;
+}
 
 .um-btn.create {
   background: #7c3aed;
+  color: #ffffff;
+}
+
+.um-btn.lock {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.um-btn.unlock {
+  background: #047857;
   color: #ffffff;
 }
 
@@ -9,8 +54,13 @@
   color: #ffffff;
 }
 
-/* create user form */
-.um-create-form {
+.um-btn.assume {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.um-create-form,
+.um-profile-form {
   margin-top: 12px;
   margin-bottom: 14px;
   padding: 14px;
@@ -21,7 +71,7 @@
 
 .um-form-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 0.8fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -60,9 +110,140 @@
   margin-top: 12px;
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
-/* responsive */
+.um-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.um-profile-header h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.um-profile-header p {
+  margin: 4px 0 0;
+  color: #4b5563;
+}
+
+.um-message {
+  margin: 10px 0 14px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.um-loading,
+.um-empty {
+  margin-top: 10px;
+  color: #4b5563;
+}
+
+.um-table-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+}
+
+.um-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.um-table thead tr {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.um-table th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.um-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.12s;
+}
+
+.um-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.um-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.um-table td {
+  padding: 13px 14px;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.um-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.um-current-admin {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.um-role {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.um-role.admin {
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+}
+
+.um-role.user {
+  background: rgba(29, 78, 216, 0.12);
+  color: #1d4ed8;
+}
+
+.um-role.sponsor {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+
+.um-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.um-status.active {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+
+.um-status.locked {
+  background: rgba(185, 28, 28, 0.12);
+  color: #b91c1c;
+}
+
 @media (max-width: 900px) {
   .um-form-grid {
     grid-template-columns: 1fr;
@@ -72,13 +253,3 @@
     justify-content: flex-start;
   }
 }
-
-/* Force UserManagement styles to win if other dashboard CSS overrides them */
-.sd-main .um-toolbar { display: flex !important; gap: 12px !important; }
-.sd-main .um-btn { border: none !important; border-radius: 10px !important; padding: 8px 12px !important; font-weight: 700 !important; }
-.sd-main .um-btn.refresh { background: #1d4ed8 !important; color: #fff !important; }
-.sd-main .um-btn.create { background: #7c3aed !important; color: #fff !important; }
-.sd-main .um-btn.lock { background: #b91c1c !important; color: #fff !important; }
-.sd-main .um-btn.unlock { background: #047857 !important; color: #fff !important; }
-.sd-main .um-btn.delete { background: #374151 !important; color: #fff !important; }
-.sd-main .um-table-wrap { border-radius: 14px !important; overflow: hidden !important; border: 1px solid #d1d5db !important; }
