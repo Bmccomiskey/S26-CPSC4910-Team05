@@ -454,7 +454,7 @@ def impersonation_status(
         "target": {"id": target.id, "email": target.email, "role": target.role},
     }
 
-@router.post("/version/details")
+@router.post("/version/update")
 def admin_update_system(
     body: SystemInfo,
     request: Request,
