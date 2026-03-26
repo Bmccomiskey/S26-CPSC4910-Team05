@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+import datetime
 
 from db import get_db
 from userModels import User
@@ -452,6 +453,29 @@ def impersonation_status(
     return {
         "is_impersonating": True,
         "target": {"id": target.id, "email": target.email, "role": target.role},
+    }
+
+@router.get("/version")
+def get_system_version(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin"))
+):
+    info = db.query(VersionInfo).first()
+
+    if not info:
+        return {"TeamNum": None, "VerNum": None, "Updated": None}
+
+    updated_val = None
+    if info.Updated is not None:
+        if isinstance(info.Updated, datetime.datetime):
+            updated_val = info.Updated.isoformat()
+        else:
+            updated_val = str(info.Updated)
+
+    return {
+        "TeamNum": info.TeamNum,
+        "VerNum": info.VerNum,
+        "Updated": updated_val
     }
 
 @router.post("/version/update")
