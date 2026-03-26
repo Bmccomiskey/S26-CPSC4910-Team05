@@ -3,6 +3,7 @@ import { useAuth } from './useAuth';
 import { useState } from 'react';
 import './sponsor-pages/SponsorDashboard.css';
 import UserManagement from './UserManagement';
+import SystemManagement from './SystemManagement';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
