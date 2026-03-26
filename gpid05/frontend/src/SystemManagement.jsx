@@ -33,33 +33,52 @@ export default function SystemManagement() {
   }, []);
 
   const handleCreateOrUpdate = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  const team = parseInt(teamNum);
+  const version = parseInt(verNum);
+
+  if (isNaN(team) || isNaN(version)) {
+    setMessage('Please enter valid numbers.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/admin/version/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        teamNum: team,
+        verNum: version,
+      }),
+    });
+
+    let data;
     try {
-      const res = await fetch('/admin/version/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          teamNum: parseInt(teamNum),
-          verNum: parseInt(verNum),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage('Saved successfully!');
-        setTeamNum('');
-        setVerNum('');
-        fetchVersions();
-      } else {
-        setMessage(data.detail || 'Error');
-      }
+      data = await res.json();
     } catch {
-      setMessage('Server error.');
+      data = null;
     }
-  };
+
+    if (res.ok) {
+      setMessage('Saved successfully!');
+      setTeamNum('');
+      setVerNum('');
+      fetchVersions();
+    } else {
+
+      if (Array.isArray(data)) {
+        setMessage(data[0]?.msg || 'Validation error.');
+      } else {
+        setMessage(data?.detail || 'Update failed.');
+      }
+    }
+
+  } catch {
+    setMessage('Server error.');
+  }
+};
 
   const handleDelete = async (teamNum) => {
     if (!window.confirm('Delete this entry?')) return;
@@ -81,26 +100,35 @@ export default function SystemManagement() {
     setEditVerNum(row.verNum);
   };
 
-  const submitEdit = async (teamNum) => {
-    try {
-      const res = await fetch('/admin/version/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          teamNum,
-          verNum: parseInt(editVerNum),
-        }),
-      });
+const submitEdit = async (teamNum) => {
+  const version = parseInt(editVerNum);
 
-      if (res.ok) {
-        setEditingTeam(null);
-        fetchVersions();
-      }
-    } catch (err) {
-      console.error(err);
+  if (isNaN(version)) {
+    setMessage('Invalid version number.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/admin/version/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        teamNum,
+        verNum: version,
+      }),
+    });
+
+    if (res.ok) {
+      setEditingTeam(null);
+      fetchVersions();
+    } else {
+      setMessage('Update failed.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
     <>
