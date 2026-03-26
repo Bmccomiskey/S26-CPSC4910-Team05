@@ -20,15 +20,40 @@ TOKEN_EXPIRY_MINUTES = 30
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
-#sends a notification to a user, will be replaced with AWS SES when fully implemented
-def send_notification(to_email: str, subject: str, message: str):
-    """
-    Sends a notification to a user.
-    In dev mode, prints to terminal. Will be replaced with AWS SES.
-    """
-    print(f"\n[NOTIFICATION] To: {to_email}")
-    print(f"Subject: {subject}")
-    print(f"Message: {message}\n")
+#sends a notification to a user, uses Gmail SMTP
+async def send_notification(to_email: str, subject: str, message: str):
+    import aiosmtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    smtp_username = os.getenv("SMTP_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM_EMAIL")
+
+    if not all([smtp_host, smtp_username, smtp_password, smtp_from]):
+        print(f"\n[EMAIL SKIPPED - SMTP not configured] To: {to_email}, Subject: {subject}\n")
+        return
+
+    msg = MIMEMultipart()
+    msg["From"] = smtp_from
+    msg["To"] = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(message, "plain"))
+
+    try:
+        await aiosmtplib.send(
+            msg,
+            hostname=smtp_host,
+            port=smtp_port,
+            username=smtp_username,
+            password=smtp_password,
+            start_tls=True,
+        )
+        print(f"\n[EMAIL SENT] To: {to_email}, Subject: {subject}\n")
+    except Exception as e:
+        print(f"\n[EMAIL FAILED] To: {to_email}, Error: {e}\n")
 
 
 # uses the pydantic "BaseModel" to define and validate expected request body
@@ -83,7 +108,7 @@ def register(body: RegisterBody, db: Session = Depends(get_db)):
     return {"message": "User registered successfully"}
 
 @router.post("/login")
-def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
+async def login(body: LoginBody, request: Request, response: Response, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     password = body.password
 
@@ -104,7 +129,7 @@ def login(body: LoginBody, request: Request, response: Response, db: Session = D
                 user.locked_until = datetime.utcnow() + timedelta(minutes=5)
                 db.commit()
 
-                send_notification(
+                await send_notification(
                     user.email,
                     "Account Locked",
                     f"Your account has been locked due to multiple failed login attempts. It will be unlocked in 5 minutes."
@@ -177,7 +202,7 @@ def logout(
 
 # accepts an email and sends a reset link if the account exists
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = Depends(get_db)):
+async def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
 
@@ -208,7 +233,11 @@ def forgot_password(body: ForgotPasswordBody, request: Request, db: Session = De
         )
 
         reset_link = f"{FRONTEND_URL}/reset-password?token={raw_token}"
-        print(f"\nPassword reset link for {email}:\n  {reset_link}\n")
+        await send_notification(
+            to_email=email,
+            subject="Password Reset Request",
+            message=f"Click this link to reset your password: {reset_link}\n\nThis link expires in 30 minutes."
+        )
 
     return {"message": "If an account with that email exists, a reset link has been sent."}
 
@@ -350,7 +379,7 @@ def get_sponsors(db: Session = Depends(get_db)):
 
 #admin sends notification to drivers
 @router.post("/admin/notify-drivers")
-def admin_notify_drivers(
+async def admin_notify_drivers(
         subject: str,
         message: str,
         request: Request,
@@ -362,7 +391,7 @@ def admin_notify_drivers(
         raise HTTPException(status_code=404, detail="No drivers found.")
 
     for driver in drivers:
-        send_notification(driver.email, subject, message)
+        await send_notification(driver.email, subject, message)
 
     log_audit_event(
         db=db,
@@ -377,7 +406,7 @@ def admin_notify_drivers(
 
 #admin sends notification to sponsors
 @router.post("/admin/notify-sponsors")
-def admin_notify_sponsors(
+async def admin_notify_sponsors(
         subject: str,
         message: str,
         request: Request,
@@ -389,7 +418,7 @@ def admin_notify_sponsors(
         raise HTTPException(status_code=404, detail="No sponsors found.")
 
     for sponsor in sponsors:
-        send_notification(sponsor.email, subject, message)
+        await send_notification(sponsor.email, subject, message)
 
     log_audit_event(
         db=db,
@@ -404,7 +433,7 @@ def admin_notify_sponsors(
 
 #sponsor sends notification to drivers
 @router.post("/sponsor/notify-drivers")
-def sponsor_notify_drivers(
+async def sponsor_notify_drivers(
         subject: str,
         message: str,
         sponsor_id: int,
@@ -417,7 +446,7 @@ def sponsor_notify_drivers(
         raise HTTPException(status_code=404, detail="No drivers found for this sponsor.")
 
     for driver in drivers:
-        send_notification(driver.email, subject, message)
+        await send_notification(driver.email, subject, message)
 
     log_audit_event(
         db=db,
