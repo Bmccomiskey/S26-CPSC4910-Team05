@@ -142,7 +142,7 @@ const submitEdit = async (teamNum) => {
         style={{
           display: 'block',
           fontSize: '13px',
-          color: '#64748b',
+          color: '#184530',
           marginBottom: '4px',
         }}
       >
@@ -162,7 +162,7 @@ const submitEdit = async (teamNum) => {
         style={{
           display: 'block',
           fontSize: '13px',
-          color: '#64748b',
+          color: '#184530',
           marginBottom: '4px',
         }}
       >
@@ -183,7 +183,7 @@ const submitEdit = async (teamNum) => {
   </form>
 
   {message && (
-    <p style={{ marginTop: '10px', color: '#64748b' }}>{message}</p>
+    <p style={{ marginTop: '10px', color: '#184530' }}>{message}</p>
   )}
 </div>
 
