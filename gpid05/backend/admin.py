@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db import get_db
 from userModels import User
+from sysModels import VersionInfo
 from audit import log_audit_event
 from sessions import require_role, require_admin_user, require_session, require_original_user
 from pydantic import BaseModel
@@ -179,6 +181,12 @@ def admin_update_user_profile(
         },
         "profile": serialize_profile(profile)
     }
+
+
+class SystemInfo(BaseModel):
+    teamnum: int
+    vernum: int
+
 
 @router.get("/users")
 def admin_list_users(
@@ -444,4 +452,43 @@ def impersonation_status(
     return {
         "is_impersonating": True,
         "target": {"id": target.id, "email": target.email, "role": target.role},
+    }
+
+@router.post("/version/details")
+def admin_update_system(
+    body: SystemInfo,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+    current_info: VersionInfo = Depends(require_role("admin"))
+):
+    info = db.query(VersionInfo).first()
+
+    if not info:
+        info = VersionInfo(TeamNum=body.teamnum, VerNum=body.vernum)
+        db.add(info)
+    else:
+        info.VerNum = body.vernum
+
+    db.commit()
+    db.refresh(info)
+    
+    log_audit_event(
+        db=db,
+        event_type="SYSTEM_INFO_UPDATED",
+        success=True,
+        user_id=current_user.id,
+        request=request,
+        metadata={
+            "TeamNum": body.teamnum,
+            "VerNum": body.vernum
+        }
+    )
+
+    return {
+        "message": "System information updated successfully.",
+        "system_info": {
+            "TeamNum": body.teamnum,
+            "VerNum": body.vernum
+        }
     }

@@ -56,7 +56,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            className={`sd-nav-iem' ${activeTab === 'system' ? 'active' : ''}`}
+            className={`sd-nav-item ${activeTab === 'system' ? 'active' : ''}`}
             onClick={() => setActiveTab('system')}
           >
             System Management
@@ -131,15 +131,11 @@ export default function AdminDashboard() {
 
         {activeTab === 'system' && (
           <>
-            <div className="sd-top-bar">
-              <h1 className="sd-page-title">System Management</h1>
-            </div>
-            <div className="sd-section">
-              <h2>System Management</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Catalog admin features will be implemented in future admin stories.
-              </p>
-            </div>
+           <div className="sd-top-bar">
+           <h1 className="sd-page-title">System Management</h1>
+          </div>
+
+          <SystemManagement />
           </>
         )}
 
