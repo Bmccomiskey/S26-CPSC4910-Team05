@@ -35,7 +35,7 @@ export default function SystemManagement() {
   const handleCreateOrUpdate = async (e) => {
   e.preventDefault();
 
-  const team = parseInt(teamNum);
+  const team = parseInt(5);
   const version = parseInt(verNum);
 
   if (isNaN(team) || isNaN(version)) {
