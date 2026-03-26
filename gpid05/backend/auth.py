@@ -20,15 +20,40 @@ TOKEN_EXPIRY_MINUTES = 30
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 
-#sends a notification to a user, will be replaced with AWS SES when fully implemented
-def send_notification(to_email: str, subject: str, message: str):
-    """
-    Sends a notification to a user.
-    In dev mode, prints to terminal. Will be replaced with AWS SES.
-    """
-    print(f"\n[NOTIFICATION] To: {to_email}")
-    print(f"Subject: {subject}")
-    print(f"Message: {message}\n")
+#sends a notification to a user, uses Gmail SMTP
+async def send_notification(to_email: str, subject: str, message: str):
+    import aiosmtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    smtp_username = os.getenv("SMTP_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM_EMAIL")
+
+    if not all([smtp_host, smtp_username, smtp_password, smtp_from]):
+        print(f"\n[EMAIL SKIPPED - SMTP not configured] To: {to_email}, Subject: {subject}\n")
+        return
+
+    msg = MIMEMultipart()
+    msg["From"] = smtp_from
+    msg["To"] = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(message, "plain"))
+
+    try:
+        await aiosmtplib.send(
+            msg,
+            hostname=smtp_host,
+            port=smtp_port,
+            username=smtp_username,
+            password=smtp_password,
+            start_tls=True,
+        )
+        print(f"\n[EMAIL SENT] To: {to_email}, Subject: {subject}\n")
+    except Exception as e:
+        print(f"\n[EMAIL FAILED] To: {to_email}, Error: {e}\n")
 
 
 # uses the pydantic "BaseModel" to define and validate expected request body
