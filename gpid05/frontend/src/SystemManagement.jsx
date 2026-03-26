@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import "./UserManagement.css";
+import { useState } from 'react';
+import './UserManagement.css';
 
-function SystemManagement() {
+export default function SystemManagement() {
   const [teamNum, setTeamNum] = useState('');
   const [verNum, setVerNum] = useState('');
   const [message, setMessage] = useState('');
@@ -15,6 +15,7 @@ function SystemManagement() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // IMPORTANT (matches your auth system)
         body: JSON.stringify({
           teamNum: parseInt(teamNum),
           verNum: parseInt(verNum),
@@ -25,8 +26,10 @@ function SystemManagement() {
 
       if (res.ok) {
         setMessage('Version updated successfully!');
+        setTeamNum('');
+        setVerNum('');
       } else {
-        setMessage(data.error || 'Update failed.');
+        setMessage(data.detail || 'Update failed.');
       }
     } catch (err) {
       console.error(err);
