@@ -6,3 +6,4 @@ pydantic
 mysql-connector-python
 python-dotenv
 requests
+aiosmtplib
