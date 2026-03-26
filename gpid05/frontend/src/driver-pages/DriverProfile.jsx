@@ -41,28 +41,50 @@ export default function DriverProfile({ user, applications = [], transactions = 
 
   const handleSave = async (e) => {
     e.preventDefault();
+
     try {
-      await fetch(`/profile/${user.id}`, {
+      const res = await fetch(`/profile/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          first_name:  profile.firstName,
-          last_name:   profile.lastName,
-          phone:       profile.phone,
-          city:        profile.city,
-          state:       profile.state,
-          cdl_number:  profile.cdlNumber,
-          cdl_class:   profile.cdlClass,
-          years_exp:   profile.yearsExp,
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          phone: profile.phone,
+          city: profile.city,
+          state: profile.state,
+          cdl_number: profile.cdlNumber,
+          cdl_class: profile.cdlClass,
+          years_exp: profile.yearsExp,
         }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || data.message || 'Failed to save profile');
+      }
+
+      if (data.profile) {
+        setProfile({
+          firstName: data.profile.first_name || '',
+          lastName: data.profile.last_name || '',
+          phone: data.profile.phone || '',
+          city: data.profile.city || '',
+          state: data.profile.state || '',
+          cdlNumber: data.profile.cdl_number || '',
+          cdlClass: data.profile.cdl_class || 'Class A',
+          yearsExp: data.profile.years_exp || '',
+        });
+      }
+
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Error saving profile:', err);
+      alert(err.message || 'Failed to save profile');
     }
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   };
 
   const initials = (profile.firstName[0] || 'D') + (profile.lastName[0] || '');
