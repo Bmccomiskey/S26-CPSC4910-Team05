@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export default function SystemManagement() {
-  const [teamNum, setTeamNum] = useState('');
+  const [teamNum, setTeamNum] = useState(5);
   const [verNum, setVerNum] = useState('');
   const [versions, setVersions] = useState([]);
   const [message, setMessage] = useState('');
@@ -137,26 +137,6 @@ const submitEdit = async (teamNum) => {
   <h2 className="sd-section-title">Update Version Info</h2>
 
   <form onSubmit={handleCreateOrUpdate} style={{ marginTop: '10px' }}>
-    <div style={{ marginBottom: '12px' }}>
-      <label
-        style={{
-          display: 'block',
-          fontSize: '13px',
-          color: '#184530',
-          marginBottom: '4px',
-        }}
-      >
-        Team Number
-      </label>
-      <input
-        type="number"
-        value={teamNum}
-        onChange={(e) => setTeamNum(e.target.value)}
-        required
-        style={{ padding: '6px', width: '200px', color: '#184530'}}
-      />
-    </div>
-
     <div style={{ marginBottom: '12px' }}>
       <label
         style={{
