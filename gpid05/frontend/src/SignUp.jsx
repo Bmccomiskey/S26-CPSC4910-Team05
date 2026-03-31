@@ -53,6 +53,9 @@ function SignUp() {
   return (
     <div className="login-container">
       <div className="login-card">
+        <Link to="/" className="login-back-link">
+          ← Back to Home
+        </Link>
         <div className="header">
           <h1>Create an account</h1>
           <p className="subtitle">Join us today</p>

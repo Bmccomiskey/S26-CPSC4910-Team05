@@ -70,6 +70,9 @@ export default function LoginPage() {
 
   return (
     <div className="login-card">
+      <Link to="/" className="login-back-link">
+        ← Back to Home
+      </Link>
       <div className="header">
         <h1>Welcome back</h1>
       </div>
