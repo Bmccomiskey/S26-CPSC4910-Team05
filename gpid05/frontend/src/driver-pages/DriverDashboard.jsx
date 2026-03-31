@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import DriverOrders from './DriverOrders';
 import DriverPoints from './DriverPoints';
 import DriverProfile from './DriverProfile';
+import DriverCart from './DriverCart';
 import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './DriverDashboard.css';
@@ -36,6 +37,8 @@ export default function DriverDashboard() {
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [sortOption, setSortOption] = useState("none");
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
@@ -57,6 +60,7 @@ export default function DriverDashboard() {
         const data = await resCatalog.json();
 
         catalogs.push({
+          sponsor_id: app.sponsor_id,
           sponsor_email: app.sponsor_email,
           last_updated: data.last_updated,
           items: data.items
@@ -269,6 +273,48 @@ const redeemItem = async (item, sponsorId) => {
   // Refresh balance + history
   fetchTransactions();
 };
+
+  const addToCart = (item, sponsorId, sponsorEmail) => {
+    const alreadyInCart = cart.some(ci => ci.id === item.id && ci.sponsor_id === sponsorId);
+    if (alreadyInCart) {
+      alert(`"${item.name}" is already in your cart.`);
+      return;
+    }
+    setCart(prev => [...prev, { ...item, sponsor_id: sponsorId, sponsor_email: sponsorEmail }]);
+  };
+
+  const removeFromCart = (index) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCartCheckout = async () => {
+    if (cart.length === 0) return;
+    const errors = [];
+    for (const item of cart) {
+      const res = await fetch(`${API_BASE}/points/redeem`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          driver_id: user.id,
+          sponsor_id: item.sponsor_id,
+          item_id: item.id,
+          item_name: item.name,
+          point_cost: item.point_cost,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errors.push(`${item.name}: ${data.detail || 'Failed'}`);
+      }
+    }
+    if (errors.length > 0) {
+      alert(`Some items could not be redeemed:\n${errors.join('\n')}`);
+    } else {
+      alert('All items redeemed successfully!');
+      setCart([]);
+    }
+    fetchTransactions();
+  };
 
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
   const exitImpersonation = async () => {
@@ -538,11 +584,38 @@ const redeemItem = async (item, sponsorId) => {
       
       {activeTab === "catalog" && (
         <div className="dd-section">
-          <h2>Available Rewards</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 style={{ margin: 0 }}>Available Rewards</h2>
+            <button
+              onClick={() => setCartOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '8px 18px', background: '#1e293b', color: '#fff',
+                border: 'none', borderRadius: '8px', fontSize: '14px',
+                fontWeight: '700', fontFamily: 'inherit', cursor: 'pointer',
+                position: 'relative',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              Cart
+              {cart.length > 0 && (
+                <span style={{
+                  background: '#F59E0B', color: '#0f172a', borderRadius: '999px',
+                  fontSize: '11px', fontWeight: '800', padding: '1px 7px', lineHeight: '1.6',
+                }}>
+                  {cart.length}
+                </span>
+              )}
+            </button>
+          </div>
           <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          style={{ marginBottom: "15px", padding: "5px" }}
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            style={{ marginBottom: "15px", padding: "5px" }}
           >
             <option value="none">Sort</option>
             <option value="price_asc">Price: Low → High</option>
@@ -551,67 +624,92 @@ const redeemItem = async (item, sponsorId) => {
             <option value="points_desc">Points: High → Low</option>
           </select>
           <input
-          type="text"
-          placeholder="Search catalog..."
-          value={catalogSearch}
-          onChange={(e) => setCatalogSearch(e.target.value)}
-          style={{ marginBottom: "15px", padding: "5px" }}
+            type="text"
+            placeholder="Search catalog..."
+            value={catalogSearch}
+            onChange={(e) => setCatalogSearch(e.target.value)}
+            style={{ marginBottom: "15px", padding: "5px" }}
           />
           {catalogLoading ? (
             <p>Loading...</p>
           ) : driverCatalog.length === 0 ? (
-          <p>No approved sponsors or no catalog available.</p>
-        ) : (
-          driverCatalog.map((catalog, idx) => (
-          <div key={idx} style={{ marginBottom: "40px" }}>
-            <h3>{catalog.sponsor_email}</h3>
-            {catalog.last_updated && (
-              <p>
-                Last Updated: {new Date(catalog.last_updated).toLocaleString()}
-              </p>
-            )}
-            <table className="dd-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Points</th>
-                  <th>Price (USD)</th>
-                  </tr>
-                  </thead>
-                <tbody>
-                  {[...catalog.items]
-                  .sort((a, b) => {
-                    switch (sortOption) {
-                      case "price_asc":
-                        return a.price_usd - b.price_usd;
-                      case "price_desc":
-                        return b.price_usd - a.price_usd;
-                      case "points_asc":
-                        return a.point_cost - b.point_cost;
-                      case "points_desc":
-                        return b.point_cost - a.point_cost;
-                      default:
-                        return 0;}
-                      })
-                  .map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.name}</td>
-                    <td>{item.point_cost}</td>
-                    <td>${item.price_usd}</td>
-                    <td>
-                      <button onClick={() => redeemItem(item.id)}>
-                        Redeem
-                        </button>
-                        </td>
+            <p>No approved sponsors or no catalog available.</p>
+          ) : (
+            driverCatalog.map((catalog, idx) => (
+              <div key={idx} style={{ marginBottom: "40px" }}>
+                <h3>{catalog.sponsor_email}</h3>
+                {catalog.last_updated && (
+                  <p>Last Updated: {new Date(catalog.last_updated).toLocaleString()}</p>
+                )}
+                <table className="dd-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Points</th>
+                      <th>Price (USD)</th>
+                      <th></th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody>
+                    {[...catalog.items]
+                      .sort((a, b) => {
+                        switch (sortOption) {
+                          case "price_asc":   return a.price_usd - b.price_usd;
+                          case "price_desc":  return b.price_usd - a.price_usd;
+                          case "points_asc":  return a.point_cost - b.point_cost;
+                          case "points_desc": return b.point_cost - a.point_cost;
+                          default:            return 0;
+                        }
+                      })
+                      .map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.name}</td>
+                          <td>{item.point_cost}</td>
+                          <td>${item.price_usd}</td>
+                          <td>
+                            <button onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}>
+                              Add to Cart
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
-                  </table>
-                  </div>
-                  ))
-                  )}
-            </div>
+                </table>
+              </div>
+            ))
           )}
+        </div>
+      )}
+
+      {/* Cart drawer overlay */}
+      {cartOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', justifyContent: 'flex-end',
+          }}
+        >
+          <div
+            onClick={() => setCartOpen(false)}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }}
+          />
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: '780px',
+            background: '#f8fafc', height: '100%', overflowY: 'auto',
+            padding: '28px 24px', boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
+          }}>
+            <DriverCart
+              user={user}
+              cartItems={cart}
+              transactions={transactions}
+              onRemoveItem={removeFromCart}
+              onCheckout={handleCartCheckout}
+              onClose={() => setCartOpen(false)}
+              onBrowseCatalog={() => { setCartOpen(false); setActiveTab("catalog"); }}
+            />
+          </div>
+        </div>
+      )}
       {/* ── My Goals tab ── */}
       {activeTab === "goals" && (
         <div className="dd-goals-tab">
