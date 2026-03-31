@@ -406,7 +406,7 @@ const redeemItem = async (item, sponsorId) => {
         {isSponsorViewing && (
           <div style={{ padding: "10px 14px", background: "#d1ecf1", border: "1px solid #bee5eb", borderRadius: 8, marginBottom: 12 }}>
             <strong>Sponsor View:</strong> You are viewing the driver dashboard as {localStorage.getItem("userEmail")}.
-            <button style={{ marginLeft: 12 }} onClick={exitSponsorView}>
+            <button className="dd-new-goal-btn" style={{ marginLeft: 12 }} onClick={exitSponsorView}>
               Return to Sponsor Dashboard
             </button>
           </div>
@@ -524,7 +524,7 @@ const redeemItem = async (item, sponsorId) => {
                         return <span>Pending</span>;
                       } 
                       return(
-                        <button onClick={() => handleApply(sponsor.id)}>
+                        <button className="dd-new-goal-btn" onClick={() => handleApply(sponsor.id)}>
                           Apply
                         </button>
                       );
@@ -667,8 +667,11 @@ const redeemItem = async (item, sponsorId) => {
                           <td>{item.point_cost}</td>
                           <td>${item.price_usd}</td>
                           <td>
-                            <button onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}>
-                              Add to Cart
+                            <button
+                              className="dd-add-cart-btn"
+                              onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}
+                            >
+                              + Add to Cart
                             </button>
                           </td>
                         </tr>
@@ -837,7 +840,20 @@ const redeemItem = async (item, sponsorId) => {
       )}
 
       {activeTab === "orders" && (
-        <DriverOrders user={user} orders={[]} />
+        <DriverOrders
+          user={user}
+          orders={transactions
+            .filter(t => t.points < 0 && t.description?.startsWith("Redeemed:"))
+            .map(t => ({
+              id: t.id,
+              item_name: t.description.replace("Redeemed: ", ""),
+              created_at: t.created_at,
+              points_spent: Math.abs(t.points),
+              status: "COMPLETED",
+            }))
+          }
+          onBrowseCatalog={() => setActiveTab("catalog")}
+        />
       )}
 
       {activeTab === "points" && (

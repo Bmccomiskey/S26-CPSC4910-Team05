@@ -458,10 +458,10 @@ export default function AwardPoints({ user, approvedDrivers = [], pointsHistory 
                       />
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <button className="awp-submit-btn" style={{ padding: '4px 10px', fontSize: 13 }} onClick={() => handleEditSubmit(h)} disabled={editSubmitting}>
+                      <button className="awp-edit-save-btn" onClick={() => handleEditSubmit(h)} disabled={editSubmitting}>
                         {editSubmitting ? '…' : 'Save'}
                       </button>
-                      <button style={{ marginLeft: 6, padding: '4px 10px', fontSize: 13 }} onClick={cancelEdit}>
+                      <button className="awp-edit-cancel-btn" onClick={cancelEdit}>
                         Cancel
                       </button>
                     </td>
@@ -477,7 +477,7 @@ export default function AwardPoints({ user, approvedDrivers = [], pointsHistory 
                       </span>
                     </td>
                     <td>
-                      <button style={{ padding: '3px 10px', fontSize: 13 }} onClick={() => startEdit(h)}>
+                      <button className="awp-edit-btn" onClick={() => startEdit(h)}>
                         Edit
                       </button>
                     </td>

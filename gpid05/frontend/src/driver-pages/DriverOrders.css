@@ -188,6 +188,65 @@
   white-space: nowrap;
 }
 
+/* ── Header actions ── */
+.dro-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dro-history-btn {
+  padding: 8px 18px;
+  background: transparent;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.dro-history-btn:hover {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+
+/* ── Remove button ── */
+.dro-remove-btn {
+  padding: 4px 12px;
+  background: transparent;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.dro-remove-btn:hover {
+  background: #fef2f2;
+}
+
+/* ── Dismissed row (history view) ── */
+.dro-row-dismissed td {
+  opacity: 0.45;
+}
+
+.dro-removed-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .dro-table th:nth-child(2),

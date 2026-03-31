@@ -639,6 +639,29 @@
   background: linear-gradient(90deg, #8b5cf6, #6366f1) !important;
 }
 
+/* ── Add to Cart button ── */
+.dd-add-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dd-add-cart-btn:hover {
+  background: #F59E0B;
+  color: #0f172a;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .dd-goal-form-grid { grid-template-columns: 1fr; }

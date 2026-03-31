@@ -1,11 +1,24 @@
+import { useState } from 'react';
 import './DriverOrders.css';
 
-export default function DriverOrders({ user, orders = [] }) {
+export default function DriverOrders({ user, orders = [], onBrowseCatalog }) {
+  const storageKey = `dro-dismissed-${user?.id}`;
+
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+    } catch {
+      return new Set();
+    }
+  });
+  const [showHistory, setShowHistory] = useState(false);
+
   const statusMeta = {
     DELIVERED:  { label: 'Delivered',   color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
     SHIPPED:    { label: 'Shipped',     color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
     PROCESSING: { label: 'Processing',  color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
     CANCELLED:  { label: 'Cancelled',   color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+    COMPLETED:  { label: 'Completed',   color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
   };
 
   const formatDate = (dateStr) => {
@@ -15,21 +28,48 @@ export default function DriverOrders({ user, orders = [] }) {
 
   const formatPoints = (pts) => pts?.toLocaleString();
 
+  const dismiss = (id) => {
+    setDismissedIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem(storageKey, JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const activeOrders = orders.filter(o => !dismissedIds.has(o.id));
+  const displayedOrders = showHistory ? orders : activeOrders;
+  const hasHistory = orders.length > 0;
+
   return (
     <div className="dro-root">
       <div className="dro-page-header">
         <div>
-          <h1 className="dro-page-title">My Orders</h1>
-          <p className="dro-page-sub">Track your redeemed rewards and order history</p>
+          <h1 className="dro-page-title">{showHistory ? 'Order History' : 'My Orders'}</h1>
+          <p className="dro-page-sub">
+            {showHistory
+              ? 'All redeemed rewards including removed items'
+              : 'Track your redeemed rewards and order history'}
+          </p>
         </div>
-        {orders.length > 0 && (
-          <div className="dro-summary-pill">
-            {orders.length} order{orders.length !== 1 ? 's' : ''}
-          </div>
-        )}
+        <div className="dro-header-actions">
+          {hasHistory && (
+            <button
+              className="dro-history-btn"
+              onClick={() => setShowHistory(v => !v)}
+            >
+              {showHistory ? '← Back to Orders' : 'Order History'}
+            </button>
+          )}
+          {!showHistory && activeOrders.length > 0 && (
+            <div className="dro-summary-pill">
+              {activeOrders.length} order{activeOrders.length !== 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
       </div>
 
-      {orders.length === 0 ? (
+      {displayedOrders.length === 0 ? (
         <div className="dro-empty">
           <div className="dro-empty-icon-wrap">
             <svg className="dro-empty-icon" viewBox="0 0 64 64" fill="none">
@@ -47,7 +87,7 @@ export default function DriverOrders({ user, orders = [] }) {
           <p className="dro-empty-desc">
             Once you redeem points for rewards from the catalog, your orders will appear here.
           </p>
-          <button className="dro-cta-btn">
+          <button className="dro-cta-btn" onClick={onBrowseCatalog}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
               <line x1="3" y1="6" x2="21" y2="6"/>
@@ -65,13 +105,15 @@ export default function DriverOrders({ user, orders = [] }) {
                 <th>Date Ordered</th>
                 <th>Points Spent</th>
                 <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => {
+              {displayedOrders.map((order) => {
                 const meta = statusMeta[order.status] || statusMeta.PROCESSING;
+                const isDismissed = dismissedIds.has(order.id);
                 return (
-                  <tr key={order.id}>
+                  <tr key={order.id} className={isDismissed ? 'dro-row-dismissed' : ''}>
                     <td className="dro-td-item">
                       <span className="dro-item-name">{order.item_name}</span>
                     </td>
@@ -86,6 +128,20 @@ export default function DriverOrders({ user, orders = [] }) {
                       >
                         {meta.label}
                       </span>
+                    </td>
+                    <td>
+                      {!showHistory && order.status === 'COMPLETED' && (
+                        <button
+                          className="dro-remove-btn"
+                          onClick={() => dismiss(order.id)}
+                          title="Remove from orders"
+                        >
+                          Remove
+                        </button>
+                      )}
+                      {showHistory && isDismissed && (
+                        <span className="dro-removed-label">Removed</span>
+                      )}
                     </td>
                   </tr>
                 );
