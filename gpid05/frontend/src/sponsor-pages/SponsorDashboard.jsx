@@ -409,6 +409,21 @@ export default function SponsorDashboard() {
             <table className="sd-table">
               <thead>
                 <tr>
+                  <th>Image</th>
+                  <td>
+                    {item.image_url && (
+                      <img
+                      src={item.image_url}
+                      alt={item.name}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "contain",
+                        borderRadius: "6px"
+                      }}
+                      />
+                      )}
+                    </td>
                   <th>Name</th>
                   <th>Points</th>
                   <th>Price (USD)</th>

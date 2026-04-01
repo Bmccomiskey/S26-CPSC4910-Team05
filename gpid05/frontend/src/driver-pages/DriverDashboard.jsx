@@ -663,6 +663,20 @@ const redeemItem = async (item, sponsorId) => {
                       })
                       .map((item) => (
                         <tr key={item.id}>
+                          <td>
+                            {item.image_url && (
+                              <img
+                              src={item.image_url}
+                              alt={item.name}
+                              style={{
+                                width: "60px",
+                                height: "60px",
+                                objectFit: "contain",
+                                borderRadius: "6px"
+                              }}
+                              />
+                              )}
+                          </td>
                           <td>{item.name}</td>
                           <td>{item.point_cost}</td>
                           <td>${item.price_usd}</td>
