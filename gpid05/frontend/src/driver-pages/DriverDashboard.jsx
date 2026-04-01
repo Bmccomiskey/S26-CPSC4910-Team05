@@ -644,6 +644,7 @@ const redeemItem = async (item, sponsorId) => {
                 <table className="dd-table">
                   <thead>
                     <tr>
+                      <th>Image</th>
                       <th>Name</th>
                       <th>Points</th>
                       <th>Price (USD)</th>

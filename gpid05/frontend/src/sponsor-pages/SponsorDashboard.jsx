@@ -410,20 +410,6 @@ export default function SponsorDashboard() {
               <thead>
                 <tr>
                   <th>Image</th>
-                  <td>
-                    {item.image_url && (
-                      <img
-                      src={item.image_url}
-                      alt={item.name}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "contain",
-                        borderRadius: "6px"
-                      }}
-                      />
-                      )}
-                    </td>
                   <th>Name</th>
                   <th>Points</th>
                   <th>Price (USD)</th>
@@ -453,6 +439,20 @@ export default function SponsorDashboard() {
                   opacity: item.is_active ? 1 : 0.4
                 }}
                 >
+                  <td>
+                    {item.image_url && (
+                      <img
+                      src={item.image_url}
+                      alt={item.name}
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "contain",
+                        borderRadius: "6px"
+                      }}
+                      />
+                      )}
+                  </td>
                   <td>{item.name}</td>
                   <td>{item.point_cost}</td>
                   <td>${item.price_usd}</td>
