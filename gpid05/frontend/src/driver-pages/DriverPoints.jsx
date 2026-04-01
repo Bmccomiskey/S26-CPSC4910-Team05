@@ -1,7 +1,7 @@
 import './DriverPoints.css';
 
-export default function DriverPoints({ user, transactions = [] }) {
-  const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+export default function DriverPoints({ user, transactions = [], balance = null }) {
+  const totalPoints = balance == null ? transactions.reduce((sum, t) => sum + t.points, 0) : balance;
   const earned = transactions.filter(t => t.points > 0).reduce((sum, t) => sum + t.points, 0);
   const spent  = transactions.filter(t => t.points < 0).reduce((sum, t) => sum + t.points, 0);
 

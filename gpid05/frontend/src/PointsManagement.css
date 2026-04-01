@@ -1,0 +1,107 @@
+.pm-form {
+    margin-top: 14px;
+  }
+  
+  .pm-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  
+  .pm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .pm-field-wide {
+    grid-column: span 1;
+  }
+  
+  .pm-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  
+  .pm-field input,
+  .pm-field select,
+  .pm-search {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #111827;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  
+  .pm-checkbox-row {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1f2937;
+    font-weight: 600;
+  }
+  
+  .pm-toolbar {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .pm-search {
+    min-width: 280px;
+    flex: 1;
+  }
+  
+  .pm-toolbar-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .pm-table-wrap {
+    margin-top: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+  }
+  
+  .pm-empty-cell {
+    padding: 16px;
+    color: #4b5563;
+  }
+  
+  .pm-message {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  
+  .pm-success {
+    background: rgba(5, 150, 105, 0.12);
+    color: #047857;
+  }
+  
+  .pm-error {
+    background: rgba(185, 28, 28, 0.12);
+    color: #b91c1c;
+  }
+  
+  @media (max-width: 900px) {
+    .pm-form-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .pm-field-wide {
+      grid-column: span 1;
+    }
+  }

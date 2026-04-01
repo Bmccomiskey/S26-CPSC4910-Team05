@@ -7,7 +7,7 @@ const DEFAULTS = {
   state: '', cdlNumber: '', cdlClass: 'Class A', yearsExp: '',
 };
 
-export default function DriverProfile({ user, applications = [], transactions = [] }) {
+export default function DriverProfile({ user, applications = [], transactions = [], balance = null }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -35,7 +35,7 @@ export default function DriverProfile({ user, applications = [], transactions = 
   }, [user]);
 
   const approved    = applications.filter(a => a.status === 'APPROVED').length;
-  const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+  const totalPoints = balance == null ? transactions.reduce((sum, t) => sum + t.points, 0) : balance;
 
   const set = (key, val) => setProfile(p => ({ ...p, [key]: val }));
 

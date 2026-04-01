@@ -39,6 +39,7 @@ export default function DriverDashboard() {
   const [sortOption, setSortOption] = useState("none");
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [pointBalance, setPointBalance] = useState(0);
 
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
@@ -74,6 +75,14 @@ export default function DriverDashboard() {
   }
   
   setCatalogLoading(false);
+};
+
+const fetchPointBalance = () => {
+  if (!user) return;
+  fetch(`/points/driver/${user.id}/balance`, { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => setPointBalance(Number(data.balance || 0)))
+    .catch(err => console.error("Error fetching point balance:", err));
 };
 
 useEffect(() => {
@@ -170,6 +179,7 @@ useEffect(() => {
         .catch(err => console.error("Error fetching applications:", err));
 
       fetchTransactions();
+      fetchPointBalance();
       fetchGoals();
       fetchPersonalGoals();
     }
@@ -177,7 +187,7 @@ useEffect(() => {
 
   // Re-fetch transactions every time the points tab is opened
   useEffect(() => {
-    if (activeTab === "points") fetchTransactions();
+    if (activeTab === "points") { fetchTransactions(); fetchPointBalance(); }
     if (activeTab === "goals") { fetchGoals(); fetchPersonalGoals(); }
   }, [activeTab]);
   const handleApply = async (sponsorId) => {
@@ -272,6 +282,7 @@ const redeemItem = async (item, sponsorId) => {
 
   // Refresh balance + history
   fetchTransactions();
+  fetchPointBalance();
 };
 
   const addToCart = (item, sponsorId, sponsorEmail) => {
@@ -314,6 +325,7 @@ const redeemItem = async (item, sponsorId) => {
       setCart([]);
     }
     fetchTransactions();
+    fetchPointBalance();
   };
 
   const isImpersonating = localStorage.getItem("isImpersonating") === "true";
@@ -720,6 +732,7 @@ const redeemItem = async (item, sponsorId) => {
               user={user}
               cartItems={cart}
               transactions={transactions}
+              balance={pointBalance}
               onRemoveItem={removeFromCart}
               onCheckout={handleCartCheckout}
               onClose={() => setCartOpen(false)}
@@ -872,11 +885,11 @@ const redeemItem = async (item, sponsorId) => {
       )}
 
       {activeTab === "points" && (
-        <DriverPoints user={user} transactions={transactions} />
+        <DriverPoints user={user} transactions={transactions} balance={pointBalance} />
       )}
 
       {activeTab === "profile" && (
-        <DriverProfile user={user} applications={myApplications} transactions={transactions} />
+        <DriverProfile user={user} applications={myApplications} transactions={transactions} balance={pointBalance} />
       )}
 
       </main>

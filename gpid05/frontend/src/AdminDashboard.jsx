@@ -4,6 +4,7 @@ import { useState } from 'react';
 import './sponsor-pages/SponsorDashboard.css';
 import UserManagement from './UserManagement';
 import SystemManagement from './SystemManagement';
+import PointsManagement from './PointsManagement';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -54,6 +55,13 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('users')}
           >
             User Management
+          </button>
+
+          <button
+            className={`sd-nav-item ${activeTab === 'points' ? 'active' : ''}`}
+            onClick={() => setActiveTab('points')}
+          >
+            Points Management
           </button>
 
           <button
@@ -129,6 +137,8 @@ export default function AdminDashboard() {
 
         {/* USER MANAGEMENT TAB (moved to separate component) */}
         {activeTab === 'users' && <UserManagement currentUser={user} />}
+
+        {activeTab === 'points' && <PointsManagement currentUser={user} />}
 
         {activeTab === 'system' && (
           <>

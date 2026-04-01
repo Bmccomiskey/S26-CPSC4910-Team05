@@ -1,7 +1,7 @@
 import './DriverCart.css';
 
-export default function DriverCart({ user, cartItems = [], transactions = [], onRemoveItem, onCheckout, onBrowseCatalog, onClose }) {
-  const currentBalance = transactions.reduce((sum, t) => sum + t.points, 0);
+export default function DriverCart({ user, cartItems = [], transactions = [], balance = null,  onRemoveItem, onCheckout, onBrowseCatalog, onClose }) {
+  const currentBalance = balance == null ? transactions.reduce((sum, t) => sum + t.points, 0) : balance;
   const totalCost = cartItems.reduce((sum, item) => sum + item.point_cost, 0);
   const canAfford = currentBalance >= totalCost;
 

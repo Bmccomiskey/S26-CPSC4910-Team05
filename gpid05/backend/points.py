@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import Integer, String, DateTime, ForeignKey
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean, func as sa_func
 from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy.sql import func
 
@@ -24,7 +24,12 @@ class PointTransaction(Base):
     created_at: Mapped[str] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-
+    hidden_from_reports: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=sa_func.false()
+    )
 
 # ── Schemas ────────────────────────────────────────────────────────────────
 class AwardPointsBody(BaseModel):
@@ -128,7 +133,10 @@ def get_sponsor_history(sponsor_id: int, db: Session = Depends(get_db)):
     rows = (
         db.query(PointTransaction, User.email)
         .join(User, PointTransaction.driver_id == User.id)
-        .filter(PointTransaction.sponsor_id == sponsor_id)
+        .filter(
+            PointTransaction.sponsor_id == sponsor_id,
+            PointTransaction.hidden_from_reports == False
+        )
         .order_by(PointTransaction.created_at.desc())
         .all()
     )
@@ -151,7 +159,10 @@ def get_driver_history(driver_id: int, db: Session = Depends(get_db)):
     rows = (
         db.query(PointTransaction, User.email)
         .join(User, PointTransaction.sponsor_id == User.id)
-        .filter(PointTransaction.driver_id == driver_id)
+        .filter(
+            PointTransaction.driver_id == driver_id,
+            PointTransaction.hidden_from_reports == False
+        )
         .order_by(PointTransaction.created_at.desc())
         .all()
     )
@@ -528,3 +539,108 @@ def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(ge
     )
 
     return {"message": "Item redeemed successfully"}
+
+class AdminBulkAdjustBody(BaseModel):
+    admin_id: int
+    driver_ids: list[int]
+    operation: str
+    points: int
+    reason: str | None = None
+    hidden_from_reports: bool = False
+
+@router.get("/admin/drivers")
+def get_admin_driver_point_list(db: Session = Depends(get_db)):
+    drivers = db.query(User).filter(User.role == "user").order_by(User.email.asc()).all()
+    results = []
+
+    for driver in drivers:
+        transactions = db.query(PointTransaction).filter(
+            PointTransaction.driver_id == driver.id
+        ).all()
+        balance = sum(t.points for t in transactions)
+
+        sponsor_rows = (
+            db.query(User.email)
+            .join(SponsorshipApplication, SponsorshipApplication.sponsor_id == User.id)
+            .filter(
+                SponsorshipApplication.driver_id == driver.id,
+                SponsorshipApplication.status == "APPROVED",
+                User.role == "sponsor",
+            )
+            .all()
+        )
+        sponsor_emails = sorted({email for (email,) in sponsor_rows if email})
+
+        results.append({
+            "driver_id": driver.id,
+            "driver_email": driver.email,
+            "balance": balance,
+            "sponsors": sponsor_emails,
+            "sponsor_display": ", ".join(sponsor_emails) if sponsor_emails else "—",
+        })
+
+    return results
+
+@router.post("/admin/bulk-adjust")
+def admin_bulk_adjust_points(body: AdminBulkAdjustBody, request: Request, db: Session = Depends(get_db)):
+    admin_user = db.query(User).filter(
+        User.id == body.admin_id,
+        User.role == "admin"
+    ).first()
+    if not admin_user:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+
+    driver_ids = sorted({int(driver_id) for driver_id in body.driver_ids if driver_id})
+    if not driver_ids:
+        raise HTTPException(status_code=400, detail="Please select at least one driver")
+
+    if body.points <= 0:
+        raise HTTPException(status_code=400, detail="Points must be greater than zero")
+
+    operation = (body.operation or "").strip().lower()
+    if operation not in {"add", "subtract"}:
+        raise HTTPException(status_code=400, detail="Operation must be add or subtract")
+
+    delta = body.points if operation == "add" else -body.points
+
+    drivers = db.query(User).filter(User.id.in_(driver_ids), User.role == "user").all()
+    found_ids = {driver.id for driver in drivers}
+    missing_ids = [driver_id for driver_id in driver_ids if driver_id not in found_ids]
+    if missing_ids:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Driver(s) not found: {', '.join(map(str, missing_ids))}"
+        )
+
+    reason = (body.reason or "").strip() or None
+
+    for driver in drivers:
+        transaction = PointTransaction(
+            driver_id=driver.id,
+            sponsor_id=admin_user.id,
+            points=delta,
+            description=reason,
+            hidden_from_reports=body.hidden_from_reports,
+        )
+        db.add(transaction)
+
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ADMIN_POINTS_BULK_ADJUSTED",
+        success=True,
+        user_id=body.admin_id,
+        request=request,
+        metadata={
+            "driver_ids": driver_ids,
+            "operation": operation,
+            "points": body.points,
+            "hidden_from_reports": body.hidden_from_reports,
+        },
+    )
+
+    return {
+        "message": f"Point adjustment applied to {len(driver_ids)} driver(s)",
+        "drivers_updated": len(driver_ids),
+    }
