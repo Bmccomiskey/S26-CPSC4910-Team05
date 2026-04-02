@@ -17,18 +17,24 @@ export default function ForgotPassword() {
       const res = await fetch('/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        // server returned non-JSON (e.g. 500 HTML page)
+      }
 
       if (!res.ok) {
-        setError(data.detail || 'Something went wrong. Please try again.');
+        setError(data.detail || `Server error (${res.status}). Please try again.`);
       } else {
         setSubmitted(true);
       }
     } catch {
-      setError('Unable to reach the server. Please try again later.');
+      setError('Unable to reach the server. Please check that the backend is running.');
     } finally {
       setLoading(false);
     }
