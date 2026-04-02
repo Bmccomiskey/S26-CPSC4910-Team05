@@ -73,6 +73,10 @@ class ResetPasswordBody(BaseModel):
     token: str
     new_password: str
 
+class UpdateDriverEmailBody(BaseModel):
+    driver_id: int
+    new_email: str
+
 @router.post("/register")
 def register(body: RegisterBody, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
@@ -371,6 +375,39 @@ def reactivate_user(user_id: int, request: Request, db: Session = Depends(get_db
     )
 
     return {"message": f"User {user.email} has been reactivated."}
+@router.post("/sponsor/update-driver-email")
+def sponsor_update_driver_email(
+        body: UpdateDriverEmailBody,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    driver = db.query(User).filter(User.id == body.driver_id, User.role == "user").first()
+
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found.")
+
+    new_email = body.new_email.strip().lower()
+
+    if not new_email:
+        raise HTTPException(status_code=400, detail="Email is required.")
+
+    existing = db.query(User).filter(User.email == new_email, User.id != body.driver_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already in use.")
+
+    old_email = driver.email
+    driver.email = new_email
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="DRIVER_EMAIL_UPDATED",
+        success=True,
+        user_id=driver.id,
+        request=request
+    )
+
+    return {"message": f"Driver email updated from {old_email} to {new_email}"}
 
 @router.get("/users/sponsors")
 def get_sponsors(db: Session = Depends(get_db)):
