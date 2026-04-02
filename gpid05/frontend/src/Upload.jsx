@@ -67,8 +67,8 @@ export default function BulkUpload({ currentUser }) {
 
           {!result.error && (
             <>
-              <p>✅ Success: {result.success_count}</p>
-              <p>❌ Errors: {result.error_count}</p>
+              <p> Success: {result.success_count}</p>
+              <p> Errors: {result.error_count}</p>
 
               {result.errors?.length > 0 && (
                 <div style={{ marginTop: '10px' }}>
