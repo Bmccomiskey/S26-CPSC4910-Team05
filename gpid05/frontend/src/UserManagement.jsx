@@ -282,8 +282,6 @@ export default function UserManagement({ currentUser }) {
         </p>
 
         <div className="sd-section">
-          <h2>Bulk Upload Users</h2>
-
           <BulkUpload currentUser={currentUser} />
         </div>
 
