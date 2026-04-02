@@ -29,11 +29,10 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         return None, f"Line {line_number}: Invalid type '{record_type}'"
 
     org = parts[1] if len(parts) > 1 else None
-    first = parts[2] if len(parts) > 2 else None
-    last = parts[3] if len(parts) > 3 else None
-    email = parts[4] if len(parts) > 4 else None
-    points = parts[5] if len(parts) > 5 else None
-    reason = parts[6] if len(parts) > 6 else None
+    name = parts[2] if len(parts) > 2 else None
+    email = parts[3] if len(parts) > 4 else None
+    points = parts[4] if len(parts) > 5 else None
+    reason = parts[5] if len(parts) > 6 else None
 
     role = current_user.role
 
@@ -97,8 +96,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             profile = UserProfile(user_id=user.id)
             db.add(profile)
 
-        profile.first_name = first
-        profile.last_name = last
+        profile.first_name = name
 
         if points:
             # Replace with real points system
@@ -125,7 +123,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             profile = UserProfile(user_id=user.id)
             db.add(profile)
 
-        profile.contact_name = f"{first} {last}"
+        profile.contact_name = f"{name}"
         profile.company_name = org
 
         return f"Sponsor processed: {email}", None
