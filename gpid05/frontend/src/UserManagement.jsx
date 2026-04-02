@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./UserManagement.css";
+import BulkUpload from './BulkUpload';
 
 export default function UserManagement({ currentUser }) {
   const [users, setUsers] = useState([]);
@@ -279,6 +280,12 @@ export default function UserManagement({ currentUser }) {
         <p style={{ marginTop: "10px", color: "#374151" }}>
           Add, lock, unlock, remove users, or update profile information.
         </p>
+
+        <div className="sd-section">
+          <h2>Bulk Upload Users</h2>
+
+          <BulkUpload currentUser={currentUser} />
+        </div>
 
         <div className="um-toolbar">
           <button
