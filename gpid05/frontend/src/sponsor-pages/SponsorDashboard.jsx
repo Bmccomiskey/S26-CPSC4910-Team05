@@ -12,6 +12,108 @@ const API_BASE =
 
 console.log("API_BASE in production:", API_BASE);
 
+function NotificationForm({ userRole }) {
+  const [recipient, setRecipient] = useState('drivers');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!subject || !message) {
+      setError('Subject and message are required');
+      return;
+    };
+
+    setSending(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const endpoint = userRole === 'admin'
+        ? `/auth/admin/notify-${recipient}`
+        : '/auth/sponsor/notify-drivers';
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ subject, message, sponsor_id: 1 })
+      });
+
+      if (!res.ok) throw new Error('Failed to send notification');
+
+      const data = await res.json();
+      setSuccess(data.message);
+      setSubject('');
+      setMessage('');
+    } catch (err) {
+      setError(err.message);
+    }
+
+    setSending(false);
+  };
+
+  return (
+    <div className="sd-section">
+      {userRole === 'admin' && (
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+            Send to:
+          </label>
+          <select
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px' }}
+          >
+            <option value="drivers">All Drivers</option>
+            <option value="sponsors">All Sponsors</option>
+          </select>
+        </div>
+      )}
+
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+          Subject:
+        </label>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          placeholder="Enter email subject"
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+        />
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+          Message:
+        </label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Enter your message"
+          rows="6"
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+        />
+      </div>
+
+      {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+      {success && <p style={{ color: 'green', marginBottom: '10px' }}>{success}</p>}
+
+      <button
+        className="sd-nav-item"
+        style={{ width: 'auto' }}
+        onClick={handleSend}
+        disabled={sending}
+      >
+        {sending ? 'Sending...' : 'Send Notification'}
+      </button>
+    </div>
+  );
+}
+
 export default function SponsorDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const navigate = useNavigate();
@@ -224,6 +326,12 @@ export default function SponsorDashboard() {
             onClick={() => setActiveTab("goals")}
           >
             <span className="sd-nav-icon">◎</span> Driver Goals
+          </button>
+          <button
+            className={`sd-nav-item ${activeTab === "notifications" ? "active" : ""}`}
+            onClick={() => setActiveTab("notifications")}
+          >
+            <span className="sd-nav-icon">✉</span> Send Notifications
           </button>
           <button
             className={`sd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
@@ -478,6 +586,14 @@ export default function SponsorDashboard() {
             </table>
           )}
           </div>
+        )}
+        {activeTab === "notifications" && (
+          <>
+            <div className="sd-top-bar">
+              <h1 className="sd-page-title">Send Notifications</h1>
+            </div>
+            <NotificationForm userRole="sponsor" />
+          </>
         )}
       </main>
       </div>
