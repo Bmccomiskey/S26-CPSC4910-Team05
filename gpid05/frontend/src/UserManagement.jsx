@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./UserManagement.css";
-import BulkUpload from './BulkUpload';
+import BulkUpload from './Upload';
 
 export default function UserManagement({ currentUser }) {
   const [users, setUsers] = useState([]);
