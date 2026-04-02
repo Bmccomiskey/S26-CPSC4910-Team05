@@ -664,8 +664,8 @@ const redeemItem = async (item, sponsorId) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[...catalog.items]
-                      .sort((a, b) => {
+                    {(() => {
+                      const sortedItems = [...catalog.items].sort((a, b) => {
                         switch (sortOption) {
                           case "price_asc":   return a.price_usd - b.price_usd;
                           case "price_desc":  return b.price_usd - a.price_usd;
@@ -673,22 +673,33 @@ const redeemItem = async (item, sponsorId) => {
                           case "points_desc": return b.point_cost - a.point_cost;
                           default:            return 0;
                         }
-                      })
-                      .map((item) => (
+                      });
+
+                      if (sortedItems.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                              No items match your search. Try adjusting your search criteria.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return sortedItems.map((item) => (
                         <tr key={item.id}>
                           <td>
                             {item.image_url && (
                               <img
-                              src={item.image_url}
-                              alt={item.name}
-                              style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "contain",
-                                borderRadius: "6px"
-                              }}
+                                src={item.image_url}
+                                alt={item.name}
+                                style={{
+                                  width: "60px",
+                                  height: "60px",
+                                  objectFit: "contain",
+                                  borderRadius: "6px"
+                                }}
                               />
-                              )}
+                            )}
                           </td>
                           <td>{item.name}</td>
                           <td>{item.point_cost}</td>
@@ -702,7 +713,8 @@ const redeemItem = async (item, sponsorId) => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
