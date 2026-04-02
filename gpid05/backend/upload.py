@@ -73,7 +73,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             return None, f"Line {line_number}: Sponsors cannot create organizations"
 
         # Force org to sponsor's org
-        org = current_user.profile.company_name
+        org = current_user.company_name
 
         # Rule: no points for sponsors
         if record_type == "S" and points:
@@ -92,14 +92,6 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             )
             db.add(user)
             db.flush()
-
-        profile = db.query(User).filter(User.id == user.id).first()
-        if not profile:
-            profile = User(user_id=user.id)
-            db.add(profile)
-
-        profile.first_name = first
-        profile.last_name = last
 
         if points:
             # Replace with real points system
@@ -120,14 +112,6 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             )
             db.add(user)
             db.flush()
-
-        profile = db.query(User).filter(User.id == user.id).first()
-        if not profile:
-            profile = User(user_id=user.id)
-            db.add(profile)
-
-        profile.first_name = f"{first} {last}"
-        profile.company_name = org
 
         return f"Sponsor processed: {email}", None
 
