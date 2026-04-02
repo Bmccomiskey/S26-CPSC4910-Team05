@@ -15,7 +15,7 @@ export default function BulkUpload({ currentUser }) {
     setResult(null);
 
     try {
-      const res = await fetch('/upload/bulk-upload', {
+      const res = await fetch('/upload/bulk', {
         method: 'POST',
         credentials: 'include',
         body: formData

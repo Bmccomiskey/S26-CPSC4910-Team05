@@ -117,7 +117,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
 
     return None, f"Line {line_number}: Unknown error"
 
-@router.post("/bulk-upload")
+@router.post("/bulk")
 def admin_bulk_upload(
     request: Request,
     file: UploadFile = File(...),
