@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './DriverOrders.css';
 
-export default function DriverOrders({ user, orders = [], onBrowseCatalog }) {
+const CANCEL_WINDOW_MS = 10 * 60 * 1000;
+
+export default function DriverOrders({ user, orders = [], onBrowseCatalog, onCancelOrder }) {
   const storageKey = `dro-dismissed-${user?.id}`;
 
   const [dismissedIds, setDismissedIds] = useState(() => {
@@ -12,6 +14,27 @@ export default function DriverOrders({ user, orders = [], onBrowseCatalog }) {
     }
   });
   const [showHistory, setShowHistory] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  // Tick every second while any order is still within the cancel window
+  useEffect(() => {
+    const cancellable = orders.some(o =>
+      o.status === 'COMPLETED' && (Date.now() - new Date(o.created_at).getTime()) < CANCEL_WINDOW_MS
+    );
+    if (!cancellable) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [orders]);
+
+  const getRemainingMs = (created_at) =>
+    CANCEL_WINDOW_MS - (now - new Date(created_at).getTime());
+
+  const formatCountdown = (ms) => {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   const statusMeta = {
     DELIVERED:  { label: 'Delivered',   color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -129,16 +152,35 @@ export default function DriverOrders({ user, orders = [], onBrowseCatalog }) {
                         {meta.label}
                       </span>
                     </td>
-                    <td>
-                      {!showHistory && order.status === 'COMPLETED' && (
-                        <button
-                          className="dro-remove-btn"
-                          onClick={() => dismiss(order.id)}
-                          title="Remove from orders"
-                        >
-                          Remove
-                        </button>
-                      )}
+                    <td className="dro-td-actions">
+                      {order.status === 'COMPLETED' && (() => {
+                        const remaining = getRemainingMs(order.created_at);
+                        if (remaining > 0) {
+                          return (
+                            <div className="dro-cancel-wrap">
+                              <button
+                                className="dro-cancel-btn"
+                                onClick={() => onCancelOrder(order.id)}
+                              >
+                                Cancel Order
+                              </button>
+                              <span className="dro-cancel-timer">{formatCountdown(remaining)} left</span>
+                            </div>
+                          );
+                        }
+                        if (!showHistory) {
+                          return (
+                            <button
+                              className="dro-remove-btn"
+                              onClick={() => dismiss(order.id)}
+                              title="Remove from orders"
+                            >
+                              Remove
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
                       {showHistory && isDismissed && (
                         <span className="dro-removed-label">Removed</span>
                       )}

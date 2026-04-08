@@ -19,7 +19,6 @@ export default function DriverDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [myApplications, setMyApplications] = useState([]);
   const [sponsors, setSponsors] = useState([]);
-  const [selectedSponsor, setSelectedSponsor] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [transactions, setTransactions] = useState([]);
@@ -89,6 +88,7 @@ useEffect(() => {
   if (user && activeTab === "catalog") {
     fetchDriverCatalog();
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [user, activeTab, catalogSearch]);
 
   useEffect(() => {
@@ -183,12 +183,14 @@ useEffect(() => {
       fetchGoals();
       fetchPersonalGoals();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Re-fetch transactions every time the points tab is opened
   useEffect(() => {
     if (activeTab === "points") { fetchTransactions(); fetchPointBalance(); }
     if (activeTab === "goals") { fetchGoals(); fetchPersonalGoals(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
   const handleApply = async (sponsorId) => {
     try {
@@ -256,66 +258,58 @@ useEffect(() => {
     window.location.href = "/sponsor-dashboard";
   };
 
-const redeemItem = async (item, sponsorId) => {
-  const res = await fetch(`${API_BASE}/points/redeem`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      driver_id: user.id,
-      sponsor_id: sponsorId,
-      item_id: item.id,
-      item_name: item.name,
-      point_cost: item.point_cost
-    })
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.detail);
-    return;
-  }
-
-  alert("Redemption successful!");
-
-  // Refresh balance + history
-  fetchTransactions();
-  fetchPointBalance();
-};
-
   const addToCart = (item, sponsorId, sponsorEmail) => {
-    const alreadyInCart = cart.some(ci => ci.id === item.id && ci.sponsor_id === sponsorId);
-    if (alreadyInCart) {
-      alert(`"${item.name}" is already in your cart.`);
-      return;
-    }
-    setCart(prev => [...prev, { ...item, sponsor_id: sponsorId, sponsor_email: sponsorEmail }]);
+    setCart(prev => {
+      const existingIdx = prev.findIndex(ci => ci.id === item.id && ci.sponsor_id === sponsorId);
+      if (existingIdx !== -1) {
+        return prev.map((ci, i) => i === existingIdx ? { ...ci, quantity: ci.quantity + 1 } : ci);
+      }
+      return [...prev, { ...item, sponsor_id: sponsorId, sponsor_email: sponsorEmail, quantity: 1 }];
+    });
   };
 
   const removeFromCart = (index) => {
     setCart(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleCancelOrder = async (transactionId) => {
+    const res = await fetch(`${API_BASE}/points/cancel/${transactionId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ driver_id: user.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail || "Failed to cancel order.");
+    } else {
+      alert("Order cancelled and points refunded.");
+      fetchTransactions();
+      fetchPointBalance();
+    }
+  };
+
   const handleCartCheckout = async () => {
     if (cart.length === 0) return;
     const errors = [];
     for (const item of cart) {
-      const res = await fetch(`${API_BASE}/points/redeem`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          driver_id: user.id,
-          sponsor_id: item.sponsor_id,
-          item_id: item.id,
-          item_name: item.name,
-          point_cost: item.point_cost,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        errors.push(`${item.name}: ${data.detail || 'Failed'}`);
+      const qty = item.quantity || 1;
+      for (let q = 0; q < qty; q++) {
+        const res = await fetch(`${API_BASE}/points/redeem`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            driver_id: user.id,
+            sponsor_id: item.sponsor_id,
+            item_id: item.id,
+            item_name: item.name,
+            point_cost: item.point_cost,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errors.push(`${item.name}: ${data.detail || 'Failed'}`);
+          break;
+        }
       }
     }
     if (errors.length > 0) {
@@ -523,7 +517,7 @@ const redeemItem = async (item, sponsorId) => {
                 </tr>
               </thead>
               <tbody>
-                {sponsors.map((sponsor, i) => (
+                {sponsors.map((sponsor) => (
                   <tr key={sponsor.id}>
                     <td>{sponsor.email}</td>
                     <td>
@@ -705,12 +699,16 @@ const redeemItem = async (item, sponsorId) => {
                           <td>{item.point_cost}</td>
                           <td>${item.price_usd}</td>
                           <td>
-                            <button
-                              className="dd-add-cart-btn"
-                              onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}
-                            >
-                              + Add to Cart
-                            </button>
+                            {item.is_active === false ? (
+                              <span className="dd-unavailable-badge">Unavailable</span>
+                            ) : (
+                              <button
+                                className="dd-add-cart-btn"
+                                onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}
+                              >
+                                + Add to Cart
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ));
@@ -883,16 +881,17 @@ const redeemItem = async (item, sponsorId) => {
         <DriverOrders
           user={user}
           orders={transactions
-            .filter(t => t.points < 0 && t.description?.startsWith("Redeemed:"))
+            .filter(t => t.points < 0 && (t.description?.startsWith("Redeemed:") || t.description?.startsWith("Cancelled:")))
             .map(t => ({
               id: t.id,
-              item_name: t.description.replace("Redeemed: ", ""),
+              item_name: t.description.replace(/^(Redeemed|Cancelled): /, ""),
               created_at: t.created_at,
               points_spent: Math.abs(t.points),
-              status: "COMPLETED",
+              status: t.description.startsWith("Cancelled:") ? "CANCELLED" : "COMPLETED",
             }))
           }
           onBrowseCatalog={() => setActiveTab("catalog")}
+          onCancelOrder={handleCancelOrder}
         />
       )}
 

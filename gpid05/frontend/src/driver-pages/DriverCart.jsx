@@ -1,11 +1,19 @@
+import { useState } from 'react';
 import './DriverCart.css';
 
 export default function DriverCart({ user, cartItems = [], transactions = [], balance = null,  onRemoveItem, onCheckout, onBrowseCatalog, onClose }) {
   const currentBalance = balance == null ? transactions.reduce((sum, t) => sum + t.points, 0) : balance;
-  const totalCost = cartItems.reduce((sum, item) => sum + item.point_cost, 0);
+  const totalCost = cartItems.reduce((sum, item) => sum + item.point_cost * (item.quantity || 1), 0);
+  const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const canAfford = currentBalance >= totalCost;
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const fmt = (pts) => pts?.toLocaleString();
+
+  const handleConfirmRedeem = () => {
+    setShowConfirm(false);
+    onCheckout();
+  };
 
   return (
     <div className="dc-root">
@@ -17,7 +25,7 @@ export default function DriverCart({ user, cartItems = [], transactions = [], ba
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {cartItems.length > 0 && (
             <div className="dc-summary-pill">
-              {cartItems.length} item{cartItems.length !== 1 ? 's' : ''}
+              {totalItems} item{totalItems !== 1 ? 's' : ''}
             </div>
           )}
           {onClose && (
@@ -107,33 +115,45 @@ export default function DriverCart({ user, cartItems = [], transactions = [], ba
               <h2 className="dc-items-title">Cart Items</h2>
             </div>
             <div className="dc-items-list">
-              {cartItems.map((item, idx) => (
-                <div key={`${item.id}-${item.sponsor_id}-${idx}`} className="dc-item-row">
-                  {item.image_url && (
-                    <img className="dc-item-img" src={item.image_url} alt={item.name} />
-                  )}
-                  <div className="dc-item-info">
-                    <p className="dc-item-name">{item.name}</p>
-                    <p className="dc-item-sponsor">Sponsor: {item.sponsor_email}</p>
-                  </div>
-                  <div className="dc-item-cost">
-                    <span className="dc-points-badge">{fmt(item.point_cost)} pts</span>
-                    {item.price_usd != null && (
-                      <span className="dc-price-sub">${Number(item.price_usd).toFixed(2)}</span>
+              {cartItems.map((item, idx) => {
+                const qty = item.quantity || 1;
+                const unavailable = item.is_active === false;
+                return (
+                  <div key={`${item.id}-${item.sponsor_id}-${idx}`} className={`dc-item-row${unavailable ? ' dc-item-row--unavailable' : ''}`}>
+                    {item.image_url && (
+                      <img className="dc-item-img" src={item.image_url} alt={item.name} />
                     )}
+                    <div className="dc-item-info">
+                      <p className="dc-item-name">{item.name}</p>
+                      <p className="dc-item-sponsor">Sponsor: {item.sponsor_email}</p>
+                      {unavailable ? (
+                        <span className="dc-unavailable-badge">Unavailable</span>
+                      ) : (
+                        <span className="dc-available-badge">Available</span>
+                      )}
+                    </div>
+                    <div className="dc-item-cost">
+                      <span className="dc-points-badge">{fmt(item.point_cost * qty)} pts</span>
+                      {qty > 1 && (
+                        <span className="dc-price-sub">{fmt(item.point_cost)} × {qty}</span>
+                      )}
+                      {item.price_usd != null && (
+                        <span className="dc-price-sub">${(Number(item.price_usd) * qty).toFixed(2)}</span>
+                      )}
+                    </div>
+                    <button
+                      className="dc-remove-btn"
+                      onClick={() => onRemoveItem(idx)}
+                      title="Remove item"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
                   </div>
-                  <button
-                    className="dc-remove-btn"
-                    onClick={() => onRemoveItem(idx)}
-                    title="Remove item"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -141,12 +161,17 @@ export default function DriverCart({ user, cartItems = [], transactions = [], ba
           <div className="dc-summary-card">
             <h2 className="dc-summary-title">Order Summary</h2>
             <div className="dc-summary-rows">
-              {cartItems.map((item, idx) => (
-                <div key={idx} className="dc-summary-row">
-                  <span className="dc-summary-item-name">{item.name}</span>
-                  <span className="dc-summary-item-pts">{fmt(item.point_cost)} pts</span>
-                </div>
-              ))}
+              {cartItems.map((item, idx) => {
+                const qty = item.quantity || 1;
+                return (
+                  <div key={idx} className="dc-summary-row">
+                    <span className="dc-summary-item-name">
+                      {item.name}{qty > 1 ? ` ×${qty}` : ''}
+                    </span>
+                    <span className="dc-summary-item-pts">{fmt(item.point_cost * qty)} pts</span>
+                  </div>
+                );
+              })}
               <div className="dc-summary-divider" />
               <div className="dc-summary-total-row">
                 <span>Total</span>
@@ -156,13 +181,68 @@ export default function DriverCart({ user, cartItems = [], transactions = [], ba
             <button
               className="dc-checkout-btn"
               disabled={!canAfford}
-              onClick={onCheckout}
+              onClick={() => setShowConfirm(true)}
             >
-              Redeem All — {cartItems.length} item{cartItems.length !== 1 ? 's' : ''}
+              Redeem All — {totalItems} item{totalItems !== 1 ? 's' : ''}
             </button>
             {!canAfford && (
               <p className="dc-checkout-hint">Not enough points to redeem</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation modal */}
+      {showConfirm && (
+        <div className="dc-confirm-overlay" onClick={() => setShowConfirm(false)}>
+          <div className="dc-confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="dc-confirm-header">
+              <h2 className="dc-confirm-title">Confirm Redemption</h2>
+              <p className="dc-confirm-sub">Review your order before redeeming points</p>
+            </div>
+
+            <div className="dc-confirm-items">
+              {cartItems.map((item, idx) => {
+                const qty = item.quantity || 1;
+                return (
+                  <div key={idx} className="dc-confirm-item-row">
+                    {item.image_url && (
+                      <img className="dc-confirm-item-img" src={item.image_url} alt={item.name} />
+                    )}
+                    <div className="dc-confirm-item-info">
+                      <p className="dc-confirm-item-name">{item.name}{qty > 1 ? ` ×${qty}` : ''}</p>
+                      <p className="dc-confirm-item-sponsor">Sponsor: {item.sponsor_email}</p>
+                    </div>
+                    <span className="dc-confirm-item-pts">{fmt(item.point_cost * qty)} pts</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="dc-confirm-balance-breakdown">
+              <div className="dc-confirm-bal-row">
+                <span>Current Balance</span>
+                <span>{fmt(currentBalance)} pts</span>
+              </div>
+              <div className="dc-confirm-bal-row dc-confirm-bal-cost">
+                <span>Order Total</span>
+                <span>− {fmt(totalCost)} pts</span>
+              </div>
+              <div className="dc-confirm-bal-divider" />
+              <div className="dc-confirm-bal-row dc-confirm-bal-remain">
+                <span>Remaining Balance</span>
+                <span>{fmt(currentBalance - totalCost)} pts</span>
+              </div>
+            </div>
+
+            <div className="dc-confirm-actions">
+              <button className="dc-confirm-cancel-btn" onClick={() => setShowConfirm(false)}>
+                Cancel
+              </button>
+              <button className="dc-confirm-redeem-btn" onClick={handleConfirmRedeem}>
+                Confirm &amp; Redeem
+              </button>
+            </div>
           </div>
         </div>
       )}

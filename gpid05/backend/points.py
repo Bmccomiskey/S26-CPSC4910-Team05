@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean, func as sa_func
@@ -539,6 +541,63 @@ def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(ge
     )
 
     return {"message": "Item redeemed successfully"}
+
+
+class CancelRedemptionBody(BaseModel):
+    driver_id: int
+
+
+@router.post("/cancel/{transaction_id}")
+def cancel_redemption(
+    transaction_id: int,
+    body: CancelRedemptionBody,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    txn = db.query(PointTransaction).filter(
+        PointTransaction.id == transaction_id,
+        PointTransaction.driver_id == body.driver_id,
+    ).first()
+
+    if not txn:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    if not txn.description or not txn.description.startswith("Redeemed:"):
+        raise HTTPException(status_code=400, detail="This transaction is not a redemption")
+
+    created = txn.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+
+    if datetime.now(timezone.utc) - created > timedelta(minutes=10):
+        raise HTTPException(status_code=400, detail="Cancellation window has expired (10 minutes)")
+
+    item_name = txn.description[len("Redeemed: "):]
+
+    # Mark original transaction as cancelled
+    txn.description = f"Cancelled: {item_name}"
+
+    # Refund the points
+    refund = PointTransaction(
+        driver_id=txn.driver_id,
+        sponsor_id=txn.sponsor_id,
+        points=-txn.points,
+        description=f"Refund: {item_name}",
+    )
+    db.add(refund)
+    db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="ITEM_CANCELLED",
+        success=True,
+        user_id=body.driver_id,
+        request=request,
+        metadata={"transaction_id": transaction_id},
+    )
+
+    return {"message": "Order cancelled and points refunded"}
+
 
 class AdminBulkAdjustBody(BaseModel):
     admin_id: int

@@ -215,6 +215,44 @@
   border-color: #0f172a;
 }
 
+/* ── Cancel button + countdown ── */
+.dro-td-actions {
+  white-space: nowrap;
+}
+
+.dro-cancel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.dro-cancel-btn {
+  padding: 5px 13px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.dro-cancel-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.dro-cancel-timer {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.2px;
+}
+
 /* ── Remove button ── */
 .dro-remove-btn {
   padding: 4px 12px;

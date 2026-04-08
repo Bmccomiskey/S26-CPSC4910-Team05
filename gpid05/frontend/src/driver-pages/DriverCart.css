@@ -1,5 +1,181 @@
 /* DriverCart.css */
 
+/* ── Confirmation modal ── */
+.dc-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.dc-confirm-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+.dc-confirm-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.dc-confirm-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.dc-confirm-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dc-confirm-items {
+  padding: 12px 28px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dc-confirm-item-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.dc-confirm-item-row:last-child {
+  border-bottom: none;
+}
+
+.dc-confirm-item-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.dc-confirm-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dc-confirm-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dc-confirm-item-sponsor {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.dc-confirm-item-pts {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.dc-confirm-balance-breakdown {
+  margin: 0 28px 20px;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dc-confirm-bal-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #475569;
+}
+
+.dc-confirm-bal-cost {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dc-confirm-bal-divider {
+  border-top: 1px solid #e2e8f0;
+  margin: 2px 0;
+}
+
+.dc-confirm-bal-remain {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dc-confirm-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 28px 24px;
+}
+
+.dc-confirm-cancel-btn {
+  flex: 1;
+  padding: 11px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dc-confirm-cancel-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dc-confirm-redeem-btn {
+  flex: 2;
+  padding: 11px;
+  border: none;
+  border-radius: 9px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dc-confirm-redeem-btn:hover {
+  background: #F59E0B;
+  color: #0f172a;
+}
+
 .dc-root {
   max-width: 900px;
 }
@@ -244,6 +420,36 @@
 
 .dc-item-row:hover {
   background: #f8fafc;
+}
+
+.dc-item-row--unavailable {
+  opacity: 0.5;
+}
+
+.dc-unavailable-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dc-available-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .dc-item-img {
