@@ -640,6 +640,39 @@ def get_admin_driver_point_list(db: Session = Depends(get_db)):
 
     return results
 
+@router.get("/admin/sponsors")
+def get_admin_sponsor_point_list(db: Session = Depends(get_db)):
+    sponsors = db.query(User).filter(User.role == "sponsor").order_by(User.email.asc()).all()
+    results = []
+
+    for sponsor in sponsors:
+        transactions = db.query(PointTransaction).filter(
+            PointTransaction.sponsor_id == sponsor.id
+        ).all()
+        total_awarded = sum(t.points for t in transactions)
+
+        driver_rows = (
+            db.query(User.email)
+            .join(SponsorshipApplication, SponsorshipApplication.driver_id == User.id)
+            .filter(
+                SponsorshipApplication.sponsor_id == sponsor.id,
+                SponsorshipApplication.status == "APPROVED",
+                User.role == "user",
+            )
+            .all()
+        )
+        driver_emails = sorted({email for (email,) in driver_rows if email})
+
+        results.append({
+            "sponsor_id": sponsor.id,
+            "sponsor_email": sponsor.email,
+            "total_awarded": total_awarded,
+            "drivers": driver_emails,
+            "driver_display": ", ".join(driver_emails) if driver_emails else "—",
+        })
+
+    return results
+
 @router.post("/admin/bulk-adjust")
 def admin_bulk_adjust_points(body: AdminBulkAdjustBody, request: Request, db: Session = Depends(get_db)):
     admin_user = db.query(User).filter(

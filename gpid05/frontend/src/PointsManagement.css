@@ -1,107 +1,176 @@
 .pm-form {
-    margin-top: 14px;
-  }
-  
+  margin-top: 18px;
+}
+
+.pm-form-grid {
+  display: grid;
+  grid-template-columns: 180px 180px minmax(240px, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.pm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pm-field-wide {
+  grid-column: span 1;
+}
+
+.pm-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pm-field input,
+.pm-field select,
+.pm-search {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.pm-field input:focus,
+.pm-field select:focus,
+.pm-search:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.pm-checkbox-row {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.pm-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.pm-search {
+  min-width: 280px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.pm-toolbar-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pm-message {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.pm-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.pm-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.pm-table-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+}
+
+.pm-empty-cell {
+  padding: 16px;
+  color: #4b5563;
+}
+
+.pm-mode-toggle {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  background: #f3f4f6;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.pm-mode-btn {
+  border: none;
+  background: transparent;
+  color: #374151;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pm-mode-btn.active {
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.pm-history-card {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.pm-history-card h3 {
+  margin: 0 0 14px;
+  color: #111827;
+}
+
+.pm-history-empty {
+  margin: 0;
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
   .pm-form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: 1fr;
   }
-  
-  .pm-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .pm-field-wide {
-    grid-column: span 1;
-  }
-  
-  .pm-field label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #374151;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  
-  .pm-field input,
-  .pm-field select,
-  .pm-search {
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #111827;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
-    outline: none;
-  }
-  
-  .pm-checkbox-row {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #1f2937;
-    font-weight: 600;
-  }
-  
+
   .pm-toolbar {
-    margin-top: 16px;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    align-items: stretch;
   }
-  
-  .pm-search {
-    min-width: 280px;
+
+  .pm-toolbar-actions {
+    width: 100%;
+  }
+
+  .pm-mode-toggle {
+    width: 100%;
+    display: flex;
+  }
+
+  .pm-mode-btn {
     flex: 1;
   }
-  
-  .pm-toolbar-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  
-  .pm-table-wrap {
-    margin-top: 16px;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-  }
-  
-  .pm-empty-cell {
-    padding: 16px;
-    color: #4b5563;
-  }
-  
-  .pm-message {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    font-weight: 600;
-  }
-  
-  .pm-success {
-    background: rgba(5, 150, 105, 0.12);
-    color: #047857;
-  }
-  
-  .pm-error {
-    background: rgba(185, 28, 28, 0.12);
-    color: #b91c1c;
-  }
-  
-  @media (max-width: 900px) {
-    .pm-form-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .pm-field-wide {
-      grid-column: span 1;
-    }
-  }
+}
