@@ -78,6 +78,12 @@ class UpdateDriverEmailBody(BaseModel):
     driver_id: int
     new_email: str
 
+class ScheduleNotificationBody(BaseModel):
+    recipient_type: str
+    subject: str
+    message: str
+    scheduled_time: str
+
 @router.post("/register")
 def register(body: RegisterBody, db: Session = Depends(get_db)):
     email = body.email.strip().lower()
@@ -563,3 +569,116 @@ def get_sponsor_notification_history(sponsor_id: int, db: Session = Depends(get_
         }
         for h in history
     ]
+
+@router.post("/admin/schedule-notification")
+def admin_schedule_notification(
+        body: ScheduleNotificationBody,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    scheduled_notif = ScheduledNotification(
+        sender_id=None,
+        sender_role="admin",
+        recipient_type=body.recipient_type,
+        subject=body.subject,
+        message=body.message,
+        scheduled_time=datetime.fromisoformat(body.scheduled_time.replace('Z', '+00:00'))
+    )
+    db.add(scheduled_notif)
+    db.commit()
+
+    return {"message": "Notification scheduled successfully", "id": scheduled_notif.id}
+
+@router.post("/sponsor/schedule-notification")
+def sponsor_schedule_notification(
+        body: ScheduleNotificationBody,
+        sponsor_id: int,
+        request: Request,
+        db: Session = Depends(get_db)
+):
+    scheduled_notif = ScheduledNotification(
+        sender_id=sponsor_id,
+        sender_role="sponsor",
+        recipient_type="drivers",
+        subject=body.subject,
+        message=body.message,
+        scheduled_time=datetime.fromisoformat(body.scheduled_time.replace('Z', '+00:00'))
+    )
+    db.add(scheduled_notif)
+    db.commit()
+
+    return {"message": "Notification scheduled successfully", "id": scheduled_notif.id}
+
+@router.get("/admin/scheduled-notifications")
+def get_admin_scheduled_notifications(db: Session = Depends(get_db)):
+    scheduled = db.query(ScheduledNotification).filter(
+        ScheduledNotification.sender_role == "admin",
+        ScheduledNotification.sent == False
+    ).order_by(ScheduledNotification.scheduled_time).all()
+
+    return [
+        {
+            "id": s.id,
+            "recipient_type": s.recipient_type,
+            "subject": s.subject,
+            "message": s.message,
+            "scheduled_time": s.scheduled_time.isoformat()
+        }
+        for s in scheduled
+    ]
+
+@router.get("/sponsor/scheduled-notifications")
+def get_sponsor_scheduled_notifications(sponsor_id: int, db: Session = Depends(get_db)):
+    scheduled = db.query(ScheduledNotification).filter(
+        ScheduledNotification.sender_id == sponsor_id,
+        ScheduledNotification.sender_role == "sponsor",
+        ScheduledNotification.sent == False
+    ).order_by(ScheduledNotification.scheduled_time).all()
+
+    return [
+        {
+            "id": s.id,
+            "recipient_type": s.recipient_type,
+            "subject": s.subject,
+            "message": s.message,
+            "scheduled_time": s.scheduled_time.isoformat()
+        }
+        for s in scheduled
+    ]
+
+@router.delete("/admin/scheduled-notification/{notification_id}")
+def cancel_admin_scheduled_notification(notification_id: int, db: Session = Depends(get_db)):
+    scheduled = db.query(ScheduledNotification).filter(
+        ScheduledNotification.id == notification_id,
+        ScheduledNotification.sender_role == "admin",
+        ScheduledNotification.sent == False
+    ).first()
+
+    if not scheduled:
+        raise HTTPException(status_code=404, detail="Scheduled notification not found")
+
+    db.delete(scheduled)
+    db.commit()
+
+    return {"message": "Scheduled notification cancelled"}
+
+@router.delete("/sponsor/scheduled-notification/{notification_id}")
+def cancel_sponsor_scheduled_notification(
+        notification_id: int,
+        sponsor_id: int,
+        db: Session = Depends(get_db)
+):
+    scheduled = db.query(ScheduledNotification).filter(
+        ScheduledNotification.id == notification_id,
+        ScheduledNotification.sender_id == sponsor_id,
+        ScheduledNotification.sent == False
+    ).first()
+
+    if not scheduled:
+        raise HTTPException(status_code=404, detail="Scheduled notification not found")
+
+    db.delete(scheduled)
+    db.commit()
+
+    return {"message": "Scheduled notification cancelled"}
+
