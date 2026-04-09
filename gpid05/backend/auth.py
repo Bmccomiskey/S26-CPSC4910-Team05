@@ -12,6 +12,7 @@ from userModels import User
 from resetTokenModels import PasswordResetToken
 from db import get_db
 from audit import log_audit_event
+from notificationHistory import NotificationHistory
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -437,6 +438,16 @@ async def admin_notify_drivers(
         user_id=None,
         request=request
     )
+    history_entry = NotificationHistory(
+        sender_id=None,
+        sender_role="admin",
+        recipient_type="drivers",
+        subject=subject,
+        message=message,
+        recipient_count=len(drivers)
+    )
+    db.add(history_entry)
+    db.commit()
 
     return {"message": f"Notification sent to {len(drivers)} drivers."}
 
@@ -465,6 +476,16 @@ async def admin_notify_sponsors(
         request=request
     )
 
+    history_entry = NotificationHistory(
+        sender_id=None,
+        sender_role="admin",
+        recipient_type="sponsors",
+        subject=subject,
+        message=message,
+        recipient_count=len(sponsors)
+    )
+    db.add(history_entry)
+    db.commit()
     return {"message": f"Notification sent to {len(sponsors)} sponsors."}
 
 
@@ -492,5 +513,16 @@ async def sponsor_notify_drivers(
         user_id=sponsor_id,
         request=request
     )
+
+    history_entry = NotificationHistory(
+        sender_id=sponsor_id,
+        sender_role="sponsor",
+        recipient_type="drivers",
+        subject=subject,
+        message=message,
+        recipient_count=len(drivers)
+    )
+    db.add(history_entry)
+    db.commit()
 
     return {"message": f"Notification sent to {len(drivers)} drivers."}
