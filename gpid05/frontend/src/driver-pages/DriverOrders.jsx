@@ -18,16 +18,24 @@ export default function DriverOrders({ user, orders = [], onBrowseCatalog, onCan
 
   // Tick every second while any order is still within the cancel window
   useEffect(() => {
+    const toUTC = (s) => { const str = /[Zz]|[+-]\d{2}:?\d{2}$/.test(s) ? s : s + 'Z'; return new Date(str).getTime(); };
     const cancellable = orders.some(o =>
-      o.status === 'COMPLETED' && (Date.now() - new Date(o.created_at).getTime()) < CANCEL_WINDOW_MS
+      o.status === 'COMPLETED' && (Date.now() - toUTC(o.created_at)) < CANCEL_WINDOW_MS
     );
     if (!cancellable) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [orders]);
 
+  const parseUTC = (dateStr) => {
+    if (!dateStr) return 0;
+    // Ensure the string is treated as UTC (append Z if no timezone info present)
+    const str = /[Zz]|[+-]\d{2}:?\d{2}$/.test(dateStr) ? dateStr : dateStr + 'Z';
+    return new Date(str).getTime();
+  };
+
   const getRemainingMs = (created_at) =>
-    CANCEL_WINDOW_MS - (now - new Date(created_at).getTime());
+    CANCEL_WINDOW_MS - (now - parseUTC(created_at));
 
   const formatCountdown = (ms) => {
     const totalSec = Math.max(0, Math.floor(ms / 1000));
