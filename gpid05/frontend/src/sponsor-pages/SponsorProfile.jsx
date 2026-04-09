@@ -72,6 +72,10 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
       }),
     });
 
+    const profileText = await profileRes.text();
+    console.log("PROFILE SAVE STATUS:", profileRes.status);
+    console.log("PROFILE SAVE RESPONSE:", profileText);
+
     const configRes = await fetch(
       `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}&points_per_dollar=${profile.pointsPerDollar}`,
       {
@@ -80,18 +84,22 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
       }
     );
 
+    const configText = await configRes.text();
+    console.log("CONFIG SAVE STATUS:", configRes.status);
+    console.log("CONFIG SAVE RESPONSE:", configText);
+
     if (!profileRes.ok || !configRes.ok) {
-      console.error("Failed to save profile/config");
+      console.error("Save failed.");
       return;
+    }
+
+    if (onConfigUpdated) {
+      await onConfigUpdated();
     }
 
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-
-    if (onConfigUpdated) {
-      onConfigUpdated();
-    }
   } catch (err) {
     console.error("Profile save failed:", err);
   }
