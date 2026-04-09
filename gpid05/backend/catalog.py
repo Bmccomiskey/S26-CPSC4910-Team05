@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from db import get_db
 from catalogModels import CatalogItem
@@ -20,6 +21,50 @@ class CatalogConfig(Base):
     max_point_cost = Column(Integer, default=1000000)
     points_per_dollar = Column(Integer, default=100)  # 1 USD = 100 points
 
+class CreateCustomCatalogItemBody(BaseModel):
+    sponsor_id: int
+    name: str
+    description: str | None = None
+    image_url: str | None = None
+    price_usd: float
+
+@router.post("/{sponsor_id}/custom")
+def create_custom_item(
+    sponsor_id: int,
+    body: CreateCustomCatalogItemBody,
+    db: Session = Depends(get_db)
+):
+    config = db.query(CatalogConfig).filter(
+        CatalogConfig.sponsor_id == sponsor_id
+    ).first()
+
+    if not config:
+        config = CatalogConfig(sponsor_id=sponsor_id)
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+
+    point_cost = int(body.price_usd * config.points_per_dollar)
+    is_active = config.min_point_cost <= point_cost <= config.max_point_cost
+
+    item = CatalogItem(
+        sponsor_id=sponsor_id,
+        external_id=None,
+        name=body.name,
+        description=body.description,
+        image_url=body.image_url,
+        price_usd=body.price_usd,
+        point_cost=point_cost,
+        is_active=is_active,
+        is_custom=True,
+        last_updated=datetime.utcnow(),
+    )
+
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+
+    return {"message": "Custom item added", "item_id": item.id}
 
 @router.post("/{sponsor_id}/refresh")
 def refresh_catalog(sponsor_id: int, db: Session = Depends(get_db)):
