@@ -17,6 +17,7 @@ from catalog import router as catalog_router
 from profile import router as profile_router
 from redemptions import router as redemptions_router
 from upload import router as upload_router
+from notificationHistory import NotificationHistory
 
 
 # creates SQL tables on startup
