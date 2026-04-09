@@ -194,12 +194,14 @@ export default function SponsorDashboard() {
     if (user && activeTab === "catalog") {
       fetchCatalog();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, activeTab, catalogSearch]);
   useEffect(() => {
     if (user) {
       fetchApplications();
       fetchPointsHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleApprove = async (id) => {
