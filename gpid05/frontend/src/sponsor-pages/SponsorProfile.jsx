@@ -10,7 +10,7 @@ const API_BASE =
 const DEFAULTS = {
   companyName: '', contactName: '', phone: '', website: '',
   address: '', industry: '', pointBudget: '200000',
-  minPointCost: '0', maxPointCost: '10000',
+  minPointCost: '0', maxPointCost: '10000', pointPerDollar: '100',
 };
 
 export default function SponsorProfile({ user, applications = [], onConfigUpdated }) {
