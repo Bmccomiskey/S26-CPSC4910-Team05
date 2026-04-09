@@ -10,4 +10,4 @@ class Organization(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=True)
     org_name = Column(String(255), unique=True, nullable=False)
 
-    users = relationship("User", back_populates="organization")
+    users = relationship("User", foreign_keys=[user_id])
