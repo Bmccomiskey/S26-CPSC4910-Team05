@@ -18,6 +18,8 @@ from profile import router as profile_router
 from redemptions import router as redemptions_router
 from upload import router as upload_router
 from notificationHistory import NotificationHistory
+from scheduledNotifications import ScheduledNotification
+
 
 
 # creates SQL tables on startup
