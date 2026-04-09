@@ -526,3 +526,40 @@ async def sponsor_notify_drivers(
     db.commit()
 
     return {"message": f"Notification sent to {len(drivers)} drivers."}
+
+@router.get("/admin/notification-history")
+def get_admin_notification_history(db: Session = Depends(get_db)):
+    history = db.query(NotificationHistory).filter(
+        NotificationHistory.sender_role == "admin"
+    ).order_by(NotificationHistory.sent_at.desc()).all()
+
+    return [
+        {
+            "id": h.id,
+            "recipient_type": h.recipient_type,
+            "subject": h.subject,
+            "message": h.message,
+            "recipient_count": h.recipient_count,
+            "sent_at": h.sent_at.isoformat()
+        }
+        for h in history
+    ]
+
+@router.get("/sponsor/notification-history")
+def get_sponsor_notification_history(sponsor_id: int, db: Session = Depends(get_db)):
+    history = db.query(NotificationHistory).filter(
+        NotificationHistory.sender_id == sponsor_id,
+        NotificationHistory.sender_role == "sponsor"
+    ).order_by(NotificationHistory.sent_at.desc()).all()
+
+    return [
+        {
+            "id": h.id,
+            "recipient_type": h.recipient_type,
+            "subject": h.subject,
+            "message": h.message,
+            "recipient_count": h.recipient_count,
+            "sent_at": h.sent_at.isoformat()
+        }
+        for h in history
+    ]
