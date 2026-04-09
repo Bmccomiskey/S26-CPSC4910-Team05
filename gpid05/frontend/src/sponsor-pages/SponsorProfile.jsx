@@ -20,27 +20,28 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
   const [profile, setProfile] = useState(DEFAULTS);
 
   useEffect(() => {
-    if (!user?.id) return;
-    fetch(`/profile/${user.id}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data && Object.keys(data).length > 0) {
-          setProfile({
-            companyName:  data.company_name   || '',
-            contactName:  data.contact_name   || '',
-            phone:        data.phone          || '',
-            website:      data.website        || '',
-            address:      data.address        || '',
-            industry:     data.industry       || '',
-            pointBudget:  data.point_budget   || '200000',
-            minPointCost: data.min_point_cost || '0',
-            maxPointCost: data.max_point_cost || '10000',
-            pointPerDollar: data.point_per_dollar || '100',
-          });
-        }
-      })
-      .catch(err => console.error('Error fetching profile:', err));
-  }, [user]);
+  if (!user?.id) return;
+
+  fetch(`${API_BASE}/profile/${user.id}`, { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+      if (data && Object.keys(data).length > 0) {
+        setProfile({
+          companyName: data.company_name || '',
+          contactName: data.contact_name || '',
+          phone: data.phone || '',
+          website: data.website || '',
+          address: data.address || '',
+          industry: data.industry || '',
+          pointBudget: data.point_budget || '200000',
+          minPointCost: data.min_point_cost || '0',
+          maxPointCost: data.max_point_cost || '10000',
+          pointsPerDollar: data.point_per_dollar || '100',
+        });
+      }
+    })
+    .catch(err => console.error('Error fetching profile:', err));
+}, [user]);
 
   const set = (key, val) => setProfile(p => ({ ...p, [key]: val }));
 
@@ -53,7 +54,29 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
   e.preventDefault();
 
   try {
-    const res = await fetch(
+    const profileRes = await fetch(`${API_BASE}/profile/${user.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        company_name: profile.companyName,
+        contact_name: profile.contactName,
+        phone: profile.phone,
+        website: profile.website,
+        address: profile.address,
+        industry: profile.industry,
+        point_budget: profile.pointBudget,
+        min_point_cost: profile.minPointCost,
+        max_point_cost: profile.maxPointCost,
+        point_per_dollar: profile.pointsPerDollar,
+      }),
+    });
+
+    const profileText = await profileRes.text();
+    console.log("PROFILE SAVE STATUS:", profileRes.status);
+    console.log("PROFILE SAVE RESPONSE:", profileText);
+
+    const configRes = await fetch(
       `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}&points_per_dollar=${profile.pointsPerDollar}`,
       {
         method: 'POST',
@@ -61,20 +84,22 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
       }
     );
 
-    const data = await res.json();
+    const configText = await configRes.text();
+    console.log("CONFIG SAVE STATUS:", configRes.status);
+    console.log("CONFIG SAVE RESPONSE:", configText);
 
-    if (!res.ok) {
-      console.error("Failed to save catalog config:", data);
+    if (!profileRes.ok || !configRes.ok) {
+      console.error("Save failed.");
       return;
+    }
+
+    if (onConfigUpdated) {
+      await onConfigUpdated();
     }
 
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-
-    if (onConfigUpdated) {
-      onConfigUpdated();
-    }
   } catch (err) {
     console.error("Profile save failed:", err);
   }
