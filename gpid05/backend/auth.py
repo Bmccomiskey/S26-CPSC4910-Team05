@@ -13,6 +13,7 @@ from resetTokenModels import PasswordResetToken
 from db import get_db
 from audit import log_audit_event
 from notificationHistory import NotificationHistory
+from scheduledNotifications import ScheduledNotification
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
