@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SponsorProfile.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE =
+  process.env.NODE_ENV === "production"
+    ? "http://23.22.72.87"
+    : "http://localhost:8000";
 
 const DEFAULTS = {
   companyName: '', contactName: '', phone: '', website: '',
@@ -10,7 +13,7 @@ const DEFAULTS = {
   minPointCost: '0', maxPointCost: '10000',
 };
 
-export default function SponsorProfile({ user, applications = [] }) {
+export default function SponsorProfile({ user, applications = [], onConfigUpdated }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -32,6 +35,7 @@ export default function SponsorProfile({ user, applications = [] }) {
             pointBudget:  data.point_budget   || '200000',
             minPointCost: data.min_point_cost || '0',
             maxPointCost: data.max_point_cost || '10000',
+            pointPerDollar: data.point_per_dollar || '100',
           });
         }
       })
@@ -46,68 +50,35 @@ export default function SponsorProfile({ user, applications = [] }) {
   const budgetPct   = Math.min(100, Math.round((budgetUsed / budgetTotal) * 100));
 
   const handleSave = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const profileRes = await fetch(`/profile/${user.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+  try {
+    const res = await fetch(
+      `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}&points_per_dollar=${profile.pointsPerDollar}`,
+      {
+        method: 'POST',
         credentials: 'include',
-        body: JSON.stringify({
-          company_name: profile.companyName,
-          contact_name: profile.contactName,
-          phone: profile.phone,
-          website: profile.website,
-          address: profile.address,
-          industry: profile.industry,
-          point_budget: profile.pointBudget,
-          min_point_cost: profile.minPointCost,
-          max_point_cost: profile.maxPointCost,
-        }),
-      });
-
-      const profileData = await profileRes.json();
-
-      if (!profileRes.ok) {
-        throw new Error(profileData.detail || profileData.message || 'Failed to save sponsor profile');
       }
+    );
 
-      const configRes = await fetch(
-        `${API_BASE}/catalog/${user.id}/config?min_point_cost=${profile.minPointCost}&max_point_cost=${profile.maxPointCost}`,
-        {
-          method: 'POST',
-          credentials: 'include',
-        }
-      );
+    const data = await res.json();
 
-      const configText = await configRes.text();
-
-      if (!configRes.ok) {
-        throw new Error(configText || 'Failed to save catalog config');
-      }
-
-      if (profileData.profile) {
-        setProfile({
-          companyName: profileData.profile.company_name || '',
-          contactName: profileData.profile.contact_name || '',
-          phone: profileData.profile.phone || '',
-          website: profileData.profile.website || '',
-          address: profileData.profile.address || '',
-          industry: profileData.profile.industry || '',
-          pointBudget: profileData.profile.point_budget || '200000',
-          minPointCost: profileData.profile.min_point_cost || '0',
-          maxPointCost: profileData.profile.max_point_cost || '10000',
-        });
-      }
-
-      setEditing(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
-      console.error('Error saving profile:', err);
-      alert(err.message || 'Failed to save sponsor profile');
+    if (!res.ok) {
+      console.error("Failed to save catalog config:", data);
+      return;
     }
-  };
+
+    setEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+
+    if (onConfigUpdated) {
+      onConfigUpdated();
+    }
+  } catch (err) {
+    console.error("Profile save failed:", err);
+  }
+};
 
   return (
     <div className="srp-root">
@@ -201,6 +172,27 @@ export default function SponsorProfile({ user, applications = [] }) {
           </div>
           <div className="srp-grid">
             <div className="srp-field">
+              <Field
+              label="Minimum Catalog Points"
+              editing={editing}
+              value={profile.minPointCost}
+              onChange={v => set('minPointCost', v)}
+              type="number"
+              />
+              <Field
+              label="Maximum Catalog Points"
+              editing={editing}
+              value={profile.maxPointCost}
+              onChange={v => set('maxPointCost', v)}
+              type="number"
+              />
+              <Field
+              label="Points Per Dollar"
+              editing={editing}
+              value={profile.pointsPerDollar}
+              onChange={v => set('pointsPerDollar', v)}
+              type="number"
+              />
               <label className="srp-field-label">Points Budget</label>
               {editing ? (
                 <input

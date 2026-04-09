@@ -128,6 +128,10 @@ export default function SponsorDashboard() {
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [sortOption, setSortOption] = useState("none");
 
+  const [externalSearch, setExternalSearch] = useState("");
+  const [externalItems, setExternalItems] = useState([]);
+  const [externalLoading, setExternalLoading] = useState(false);
+
   const fetchApplications = () => {
     fetch(`/applications/sponsor/${user.id}`, {
       credentials: 'include',
@@ -159,6 +163,20 @@ export default function SponsorDashboard() {
       console.error("Catalog fetch error:", err);
     }
     setCatalogLoading(false);
+  };
+
+  const fetchExternalCatalog = async () => {
+    setExternalLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE}/catalog/external/search?search=${encodeURIComponent(externalSearch)}`
+      );
+      const data = await res.json();
+      setExternalItems(data.items || []);
+    } catch (err) {
+      console.error("External catalog fetch error:", err);
+    }
+    setExternalLoading(false);
   };
 
   const refreshCatalog = async () => {
@@ -200,6 +218,17 @@ export default function SponsorDashboard() {
       method: "POST"
     });
     fetchCatalog();
+  };
+
+  const addExternalItem = async (externalId) => {
+    try {
+      await fetch(`${API_BASE}/catalog/${user.id}/add-external/${externalId}`, {
+        method: "POST"
+      });
+      fetchCatalog();
+    } catch (err) {
+      console.error("Add external item failed:", err);
+    }
   };
   const activateItem = async (itemId) => {
     await fetch(`${API_BASE}/catalog/${user.id}/activate/${itemId}`, {
@@ -511,6 +540,49 @@ export default function SponsorDashboard() {
             onChange={(e) => setCatalogSearch(e.target.value)}
             style={{ marginBottom: "15px", padding: "5px" }}
             />
+            <div style={{ marginTop: "25px", marginBottom: "25px" }}>
+  <h3>Add New Item to Catalog</h3>
+
+  <input
+    type="text"
+    placeholder="Search external products..."
+    value={externalSearch}
+    onChange={(e) => setExternalSearch(e.target.value)}
+    style={{ marginBottom: "10px", padding: "5px", marginRight: "10px" }}
+  />
+
+  <button onClick={fetchExternalCatalog}>
+    Search External Products
+  </button>
+  {externalLoading ? (
+    <p style={{ marginTop: "10px" }}>Searching...</p>
+  ) : (
+    externalItems.length > 0 && (
+    <table className="sd-table" style={{ marginTop: "15px" }}>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price (USD)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {externalItems.map((item) => (
+          <tr key={item.external_id}>
+            <td>{item.name}</td>
+            <td>${item.price_usd}</td>
+            <td>
+              <button onClick={() => addExternalItem(item.external_id)}>
+                Add to Catalog
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    )
+    )}
+    </div>
             {catalogLoading ? (
               <p>Loading...</p>
             ) : (
