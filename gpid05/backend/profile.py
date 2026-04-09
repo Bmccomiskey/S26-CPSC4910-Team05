@@ -24,6 +24,7 @@ class ProfileBody(BaseModel):
     point_budget:   str | None = None
     min_point_cost: str | None = None
     max_point_cost: str | None = None
+    point_per_dollar: str | None = None
 
 def serialize_profile(profile: UserProfile | None):
     if not profile:
@@ -46,6 +47,7 @@ def serialize_profile(profile: UserProfile | None):
         "point_budget":   profile.point_budget,
         "min_point_cost": profile.min_point_cost,
         "max_point_cost": profile.max_point_cost,
+        "point_per_dollar": profile.point_per_dollar,
     }
 
 @router.get("/{user_id}")

@@ -25,3 +25,4 @@ class UserProfile(Base):
     point_budget:   Mapped[str|None] = mapped_column(String(20),  nullable=True)
     min_point_cost: Mapped[str|None] = mapped_column(String(20),  nullable=True)
     max_point_cost: Mapped[str|None] = mapped_column(String(20),  nullable=True)
+    point_per_dollar: Mapped[str|None] = mapped_column(String(20),  nullable=True)
