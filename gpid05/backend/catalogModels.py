@@ -16,5 +16,3 @@ class CatalogItem(Base):
     point_cost = Column(Integer)
     is_active = Column(Boolean, default=True)
     last_updated = Column(DateTime, default=datetime.utcnow)
-    is_custom = Column(Boolean, default=False)
-    custom_category = Column(String(100), nullable=True)

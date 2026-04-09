@@ -131,16 +131,7 @@ export default function SponsorDashboard() {
   const [externalSearch, setExternalSearch] = useState("");
   const [externalItems, setExternalItems] = useState([]);
   const [externalLoading, setExternalLoading] = useState(false);
-  const [customItem, setCustomItem] = useState({
-  name: "",
-  description: "",
-  image_url: "",
-  price_usd: ""
-});
 
-const updateCustomItem = (key, value) => {
-  setCustomItem(prev => ({ ...prev, [key]: value }));
-};
   const fetchApplications = () => {
     fetch(`/applications/sponsor/${user.id}`, {
       credentials: 'include',
@@ -213,44 +204,6 @@ const updateCustomItem = (key, value) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const addCustomItem = async (e) => {
-  e.preventDefault();
-
-  try {
-    const res = await fetch(`${API_BASE}/catalog/${user.id}/custom`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        sponsor_id: user.id,
-        name: customItem.name,
-        description: customItem.description,
-        image_url: customItem.image_url,
-        price_usd: parseFloat(customItem.price_usd)
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Failed to add custom item:", data);
-      return;
-    }
-
-    setCustomItem({
-      name: "",
-      description: "",
-      image_url: "",
-      price_usd: ""
-    });
-
-    fetchCatalog();
-  } catch (err) {
-    console.error("Add custom item failed:", err);
-  }
-};
   const handleApprove = async (id) => {
     await fetch(
       `/applications/${id}/approve?sponsor_id=${user.id}`,
@@ -590,52 +543,8 @@ const updateCustomItem = (key, value) => {
             style={{ marginBottom: "15px", padding: "5px" }}
             />
             <div style={{ marginTop: "25px", marginBottom: "25px" }}>
-              <div style={{ marginTop: "25px", marginBottom: "30px" }}>
-  <h3>Add Custom Item</h3>
-
-  <form onSubmit={addCustomItem} style={{ display: "grid", gap: "10px", maxWidth: "500px" }}>
-    <input
-      type="text"
-      placeholder="Item name"
-      value={customItem.name}
-      onChange={(e) => updateCustomItem("name", e.target.value)}
-      required
-      style={{ padding: "8px" }}
-    />
-
-    <textarea
-      placeholder="Description"
-      value={customItem.description}
-      onChange={(e) => updateCustomItem("description", e.target.value)}
-      rows="3"
-      style={{ padding: "8px" }}
-    />
-
-    <input
-      type="text"
-      placeholder="Image URL"
-      value={customItem.image_url}
-      onChange={(e) => updateCustomItem("image_url", e.target.value)}
-      style={{ padding: "8px" }}
-    />
-
-    <input
-      type="number"
-      step="0.01"
-      placeholder="Price in USD"
-      value={customItem.price_usd}
-      onChange={(e) => updateCustomItem("price_usd", e.target.value)}
-      required
-      style={{ padding: "8px" }}
-    />
-
-    <button type="submit" style={{ width: "fit-content" }}>
-      Add Custom Item
-    </button>
-  </form>
-</div>
-
   <h3>Add New Item to Catalog</h3>
+
   <input
     type="text"
     placeholder="Search external products..."
