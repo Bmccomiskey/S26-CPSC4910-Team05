@@ -14,6 +14,7 @@ from security import hash_password
 from audit import log_audit_event
 from profileModels import UserProfile
 from admin import admin_create_user
+from orgModels import Organization
 
 
 router = APIRouter(prefix="/upload", tags=["upload"])
@@ -51,14 +52,14 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
 
         # O → create organization
         if record_type == "O":
-            existing = db.query(User).filter(
-                User.company_name == org
+            existing = db.query(Organization).filter(
+                Organization.org_name == org
             ).first()
 
             if existing:
                 return None, f"Line {line_number}: Organization exists"
 
-            db.add(User(company_name=org))
+            db.add(Organization(org_name=org))
             return f"Organization created: {org}", None
 
         # Must have org for D/S
