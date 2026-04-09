@@ -220,21 +220,6 @@ export default function SponsorProfile({ user, applications = [], onConfigUpdate
               <label className="srp-field-label">Member Since</label>
               <p className="srp-field-value">January 2026</p>
             </div>
-
-            <Field
-            label="Minimum Catalog Points"
-            editing={editing}
-            value={profile.minPointCost}
-            onChange={v => set('minPointCost', v)}
-            type="number"
-            />
-            <Field
-            label="Maximum Catalog Points"
-            editing={editing}
-            value={profile.maxPointCost}
-            onChange={v => set('maxPointCost', v)}
-            type="number"
-            />
           </div>
 
           {/* Budget bar */}
