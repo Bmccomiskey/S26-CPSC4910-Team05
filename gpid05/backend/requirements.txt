@@ -8,3 +8,8 @@ python-dotenv
 requests
 aiosmtplib
 python-multipart
+
+# Testing
+pytest
+pytest-asyncio
+httpx

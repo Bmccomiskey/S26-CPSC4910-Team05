@@ -56,7 +56,6 @@ def create_custom_item(
         price_usd=body.price_usd,
         point_cost=point_cost,
         is_active=is_active,
-        is_custom=True,
         last_updated=datetime.utcnow(),
     )
 
