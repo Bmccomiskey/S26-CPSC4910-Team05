@@ -84,17 +84,19 @@ def refresh_catalog(sponsor_id: int, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(config)
 
+    ppd = config.points_per_dollar or 100
+    min_pts = config.min_point_cost if config.min_point_cost is not None else 0
+    max_pts = config.max_point_cost if config.max_point_cost is not None else 1_000_000
+
     for product in products:
         existing = db.query(CatalogItem).filter(
             CatalogItem.sponsor_id == sponsor_id,
             CatalogItem.external_id == product["id"]
         ).first()
 
-        point_cost = int(product["price"] * config.points_per_dollar)
+        point_cost = int(product["price"] * ppd)
 
-        within_range = (
-            config.min_point_cost <= point_cost <= config.max_point_cost
-        )
+        within_range = min_pts <= point_cost <= max_pts
 
         if existing:
             existing.name = product["title"]

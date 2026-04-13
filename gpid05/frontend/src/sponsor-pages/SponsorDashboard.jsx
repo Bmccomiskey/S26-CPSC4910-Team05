@@ -557,190 +557,199 @@ export default function SponsorDashboard() {
         )}
 
         {activeTab === "catalog" && (
-          <div className="sd-section">
-            <h2>Catalog</h2>
-            <div style={{ marginBottom: "15px" }}>
-              <button onClick={refreshCatalog}>
-                Refresh Catalog
-              </button>
-            </div>
-            {lastUpdated && (
-              <p>
-                Last Updated: {new Date(lastUpdated).toLocaleString()}
-              </p>
-            )}
-            <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            style={{ marginBottom: "15px", padding: "5px" }}
-            >
-              <option value="none">Sort</option>
-              <option value="price_asc">Price: Low → High</option>
-              <option value="price_desc">Price: High → Low</option>
-              <option value="points_asc">Points: Low → High</option>
-              <option value="points_desc">Points: High → Low</option>
-            </select>
-            <input
-            type="text"
-            placeholder="Search catalog..."
-            value={catalogSearch}
-            onChange={(e) => setCatalogSearch(e.target.value)}
-            style={{ marginBottom: "15px", padding: "5px" }}
-            />
-            <div style={{ marginTop: "25px", marginBottom: "30px" }}>
-              <h3>Add Custom Item</h3>
-              <form onSubmit={addCustomItem} style={{ display: "grid", gap: "10px", maxWidth: "500px" }}>
-                <input
-                type="text"
-                placeholder="Item name"
-                value={customItem.name}
-                onChange={(e) => updateCustomItem("name", e.target.value)}
-                required
-                style={{ padding: "8px" }}
-                />
-                <textarea
-                placeholder="Description"
-                value={customItem.description}
-                onChange={(e) => updateCustomItem("description", e.target.value)}
-                rows="3"
-                style={{ padding: "8px" }}
-                />
-                <input
-                type="text"
-                placeholder="Image URL"
-                value={customItem.image_url}
-                onChange={(e) => updateCustomItem("image_url", e.target.value)}
-                style={{ padding: "8px" }}
-                />
-                <input
-                type="number"
-                step="0.01"
-                placeholder="Price in USD"
-                value={customItem.price_usd}
-                onChange={(e) => updateCustomItem("price_usd", e.target.value)}
-                required
-                style={{ padding: "8px" }}
-                />
-                <button type="submit" style={{ width: "fit-content" }}>
-                  Add Custom Item
+          <div className="cat-root">
+
+            {/* ── Page header ── */}
+            <div className="cat-page-header">
+              <div>
+                <h1 className="cat-page-title">Product Catalog</h1>
+                <p className="cat-page-sub">Manage the items available to your approved drivers</p>
+              </div>
+              <div className="cat-header-actions">
+                {lastUpdated && (
+                  <span className="cat-updated-pill">
+                    Updated {new Date(lastUpdated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                )}
+                <button className="cat-refresh-btn" onClick={refreshCatalog}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                  </svg>
+                  Refresh Catalog
                 </button>
-                </form>
+              </div>
+            </div>
+
+            {/* ── Toolbar ── */}
+            <div className="cat-toolbar">
+              <div className="cat-search-wrap">
+                <svg className="cat-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  className="cat-search-input"
+                  type="text"
+                  placeholder="Search catalog..."
+                  value={catalogSearch}
+                  onChange={(e) => setCatalogSearch(e.target.value)}
+                />
+              </div>
+              <select
+                className="cat-sort-select"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+              >
+                <option value="none">Sort by…</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+                <option value="points_asc">Points: Low → High</option>
+                <option value="points_desc">Points: High → Low</option>
+              </select>
+            </div>
+
+            {/* ── Add panels ── */}
+            <div className="cat-add-row">
+
+              {/* Custom item */}
+              <div className="cat-add-card">
+                <div className="cat-add-card-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                  <h3 className="cat-add-card-title">Add Custom Item</h3>
                 </div>
-            <div style={{ marginTop: "25px", marginBottom: "25px" }}>
-              <h3>Add New Item to Catalog</h3>
-              <input
-              type="text"
-              placeholder="Search external products..."
-              value={externalSearch}
-              onChange={(e) => setExternalSearch(e.target.value)}
-              style={{ marginBottom: "10px", padding: "5px", marginRight: "10px" }}
-              />
-              <button onClick={fetchExternalCatalog}>
-                Search External Products
-              </button>
-              {externalLoading ? (
-                <p style={{ marginTop: "10px" }}>Searching...</p>
-              ) : (
-                externalItems.length > 0 && (
-                <table className="sd-table" style={{ marginTop: "15px" }}>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Price (USD)</th>
-                      <th>Action</th>
-                      </tr>
-                    </thead>
-                  <tbody>
+                <form onSubmit={addCustomItem} className="cat-custom-form">
+                  <input
+                    className="cat-form-input"
+                    type="text"
+                    placeholder="Item name *"
+                    value={customItem.name}
+                    onChange={(e) => updateCustomItem("name", e.target.value)}
+                    required
+                  />
+                  <textarea
+                    className="cat-form-input cat-form-textarea"
+                    placeholder="Description"
+                    value={customItem.description}
+                    onChange={(e) => updateCustomItem("description", e.target.value)}
+                    rows="2"
+                  />
+                  <input
+                    className="cat-form-input"
+                    type="text"
+                    placeholder="Image URL"
+                    value={customItem.image_url}
+                    onChange={(e) => updateCustomItem("image_url", e.target.value)}
+                  />
+                  <input
+                    className="cat-form-input"
+                    type="number"
+                    step="0.01"
+                    placeholder="Price (USD) *"
+                    value={customItem.price_usd}
+                    onChange={(e) => updateCustomItem("price_usd", e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="cat-add-submit-btn">Add to Catalog</button>
+                </form>
+              </div>
+
+              {/* External search */}
+              <div className="cat-add-card">
+                <div className="cat-add-card-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <h3 className="cat-add-card-title">Search External Products</h3>
+                </div>
+                <div className="cat-ext-search-row">
+                  <input
+                    className="cat-form-input"
+                    type="text"
+                    placeholder="Search products…"
+                    value={externalSearch}
+                    onChange={(e) => setExternalSearch(e.target.value)}
+                  />
+                  <button className="cat-ext-search-btn" onClick={fetchExternalCatalog}>
+                    Search
+                  </button>
+                </div>
+                {externalLoading ? (
+                  <p className="cat-loading-text">Searching…</p>
+                ) : externalItems.length > 0 && (
+                  <div className="cat-ext-results">
                     {externalItems.map((item) => (
-                      <tr key={item.external_id}>
-                        <td>{item.name}</td>
-                        <td>${item.price_usd}</td>
-                        <td>
-                          <button onClick={() => addExternalItem(item.external_id)}>
-                            Add to Catalog
-                          </button>
-                          </td>
-                      </tr>
+                      <div key={item.external_id} className="cat-ext-result-row">
+                        <span className="cat-ext-result-name">{item.name}</span>
+                        <span className="cat-ext-result-price">${item.price_usd}</span>
+                        <button
+                          className="cat-ext-add-btn"
+                          onClick={() => addExternalItem(item.external_id)}
+                        >
+                          + Add
+                        </button>
+                      </div>
                     ))}
-                    </tbody>
-                  </table>
-                  )
-                  )}
                   </div>
-                  {catalogLoading ? (
-                    <p>Loading...</p>
-                  ) : (
-                  <table className="sd-table">
-                    <thead>
-                      <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Points</th>
-                        <th>Price (USD)</th>
-                        <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                      {[...catalogItems]
-                      .sort((a, b) => {
-                        switch (sortOption) {
-                          case "price_asc":
-                            return a.price_usd - b.price_usd;
-                          case "price_desc":
-                            return b.price_usd - a.price_usd;
-                          case "points_asc":
-                            return a.point_cost - b.point_cost;
-                          case "points_desc":
-                            return b.point_cost - a.point_cost;
-                            default:
-                          return 0;
+                )}
+              </div>
+            </div>
+
+            {/* ── Catalog grid ── */}
+            {catalogLoading ? (
+              <div className="cat-loading-state">Loading catalog…</div>
+            ) : catalogItems.length === 0 ? (
+              <div className="cat-empty">
+                <p className="cat-empty-title">No items in your catalog yet</p>
+                <p className="cat-empty-sub">Refresh from the external store or add a custom item above.</p>
+              </div>
+            ) : (
+              <div className="cat-grid">
+                {[...catalogItems]
+                  .sort((a, b) => {
+                    switch (sortOption) {
+                      case "price_asc":  return a.price_usd - b.price_usd;
+                      case "price_desc": return b.price_usd - a.price_usd;
+                      case "points_asc": return a.point_cost - b.point_cost;
+                      case "points_desc": return b.point_cost - a.point_cost;
+                      default: return 0;
+                    }
+                  })
+                  .map((item) => (
+                    <div key={item.id} className={`cat-card${!item.is_active ? ' cat-card--inactive' : ''}`}>
+                      <div className="cat-card-img-wrap">
+                        {item.image_url
+                          ? <img className="cat-card-img" src={item.image_url} alt={item.name} />
+                          : <div className="cat-card-img-placeholder">—</div>
                         }
-                      })
-                      .map((item) => (
-                      <tr
-                      key={item.id}
-                      style={{
-                        opacity: item.is_active ? 1 : 0.4
-                      }}
-                >
-                  <td>
-                    {item.image_url && (
-                      <img
-                      src={item.image_url}
-                      alt={item.name}
-                      style={{
-                        width: "60px",
-                        height: "60px",
-                        objectFit: "contain",
-                        borderRadius: "6px"
-                      }}
-                      />
-                      )}
-                  </td>
-                  <td>{item.name}</td>
-                  <td>{item.point_cost}</td>
-                  <td>${item.price_usd}</td>
-                  <td>
-                    {!item.is_active && (
-                      <span style={{ color: "red", marginRight: "10px" }}>
-                        Outside Budget
-                        </span>
-                      )}
-                      {item.is_active ? (
-                        <button onClick={() => removeItem(item.id)}>
-                          Remove
+                        {!item.is_active && (
+                          <span className="cat-card-budget-badge">Outside Budget</span>
+                        )}
+                      </div>
+                      <div className="cat-card-body">
+                        <p className="cat-card-name" title={item.name}>{item.name}</p>
+                        <div className="cat-card-meta">
+                          <span className="cat-card-points">{item.point_cost?.toLocaleString()} pts</span>
+                          <span className="cat-card-price">${Number(item.price_usd).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="cat-card-footer">
+                        {item.is_active ? (
+                          <button className="cat-card-btn cat-card-btn--remove" onClick={() => removeItem(item.id)}>
+                            Remove
                           </button>
-                          ) : (
-                          <button onClick={() => activateItem(item.id)}>
+                        ) : (
+                          <button className="cat-card-btn cat-card-btn--restore" onClick={() => activateItem(item.id)}>
                             Add Back
-                            </button>
-                          )}
-                          </td>
-                          </tr>
-                        ))}
-              </tbody>
-            </table>
-          )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            )}
           </div>
         )}
         {activeTab === "notifications" && (

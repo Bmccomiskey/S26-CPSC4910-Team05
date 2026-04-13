@@ -363,66 +363,72 @@ useEffect(() => {
     <div className="dd-container">
       <div className="dd-sidebar">
         <div className="dd-sidebar-header">
-          <h2 className="dd-sidebar-title">Driver Portal</h2>
+          <div className="dd-sidebar-brand">
+            <div className="dd-sidebar-brand-icon">🚚</div>
+            <div>
+              <p className="dd-sidebar-title">Driver Portal</p>
+              <p className="dd-sidebar-subtitle">Rewards Dashboard</p>
+            </div>
+          </div>
         </div>
+
         <nav className="dd-nav">
-          <button
-            className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
-            onClick={() => setActiveTab("dashboard")}
-          >
-          Dashboard
+          <span className="dd-nav-section-label">Main</span>
+          <button className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`} onClick={() => setActiveTab("dashboard")}>
+            Dashboard
           </button>
-
-          <button
-            className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`}
-            onClick={() => setActiveTab("apply")}
-          >
-          Apply for Sponsorship
-          </button>
-
-          <button
-            className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`}
-            onClick={() => setActiveTab("points")}
-          >My Points</button>
-          <button
-            className={`dd-nav-item ${activeTab === "goals" ? "active" : ""}`}
-            onClick={() => setActiveTab("goals")}
-          >My Goals</button>
-          <button
-            className={`dd-nav-item ${activeTab === "catalog" ? "active" : ""}`}
-            onClick={() => setActiveTab("catalog")}
-          >
+          <button className={`dd-nav-item ${activeTab === "catalog" ? "active" : ""}`} onClick={() => setActiveTab("catalog")}>
             Catalog
+            {cart.length > 0 && <span className="dd-nav-cart-badge">{cart.reduce((s, i) => s + (i.quantity || 1), 0)}</span>}
           </button>
-          <button
-            className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`}
-            onClick={() => setActiveTab("orders")}
-          >My Orders</button>
-          <button
-            className={`dd-nav-item ${activeTab === "profile" ? "active" : ""}`}
-            onClick={() => setActiveTab("profile")}
-          >Profile</button>
+          <button className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}>
+            My Orders
+          </button>
+
+          <div className="dd-nav-divider" />
+          <span className="dd-nav-section-label">Points</span>
+          <button className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`} onClick={() => setActiveTab("points")}>
+            My Points
+          </button>
+          <button className={`dd-nav-item ${activeTab === "goals" ? "active" : ""}`} onClick={() => setActiveTab("goals")}>
+            My Goals
+          </button>
+
+          <div className="dd-nav-divider" />
+          <span className="dd-nav-section-label">Account</span>
+          <button className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`} onClick={() => setActiveTab("apply")}>
+            Sponsorships
+          </button>
+          <button className={`dd-nav-item ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>
+            Profile
+          </button>
         </nav>
-        <button className="dd-logout-btn" onClick={handleLogout}>
-          Sign Out
-        </button>
+
+        <div className="dd-sidebar-footer">
+          <div className="dd-user-card">
+            <div className="dd-user-avatar">{user.email?.[0]?.toUpperCase() || 'D'}</div>
+            <div className="dd-user-info">
+              <p className="dd-user-name">{user.email}</p>
+              <p className="dd-user-role">Driver</p>
+            </div>
+          </div>
+          <button className="dd-logout-btn" onClick={handleLogout}>
+            <span>⎋</span> Sign Out
+          </button>
+        </div>
       </div>
 
       <main className="dd-main">
         {isSponsorViewing && (
-          <div style={{ padding: "10px 14px", background: "#d1ecf1", border: "1px solid #bee5eb", borderRadius: 8, marginBottom: 12 }}>
-            <strong>Sponsor View:</strong> You are viewing the driver dashboard as {localStorage.getItem("userEmail")}.
-            <button className="dd-new-goal-btn" style={{ marginLeft: 12 }} onClick={exitSponsorView}>
-              Return to Sponsor Dashboard
-            </button>
+          <div className="dd-banner dd-banner-info">
+            <strong>Sponsor View:</strong> Viewing as {localStorage.getItem("userEmail")}.
+            <button className="dd-banner-btn" onClick={exitSponsorView}>Return to Sponsor Dashboard</button>
           </div>
         )}
         {isImpersonating && (
-          <div style={{ padding: "10px 14px", background: "#fff3cd", border: "1px solid #ffeeba", borderRadius: 8, marginBottom: 12 }}>
-            <strong>Impersonation mode:</strong> You are viewing this account as an admin.
-            <button style={{ marginLeft: 12 }} onClick={exitImpersonation}>
-              Exit
-            </button>
+          <div className="dd-banner dd-banner-warn">
+            <strong>Admin Impersonation:</strong> You are viewing this account as an admin.
+            <button className="dd-banner-btn" onClick={exitImpersonation}>Exit</button>
           </div>
         )}
 
@@ -492,116 +498,80 @@ useEffect(() => {
         )}
 
       {activeTab === "apply" && (
-        <>
-        <div className="dd-top-bar">
-          <h1 className="dd-page-title">Apply for Sponsorship</h1>
-        </div>
+        <div className="dapply-root">
+          <div className="dd-top-bar">
+            <h1 className="dd-page-title">Sponsorships</h1>
+          </div>
 
-        <div className="dd-section">
-          {successMessage && (
-            <p style={{ marginBottom: "15px", color: "green" }}>
-              {successMessage}
-              </p>
-            )}
-            {errorMessage && (
-              <p style={{ marginBottom: "15px", color: "red" }}>
-                {errorMessage}
-                </p>
+          {successMessage && <div className="dd-alert dd-alert-success">✓ {successMessage}</div>}
+          {errorMessage   && <div className="dd-alert dd-alert-error">⚠ {errorMessage}</div>}
+
+          <div className="dapply-grid">
+            {/* Available sponsors */}
+            <div className="dapply-card">
+              <h2 className="dapply-card-title">Available Sponsors</h2>
+              {sponsors.length === 0 ? (
+                <p className="dapply-empty">No sponsors available right now.</p>
+              ) : (
+                <div className="dapply-list">
+                  {sponsors.map(sponsor => {
+                    const existing = myApplications.find(
+                      app => app.sponsor_id === sponsor.id
+                    );
+                    const isPending  = existing?.status === "PENDING";
+                    const isApproved = existing?.status === "APPROVED";
+                    const isRejected = existing?.status === "REJECTED";
+                    return (
+                      <div key={sponsor.id} className="dapply-row">
+                        <div className="dapply-row-avatar">{sponsor.email?.[0]?.toUpperCase()}</div>
+                        <span className="dapply-row-email">{sponsor.email}</span>
+                        {isApproved && <span className="dapply-badge dapply-badge--approved">Approved</span>}
+                        {isPending  && <span className="dapply-badge dapply-badge--pending">Pending</span>}
+                        {isRejected && <span className="dapply-badge dapply-badge--rejected">Rejected</span>}
+                        {!existing && (
+                          <button className="dapply-apply-btn" onClick={() => handleApply(sponsor.id)}>
+                            Apply
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-          <div className="dd-table-wrapper">
-            <table className="dd-table">
-              <thead>
-                <tr>
-                  <th>Sponsor</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sponsors.map((sponsor) => (
-                  <tr key={sponsor.id}>
-                    <td>{sponsor.email}</td>
-                    <td>
-                    {(() => {
-                      const existing = myApplications.find(
-                        app => app.sponsor_id === sponsor.id && app.status === "pending"
-                      );
+            </div>
 
-                      if (existing) {
-                        return <span>Pending</span>;
-                      } 
-                      return(
-                        <button className="dd-new-goal-btn" onClick={() => handleApply(sponsor.id)}>
-                          Apply
-                        </button>
-                      );
-                      
-                    })()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div style={{ marginTop: "40px" }}>
-              <h2>My Sponsorship Status</h2>
-              <table className="dd-table">
-                <thead>
-                  <tr>
-                    <th>Sponsor</th>
-                    <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                      {myApplications.map((app) => (
-                        <tr key={app.id}>
-                          <td>{app.sponsor_email}</td>
-                          <td>
-                            {app.status === "APPROVED" && (
-                              <span style={{ color: "green", fontWeight: "bold" }}>
-                                APPROVED
-                                </span>
-                            )}
-                            {app.status === "PENDING" && (
-                              <span style={{ color: "orange" }}>
-                                PENDING
-                                </span>
-                            )}
-                            {app.status === "REJECTED" && (
-                              <span style={{ color: "red" }}>
-                                REJECTED
-                                </span>
-                            )}
-                            </td>
-                            </tr>
-                          ))}
-                          </tbody>
-                          </table>
-                          </div>
-
-            {sponsors.length === 0 && (
-              <p style={{ marginTop: "20px" }}>
-                No sponsors available.
-              </p>
-            )}
+            {/* My applications */}
+            <div className="dapply-card">
+              <h2 className="dapply-card-title">My Applications</h2>
+              {myApplications.length === 0 ? (
+                <p className="dapply-empty">No applications yet.</p>
+              ) : (
+                <div className="dapply-list">
+                  {myApplications.map(app => (
+                    <div key={app.id} className="dapply-row">
+                      <div className="dapply-row-avatar">{app.sponsor_email?.[0]?.toUpperCase()}</div>
+                      <span className="dapply-row-email">{app.sponsor_email}</span>
+                      {app.status === "APPROVED" && <span className="dapply-badge dapply-badge--approved">Approved</span>}
+                      {app.status === "PENDING"  && <span className="dapply-badge dapply-badge--pending">Pending</span>}
+                      {app.status === "REJECTED" && <span className="dapply-badge dapply-badge--rejected">Rejected</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-          </>
-        )}
+      )}
       
       {activeTab === "catalog" && (
-        <div className="dd-section">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h2 style={{ margin: 0 }}>Available Rewards</h2>
-            <button
-              onClick={() => setCartOpen(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '8px 18px', background: '#1e293b', color: '#fff',
-                border: 'none', borderRadius: '8px', fontSize: '14px',
-                fontWeight: '700', fontFamily: 'inherit', cursor: 'pointer',
-                position: 'relative',
-              }}
-            >
+        <div className="dcat-root">
+          {/* Header */}
+          <div className="dcat-page-header">
+            <div>
+              <h1 className="dcat-page-title">Rewards Catalog</h1>
+              <p className="dcat-page-sub">Browse and redeem items from your approved sponsors</p>
+            </div>
+            <button className="dcat-cart-btn" onClick={() => setCartOpen(true)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
                 <line x1="3" y1="6" x2="21" y2="6"/>
@@ -609,114 +579,108 @@ useEffect(() => {
               </svg>
               Cart
               {cart.length > 0 && (
-                <span style={{
-                  background: '#F59E0B', color: '#0f172a', borderRadius: '999px',
-                  fontSize: '11px', fontWeight: '800', padding: '1px 7px', lineHeight: '1.6',
-                }}>
-                  {cart.length}
+                <span className="dcat-cart-badge">
+                  {cart.reduce((s, i) => s + (i.quantity || 1), 0)}
                 </span>
               )}
             </button>
           </div>
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            style={{ marginBottom: "15px", padding: "5px" }}
-          >
-            <option value="none">Sort</option>
-            <option value="price_asc">Price: Low → High</option>
-            <option value="price_desc">Price: High → Low</option>
-            <option value="points_asc">Points: Low → High</option>
-            <option value="points_desc">Points: High → Low</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search catalog..."
-            value={catalogSearch}
-            onChange={(e) => setCatalogSearch(e.target.value)}
-            style={{ marginBottom: "15px", padding: "5px" }}
-          />
+
+          {/* Toolbar */}
+          <div className="dcat-toolbar">
+            <div className="dcat-search-wrap">
+              <svg className="dcat-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                className="dcat-search-input"
+                type="text"
+                placeholder="Search items…"
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+              />
+            </div>
+            <select className="dcat-sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+              <option value="none">Sort by</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
+              <option value="points_asc">Points: Low → High</option>
+              <option value="points_desc">Points: High → Low</option>
+            </select>
+          </div>
+
+          {/* Content */}
           {catalogLoading ? (
-            <p>Loading...</p>
+            <div className="dcat-loading">Loading catalog…</div>
           ) : driverCatalog.length === 0 ? (
-            <p>No approved sponsors or no catalog available.</p>
+            <div className="dcat-empty">
+              <div className="dcat-empty-icon">🛍️</div>
+              <p className="dcat-empty-title">No catalog available</p>
+              <p className="dcat-empty-sub">Apply to sponsors to unlock their reward catalogs.</p>
+            </div>
           ) : (
-            driverCatalog.map((catalog, idx) => (
-              <div key={idx} style={{ marginBottom: "40px" }}>
-                <h3>{catalog.sponsor_email}</h3>
-                {catalog.last_updated && (
-                  <p>Last Updated: {new Date(catalog.last_updated).toLocaleString()}</p>
-                )}
-                <table className="dd-table">
-                  <thead>
-                    <tr>
-                      <th>Image</th>
-                      <th>Name</th>
-                      <th>Points</th>
-                      <th>Price (USD)</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const sortedItems = [...catalog.items].sort((a, b) => {
-                        switch (sortOption) {
-                          case "price_asc":   return a.price_usd - b.price_usd;
-                          case "price_desc":  return b.price_usd - a.price_usd;
-                          case "points_asc":  return a.point_cost - b.point_cost;
-                          case "points_desc": return b.point_cost - a.point_cost;
-                          default:            return 0;
-                        }
-                      });
+            driverCatalog.map((catalog, idx) => {
+              const sortedItems = [...catalog.items].sort((a, b) => {
+                switch (sortOption) {
+                  case "price_asc":   return a.price_usd - b.price_usd;
+                  case "price_desc":  return b.price_usd - a.price_usd;
+                  case "points_asc":  return a.point_cost - b.point_cost;
+                  case "points_desc": return b.point_cost - a.point_cost;
+                  default:            return 0;
+                }
+              });
+              return (
+                <div key={idx} className="dcat-sponsor-section">
+                  <div className="dcat-sponsor-header">
+                    <div className="dcat-sponsor-avatar">{catalog.sponsor_email?.[0]?.toUpperCase()}</div>
+                    <div>
+                      <p className="dcat-sponsor-name">{catalog.sponsor_email}</p>
+                      {catalog.last_updated && (
+                        <p className="dcat-sponsor-updated">
+                          Updated {new Date(catalog.last_updated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-                      if (sortedItems.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                              No items match your search. Try adjusting your search criteria.
-                            </td>
-                          </tr>
-                        );
-                      }
-
-                      return sortedItems.map((item) => (
-                        <tr key={item.id}>
-                          <td>
-                            {item.image_url && (
-                              <img
-                                src={item.image_url}
-                                alt={item.name}
-                                style={{
-                                  width: "60px",
-                                  height: "60px",
-                                  objectFit: "contain",
-                                  borderRadius: "6px"
-                                }}
-                              />
-                            )}
-                          </td>
-                          <td>{item.name}</td>
-                          <td>{item.point_cost}</td>
-                          <td>${item.price_usd}</td>
-                          <td>
+                  {sortedItems.length === 0 ? (
+                    <p className="dcat-no-results">No items match your search.</p>
+                  ) : (
+                    <div className="dcat-grid">
+                      {sortedItems.map(item => (
+                        <div key={item.id} className={`dcat-card${!item.is_active ? ' dcat-card--unavailable' : ''}`}>
+                          <div className="dcat-card-img-wrap">
+                            {item.image_url
+                              ? <img className="dcat-card-img" src={item.image_url} alt={item.name} />
+                              : <div className="dcat-card-img-placeholder">—</div>
+                            }
+                          </div>
+                          <div className="dcat-card-body">
+                            <p className="dcat-card-name" title={item.name}>{item.name}</p>
+                            <div className="dcat-card-meta">
+                              <span className="dcat-card-points">{item.point_cost?.toLocaleString()} pts</span>
+                              <span className="dcat-card-price">${Number(item.price_usd).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className="dcat-card-footer">
                             {item.is_active === false ? (
-                              <span className="dd-unavailable-badge">Unavailable</span>
+                              <span className="dcat-unavailable-badge">Unavailable</span>
                             ) : (
                               <button
-                                className="dd-add-cart-btn"
+                                className="dcat-add-btn"
                                 onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}
                               >
                                 + Add to Cart
                               </button>
                             )}
-                          </td>
-                        </tr>
-                      ));
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            ))
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       )}
