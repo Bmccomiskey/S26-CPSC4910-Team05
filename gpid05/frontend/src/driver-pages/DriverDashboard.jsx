@@ -266,6 +266,39 @@ useEffect(() => {
     navigate('/login');
   };
 
+  const redeemItem = async (item, sponsorId) => {
+  try {
+    const res = await fetch(`${API_BASE}/points/redeem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        driver_id: user.id,
+        sponsor_id: sponsorId,
+        item_id: item.id,
+        item_name: item.name,
+        point_cost: item.point_cost,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.detail || "Redemption failed.");
+      return;
+    }
+
+    alert("Redemption successful!");
+
+    fetchTransactions();
+    fetchPointBalance();
+  } catch (err) {
+    console.error("Redeem failed:", err);
+    alert("Network error during redemption.");
+  }
+};
   const isSponsorViewing = localStorage.getItem("isSponsorViewing") === "true";
   const exitSponsorView = () => {
     localStorage.setItem("userRole", localStorage.getItem("sponsorViewerRole") || "sponsor");
