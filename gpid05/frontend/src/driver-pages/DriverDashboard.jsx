@@ -39,86 +39,64 @@ export default function DriverDashboard() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
-  const [selectedSponsorId, setSelectedSponsorId] = useState("");
-
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
     try {
-      const resApps = await fetch(`${API_BASE}/applications/driver/${user.id}`)
-      .then(res => res.json())
-      .then(data => {
-        setMyApplications(data);
-        const approved = data.filter(app => app.status === "APPROVED");
-        if (approved.length > 0 && !selectedSponsorId) {
-          setSelectedSponsorId(String(approved[0].sponsor_id));
-        }
-      });
+      const resApps = await fetch(`${API_BASE}/applications/driver/${user.id}`, { credentials: 'include' });
       const applications = await resApps.json();
-      const approved = applications.filter(
-        app => app.status === "APPROVED"
-      );
+      const approved = applications.filter(app => app.status === "APPROVED");
 
       const catalogs = [];
-
-      for (let app of approved) {
+      for (const app of approved) {
         const resCatalog = await fetch(
-          `${API_BASE}/catalog/sponsor/${app.sponsor_id}?search=${catalogSearch}`
+          `${API_BASE}/catalog/sponsor/${app.sponsor_id}?search=${catalogSearch}`,
+          { credentials: 'include' }
         );
         const data = await resCatalog.json();
-
         catalogs.push({
           sponsor_id: app.sponsor_id,
           sponsor_email: app.sponsor_email,
           last_updated: data.last_updated,
-          items: data.items
+          items: data.items || [],
         });
       }
-
       setDriverCatalog(catalogs);
-
     } catch (err) {
       console.error("Driver catalog fetch error:", err);
-  }
-  
-  setCatalogLoading(false);
-};
+    }
+    setCatalogLoading(false);
+  };
 
-const fetchPointBalance = () => {
-  if (!user || !selectedSponsorId) return;
-
-  fetch(`${API_BASE}/points/driver/${user.id}/balance/${selectedSponsorId}`, {
-    credentials: 'include'
-  })
-    .then(res => res.json())
-    .then(data => setPointBalance(Number(data.balance || 0)))
-    .catch(err => console.error("Error fetching point balance:", err));
-};
-
-useEffect(() => {
-  if (user && activeTab === "catalog") {
-    fetchDriverCatalog();
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [user, activeTab, catalogSearch]);
+  const fetchPointBalance = () => {
+    if (!user) return;
+    fetch(`${API_BASE}/points/driver/${user.id}/balance`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setPointBalance(Number(data.balance || 0)))
+      .catch(err => console.error("Error fetching point balance:", err));
+  };
 
   useEffect(() => {
-  if (user && activeTab === "apply") {
-    fetch(`/applications/sponsors`)
-      .then(res => res.json())
-      .then(data => setSponsors(data))
-      .catch(err => console.error("Error fetching sponsors:", err));
+    if (user && activeTab === "catalog") {
+      fetchDriverCatalog();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeTab, catalogSearch]);
+
+  useEffect(() => {
+    if (user && activeTab === "apply") {
+      fetch(`/applications/sponsors`)
+        .then(res => res.json())
+        .then(data => setSponsors(data))
+        .catch(err => console.error("Error fetching sponsors:", err));
     }
   }, [user, activeTab]);
 
   const fetchTransactions = () => {
-  if (!user || !selectedSponsorId) return;
-
-  fetch(`${API_BASE}/points/driver/${user.id}/history/${selectedSponsorId}`, {
-    credentials: 'include'
-  })
-    .then(res => res.json())
-    .then(data => setTransactions(data))
-    .catch(err => console.error("Error fetching points:", err));
+    if (!user) return;
+    fetch(`${API_BASE}/points/driver/${user.id}/history`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setTransactions(data))
+      .catch(err => console.error("Error fetching points:", err));
   };
 
   const fetchGoals = () => {
@@ -185,30 +163,25 @@ useEffect(() => {
     d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
   useEffect(() => {
-  if (!user) return;
-  fetch(`${API_BASE}/applications/driver/${user.id}`, {
-    credentials: 'include'
-  })
-    .then(res => res.json())
-    .then(data => {
-      setMyApplications(data);
+    if (!user) return;
+    fetch(`${API_BASE}/applications/driver/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setMyApplications(data))
+      .catch(err => console.error("Error fetching applications:", err));
 
-      const approved = data.filter(app => app.status === "APPROVED");
-      if (approved.length > 0 && !selectedSponsorId) {
-        setSelectedSponsorId(String(approved[0].sponsor_id));
-      }
-    })
-    .catch(err => console.error("Error fetching applications:", err));
+    fetchTransactions();
+    fetchPointBalance();
+    fetchGoals();
+    fetchPersonalGoals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
-  fetchGoals();
-}, [user]);
-
-  // Re-fetch transactions every time the points tab is opened
+  // Re-fetch when switching tabs
   useEffect(() => {
-    if (activeTab === "points" && user && selectedSponsorId) { fetchTransactions(); fetchPointBalance(); }
+    if (activeTab === "points") { fetchTransactions(); fetchPointBalance(); }
     if (activeTab === "goals") { fetchGoals(); fetchPersonalGoals(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user, selectedSponsorId]);
+  }, [activeTab]);
   const handleApply = async (sponsorId) => {
     try {
       const res = await fetch(`/applications/`, {
@@ -246,12 +219,6 @@ useEffect(() => {
     }
   };
 
-  useEffect(() => {
-    if (!user || !selectedSponsorId) return;
-    fetchTransactions();
-    fetchPointBalance();
-  }, [user, selectedSponsorId]);
-
   const handleLogout = async () => {
     try {
       await fetch(`/auth/logout`, {
@@ -266,39 +233,6 @@ useEffect(() => {
     navigate('/login');
   };
 
-  const redeemItem = async (item, sponsorId) => {
-  try {
-    const res = await fetch(`${API_BASE}/points/redeem`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        driver_id: user.id,
-        sponsor_id: sponsorId,
-        item_id: item.id,
-        item_name: item.name,
-        point_cost: item.point_cost,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.detail || "Redemption failed.");
-      return;
-    }
-
-    alert("Redemption successful!");
-
-    fetchTransactions();
-    fetchPointBalance();
-  } catch (err) {
-    console.error("Redeem failed:", err);
-    alert("Network error during redemption.");
-  }
-};
   const isSponsorViewing = localStorage.getItem("isSponsorViewing") === "true";
   const exitSponsorView = () => {
     localStorage.setItem("userRole", localStorage.getItem("sponsorViewerRole") || "sponsor");
@@ -413,11 +347,6 @@ useEffect(() => {
 
   if (loading) return <div style={{ padding: '40px', fontSize: '18px' }}>Loading...</div>;
   if (!user) return null;
-  const approvedSponsors = myApplications.filter(app => app.status === "APPROVED");
-  const visibleCatalog = driverCatalog.find(
-    catalog => String(catalog.sponsor_id) === String(selectedSponsorId)
-  );
-  console.log(myApplications);
   return (
     <div className="dd-container">
       <div className="dd-sidebar">
@@ -432,7 +361,6 @@ useEffect(() => {
         </div>
 
         <nav className="dd-nav">
-          <span className="dd-nav-section-label">Main</span>
           <button className={`dd-nav-item ${activeTab === "dashboard" ? "active" : ""}`} onClick={() => setActiveTab("dashboard")}>
             Dashboard
           </button>
@@ -443,18 +371,12 @@ useEffect(() => {
           <button className={`dd-nav-item ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}>
             My Orders
           </button>
-
-          <div className="dd-nav-divider" />
-          <span className="dd-nav-section-label">Points</span>
           <button className={`dd-nav-item ${activeTab === "points" ? "active" : ""}`} onClick={() => setActiveTab("points")}>
             My Points
           </button>
           <button className={`dd-nav-item ${activeTab === "goals" ? "active" : ""}`} onClick={() => setActiveTab("goals")}>
             My Goals
           </button>
-
-          <div className="dd-nav-divider" />
-          <span className="dd-nav-section-label">Account</span>
           <button className={`dd-nav-item ${activeTab === "apply" ? "active" : ""}`} onClick={() => setActiveTab("apply")}>
             Sponsorships
           </button>
@@ -623,109 +545,126 @@ useEffect(() => {
       )}
       
       {activeTab === "catalog" && (
-        <div className="dd-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+        <div className="dcat-root">
+          {/* Header */}
+          <div className="dcat-page-header">
             <div>
-              <h2>Available Rewards</h2>
-              <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-                View rewards for a selected sponsor
-                </p>
-                </div>
-                <div>
-                  <label style={{ marginRight: '8px', fontWeight: 600 }}>Sponsor:</label>
-                  <select
-                  value={selectedSponsorId}
-                  onChange={(e) => setSelectedSponsorId(e.target.value)}
-                  style={{ padding: '8px', borderRadius: '6px' }}
-                  >
-                    <option value="">Select sponsor</option>
-                    {approvedSponsors.map((app) => (
-                      <option key={app.sponsor_id} value={String(app.sponsor_id)}>
-                        {app.sponsor_email}
-                        </option>
-                      ))}
-                      </select>
-                      </div>
-                      </div>
-                      <input
-                      type="text"
-                      placeholder="Search catalog..."
-                      value={catalogSearch}
-                      onChange={(e) => setCatalogSearch(e.target.value)}
-                      style={{ marginBottom: "15px", padding: "5px" }}
-                      />
-                      {catalogLoading ? (
-                        <p>Loading...</p>
-                      ) : !selectedSponsorId ? (
-                      <p>Select a sponsor to view that catalog.</p>
-                    ) : !visibleCatalog || visibleCatalog.items.length === 0 ? (
-                    <p>No catalog available for this sponsor.</p>
-                  ) : (
-                  <div style={{ marginBottom: "40px" }}>
-                    <h3>{visibleCatalog.sponsor_email}</h3>
-                    {visibleCatalog.last_updated && (
-                      <p>
-                        Last Updated: {new Date(visibleCatalog.last_updated).toLocaleString()}
+              <h1 className="dcat-page-title">Rewards Catalog</h1>
+              <p className="dcat-page-sub">Browse and redeem items from your approved sponsors</p>
+            </div>
+            <button className="dcat-cart-btn" onClick={() => setCartOpen(true)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+              </svg>
+              Cart
+              {cart.length > 0 && (
+                <span className="dcat-cart-badge">
+                  {cart.reduce((s, i) => s + (i.quantity || 1), 0)}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Toolbar */}
+          <div className="dcat-toolbar">
+            <div className="dcat-search-wrap">
+              <svg className="dcat-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                className="dcat-search-input"
+                type="text"
+                placeholder="Search items…"
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+              />
+            </div>
+            <select className="dcat-sort-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+              <option value="none">Sort by</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
+              <option value="points_asc">Points: Low → High</option>
+              <option value="points_desc">Points: High → Low</option>
+            </select>
+          </div>
+
+          {/* Content */}
+          {catalogLoading ? (
+            <div className="dcat-loading">Loading catalog…</div>
+          ) : driverCatalog.length === 0 ? (
+            <div className="dcat-empty">
+              <div className="dcat-empty-icon">🛍️</div>
+              <p className="dcat-empty-title">No catalog available</p>
+              <p className="dcat-empty-sub">Apply to sponsors to unlock their reward catalogs.</p>
+            </div>
+          ) : (
+            driverCatalog.map((catalog, idx) => {
+              const sortedItems = [...catalog.items].sort((a, b) => {
+                switch (sortOption) {
+                  case "price_asc":   return a.price_usd - b.price_usd;
+                  case "price_desc":  return b.price_usd - a.price_usd;
+                  case "points_asc":  return a.point_cost - b.point_cost;
+                  case "points_desc": return b.point_cost - a.point_cost;
+                  default:            return 0;
+                }
+              });
+              return (
+                <div key={idx} className="dcat-sponsor-section">
+                  <div className="dcat-sponsor-header">
+                    <div className="dcat-sponsor-avatar">{catalog.sponsor_email?.[0]?.toUpperCase()}</div>
+                    <div>
+                      <p className="dcat-sponsor-name">{catalog.sponsor_email}</p>
+                      {catalog.last_updated && (
+                        <p className="dcat-sponsor-updated">
+                          Updated {new Date(catalog.last_updated).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                       )}
-                      <table className="dd-table">
-                        <thead>
-                          <tr>
-                            <th>Image</th>
-                            <th>Name</th>
-                            <th>Points</th>
-                            <th>Price (USD)</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[...visibleCatalog.items]
-                          .sort((a, b) => {
-                            switch (sortOption) {
-                              case "price_asc":
-                                return a.price_usd - b.price_usd;
-                              case "price_desc":
-                                return b.price_usd - a.price_usd;
-                              case "points_asc":
-                                return a.point_cost - b.point_cost;
-                              case "points_desc":
-                                return b.point_cost - a.point_cost;
-                              default:
-                              return 0;
+                    </div>
+                  </div>
+
+                  {sortedItems.length === 0 ? (
+                    <p className="dcat-no-results">No items match your search.</p>
+                  ) : (
+                    <div className="dcat-grid">
+                      {sortedItems.map(item => (
+                        <div key={item.id} className={`dcat-card${!item.is_active ? ' dcat-card--unavailable' : ''}`}>
+                          <div className="dcat-card-img-wrap">
+                            {item.image_url
+                              ? <img className="dcat-card-img" src={item.image_url} alt={item.name} />
+                              : <div className="dcat-card-img-placeholder">—</div>
                             }
-                          })
-                          .map((item) => (
-                          <tr key={item.id}>
-                            <td>
-                              {item.image_url && (
-                                <img
-                                src={item.image_url}
-                                alt={item.name}
-                                style={{
-                                  width: "60px",
-                                  height: "60px",
-                                  objectFit: "contain",
-                                  borderRadius: "6px"
-                                }}
-                                />
-                                )}
-                                </td>
-                                <td>{item.name}</td>
-                                <td>{item.point_cost}</td>
-                                <td>${item.price_usd}</td>
-                                <td>
-                                  <button onClick={() => redeemItem(item, visibleCatalog.sponsor_id)}>
-                                    Redeem
-                                  </button>
-                                </td>
-                            </tr>
-                          ))}
-                          </tbody>
-                          </table>
                           </div>
-                        )}
+                          <div className="dcat-card-body">
+                            <p className="dcat-card-name" title={item.name}>{item.name}</p>
+                            <div className="dcat-card-meta">
+                              <span className="dcat-card-points">{item.point_cost?.toLocaleString()} pts</span>
+                              <span className="dcat-card-price">${Number(item.price_usd).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className="dcat-card-footer">
+                            {item.is_active === false ? (
+                              <span className="dcat-unavailable-badge">Unavailable</span>
+                            ) : (
+                              <button
+                                className="dcat-add-btn"
+                                onClick={() => addToCart(item, catalog.sponsor_id, catalog.sponsor_email)}
+                              >
+                                + Add to Cart
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
       {/* Cart drawer overlay */}
       {cartOpen && (
@@ -902,14 +841,7 @@ useEffect(() => {
       )}
 
       {activeTab === "points" && (
-        <DriverPoints
-        user={user}
-        transactions={transactions}
-        pointBalance={pointBalance}
-        selectedSponsor={selectedSponsorId}
-        approvedSponsors={approvedSponsors}
-        onSponsorChange={setSelectedSponsorId}
-        />
+        <DriverPoints user={user} transactions={transactions} balance={pointBalance} />
       )}
 
       {activeTab === "profile" && (

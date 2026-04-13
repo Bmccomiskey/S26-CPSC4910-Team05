@@ -185,9 +185,7 @@ def get_driver_history(driver_id: int, db: Session = Depends(get_db)):
 def get_driver_balance(driver_id: int, db: Session = Depends(get_db)):
     """Current point balance for a driver (earned minus spent)."""
     transactions = db.query(PointTransaction).filter(
-    PointTransaction.driver_id == body.driver_id,
-    PointTransaction.sponsor_id == body.sponsor_id,
-    PointTransaction.hidden_from_reports == False
+        PointTransaction.driver_id == driver_id,
     ).all()
     
     balance = sum(t.points for t in transactions)

@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DriverProfile.css';
 
+const API_BASE =
+  process.env.NODE_ENV === "production"
+    ? "http://23.22.72.87"
+    : "http://localhost:8000";
+
 const DEFAULTS = {
   firstName: '', lastName: '', phone: '', city: '',
   state: '', cdlNumber: '', cdlClass: 'Class A', yearsExp: '',
@@ -15,7 +20,7 @@ export default function DriverProfile({ user, applications = [], transactions = 
 
   useEffect(() => {
     if (!user?.id) return;
-    fetch(`/profile/${user.id}`, { credentials: 'include' })
+    fetch(`${API_BASE}/profile/${user.id}`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data && Object.keys(data).length > 0) {
@@ -43,7 +48,7 @@ export default function DriverProfile({ user, applications = [], transactions = 
     e.preventDefault();
 
     try {
-      const res = await fetch(`/profile/${user.id}`, {
+      const res = await fetch(`${API_BASE}/profile/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
