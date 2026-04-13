@@ -683,6 +683,273 @@
 }
 
 /* ══════════════════════════════════════════════════════════
+   DASHBOARD HOME TAB  (dhome-*)
+   ══════════════════════════════════════════════════════════ */
+
+.dhome-root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Hero banner ── */
+.dhome-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: 16px;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.dhome-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  background: rgba(59, 130, 246, 0.12);
+  border-radius: 50%;
+}
+
+.dhome-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: 80px;
+  width: 160px; height: 160px;
+  background: rgba(129, 140, 248, 0.08);
+  border-radius: 50%;
+}
+
+.dhome-hero-greeting {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0 0 4px;
+  font-weight: 500;
+}
+
+.dhome-hero-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.dhome-hero-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dhome-hero-cta {
+  background: var(--dd-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.dhome-hero-cta:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+/* ── Stat cards ── */
+.dhome-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.dhome-stat-card {
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid transparent;
+}
+
+.dhome-stat-blue   { background: #eff6ff; border-color: #bfdbfe; }
+.dhome-stat-green  { background: #f0fdf4; border-color: #bbf7d0; }
+.dhome-stat-purple { background: #faf5ff; border-color: #e9d5ff; }
+.dhome-stat-amber  { background: #fffbeb; border-color: #fde68a; }
+
+.dhome-stat-icon { font-size: 26px; line-height: 1; }
+
+.dhome-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin: 0 0 4px;
+}
+
+.dhome-stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* ── Lower two-col layout ── */
+.dhome-lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 860px) {
+  .dhome-lower { grid-template-columns: 1fr; }
+}
+
+/* ── Card ── */
+.dhome-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.dhome-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dhome-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dhome-card-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dd-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.15s;
+}
+.dhome-card-link:hover { color: #1d4ed8; }
+
+.dhome-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  padding: 12px 0;
+}
+
+/* ── Activity list ── */
+.dhome-activity-list { display: flex; flex-direction: column; gap: 10px; }
+
+.dhome-activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dhome-activity-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dhome-dot-green { background: #16a34a; }
+.dhome-dot-red   { background: #dc2626; }
+
+.dhome-activity-info { flex: 1; min-width: 0; }
+
+.dhome-activity-desc {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dhome-activity-date {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.dhome-activity-pts {
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.dhome-pts-pos { color: #16a34a; }
+.dhome-pts-neg { color: #dc2626; }
+
+/* ── Goals list ── */
+.dhome-goals-list { display: flex; flex-direction: column; gap: 14px; }
+
+.dhome-goal-row { display: flex; flex-direction: column; gap: 6px; }
+
+.dhome-goal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.dhome-goal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dhome-goal-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dd-accent);
+  flex-shrink: 0;
+}
+
+.dhome-progress-bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.dhome-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--dd-accent), #818cf8);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.dhome-goal-pts {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
    SIDEBAR EXTRAS
    ══════════════════════════════════════════════════════════ */
 

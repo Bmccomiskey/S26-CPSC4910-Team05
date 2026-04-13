@@ -39,6 +39,7 @@ export default function DriverDashboard() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
+  const [driverName, setDriverName] = useState("");
   const fetchDriverCatalog = async () => {
     setCatalogLoading(true);
     try {
@@ -173,6 +174,13 @@ export default function DriverDashboard() {
     fetchPointBalance();
     fetchGoals();
     fetchPersonalGoals();
+
+    fetch(`${API_BASE}/profile/${user.id}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.first_name) setDriverName(data.first_name);
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -352,7 +360,7 @@ export default function DriverDashboard() {
       <div className="dd-sidebar">
         <div className="dd-sidebar-header">
           <div className="dd-sidebar-brand">
-            <div className="dd-sidebar-brand-icon">🚚</div>
+            <div className="dd-sidebar-brand-icon">D</div>
             <div>
               <p className="dd-sidebar-title">Driver Portal</p>
               <p className="dd-sidebar-subtitle">Rewards Dashboard</p>
@@ -389,12 +397,12 @@ export default function DriverDashboard() {
           <div className="dd-user-card">
             <div className="dd-user-avatar">{user.email?.[0]?.toUpperCase() || 'D'}</div>
             <div className="dd-user-info">
-              <p className="dd-user-name">{user.email}</p>
+              <p className="dd-user-name">{driverName || user.email}</p>
               <p className="dd-user-role">Driver</p>
             </div>
           </div>
           <button className="dd-logout-btn" onClick={handleLogout}>
-            <span>⎋</span> Sign Out
+Sign Out
           </button>
         </div>
       </div>
@@ -414,68 +422,107 @@ export default function DriverDashboard() {
         )}
 
         {activeTab === "dashboard" && (
-          <>
-            <div className="dd-top-bar">
-              <h1 className="dd-page-title">Driver Dashboard</h1>
+          <div className="dhome-root">
+            {/* Welcome banner */}
+            <div className="dhome-hero">
+              <div className="dhome-hero-text">
+                <p className="dhome-hero-greeting">Welcome back</p>
+                <h1 className="dhome-hero-name">{driverName || user.email}</h1>
+                <p className="dhome-hero-sub">Here's a snapshot of your rewards activity</p>
+              </div>
+              <button className="dhome-hero-cta" onClick={() => setActiveTab("catalog")}>
+                Browse Catalog →
+              </button>
             </div>
 
-            {goals.length === 0 ? (
-              <div className="dd-section">
-                <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>
-                  No active goals yet. Your sponsor will set point goals for you here.
+            {/* Stat cards */}
+            <div className="dhome-stats">
+              <div className="dhome-stat-card dhome-stat-blue">
+                <p className="dhome-stat-label">Point Balance</p>
+                <p className="dhome-stat-value">{pointBalance.toLocaleString()}</p>
+              </div>
+              <div className="dhome-stat-card dhome-stat-green">
+                <p className="dhome-stat-label">Total Orders</p>
+                <p className="dhome-stat-value">
+                  {transactions.filter(t => t.description?.startsWith("Redeemed:")).length}
                 </p>
               </div>
-            ) : (
-              <>
-                <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', margin: '0 0 14px' }}>
-                  Your Active Goals
-                </h2>
-                <div className="dd-goals-grid">
-                  {goals.map(goal => {
-                    const pct = Math.min(100, Math.round((goal.current_points / goal.target_points) * 100));
-                    const daysLeft = goal.deadline
-                      ? Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24))
-                      : null;
-                    const overdue = daysLeft !== null && daysLeft < 0;
+              <div className="dhome-stat-card dhome-stat-purple">
+                <p className="dhome-stat-label">Active Goals</p>
+                <p className="dhome-stat-value">{goals.filter(g => !g.completed).length}</p>
+              </div>
+              <div className="dhome-stat-card dhome-stat-amber">
+                <p className="dhome-stat-label">Sponsors</p>
+                <p className="dhome-stat-value">
+                  {myApplications.filter(a => a.status === "APPROVED").length}
+                </p>
+              </div>
+            </div>
 
-                    return (
-                      <div key={goal.id} className={`dd-goal-card ${goal.completed ? 'dd-goal-completed' : ''}`}>
-                        <div className="dd-goal-top">
-                          <div>
-                            <p className="dd-goal-sponsor">{goal.sponsor_email}</p>
-                            <h3 className="dd-goal-title">{goal.title}</h3>
-                            {goal.description && <p className="dd-goal-desc">{goal.description}</p>}
-                          </div>
-                          {goal.completed && <span className="dd-badge-complete">✓ Done</span>}
-                          {!goal.completed && overdue && <span className="dd-badge-overdue">Overdue</span>}
-                          {!goal.completed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3 && (
-                            <span className="dd-badge-urgent">{daysLeft}d left</span>
-                          )}
-                        </div>
-
-                        <div className="dd-goal-progress-bar">
-                          <div
-                            className={`dd-goal-progress-fill ${goal.completed ? 'dd-goal-progress-done' : ''}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <div className="dd-goal-progress-labels">
-                          <span>{goal.current_points.toLocaleString()} / {goal.target_points.toLocaleString()} pts</span>
-                          <span>{pct}%</span>
-                        </div>
-
-                        {goal.deadline && (
-                          <p className="dd-goal-deadline">
-                            Deadline: {new Date(goal.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+            <div className="dhome-lower">
+              {/* Recent activity */}
+              <div className="dhome-card">
+                <div className="dhome-card-header">
+                  <h2 className="dhome-card-title">Recent Activity</h2>
+                  <button className="dhome-card-link" onClick={() => setActiveTab("points")}>View all</button>
                 </div>
-              </>
-            )}
-          </>
+                {transactions.length === 0 ? (
+                  <p className="dhome-empty">No transactions yet.</p>
+                ) : (
+                  <div className="dhome-activity-list">
+                    {[...transactions]
+                      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                      .slice(0, 5)
+                      .map(t => (
+                      <div key={t.id} className="dhome-activity-row">
+                        <div className={`dhome-activity-dot ${t.points > 0 ? 'dhome-dot-green' : 'dhome-dot-red'}`} />
+                        <div className="dhome-activity-info">
+                          <p className="dhome-activity-desc">{t.description || 'Transaction'}</p>
+                          <p className="dhome-activity-date">
+                            {new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span className={`dhome-activity-pts ${t.points > 0 ? 'dhome-pts-pos' : 'dhome-pts-neg'}`}>
+                          {t.points > 0 ? '+' : ''}{t.points.toLocaleString()} pts
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Active goals */}
+              <div className="dhome-card">
+                <div className="dhome-card-header">
+                  <h2 className="dhome-card-title">Active Goals</h2>
+                  <button className="dhome-card-link" onClick={() => setActiveTab("goals")}>View all</button>
+                </div>
+                {goals.filter(g => !g.completed).length === 0 ? (
+                  <p className="dhome-empty">No active goals. Your sponsor will set goals for you here.</p>
+                ) : (
+                  <div className="dhome-goals-list">
+                    {goals.filter(g => !g.completed).slice(0, 3).map(goal => {
+                      const pct = Math.min(100, Math.round(((goal.current_points || 0) / goal.target_points) * 100));
+                      return (
+                        <div key={goal.id} className="dhome-goal-row">
+                          <div className="dhome-goal-top">
+                            <p className="dhome-goal-title">{goal.title}</p>
+                            <span className="dhome-goal-pct">{pct}%</span>
+                          </div>
+                          <div className="dhome-progress-bar">
+                            <div className="dhome-progress-fill" style={{ width: `${pct}%` }} />
+                          </div>
+                          <p className="dhome-goal-pts">
+                            {(goal.current_points || 0).toLocaleString()} / {goal.target_points.toLocaleString()} pts
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
       {activeTab === "apply" && (
