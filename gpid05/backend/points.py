@@ -185,9 +185,13 @@ def get_driver_history(driver_id: int, db: Session = Depends(get_db)):
 def get_driver_balance(driver_id: int, db: Session = Depends(get_db)):
     """Current point balance for a driver (earned minus spent)."""
     transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == driver_id
+    PointTransaction.driver_id == body.driver_id,
+    PointTransaction.sponsor_id == body.sponsor_id,
+    PointTransaction.hidden_from_reports == False
     ).all()
+    
     balance = sum(t.points for t in transactions)
+
     return {"driver_id": driver_id, "balance": balance}
 
 
@@ -509,10 +513,14 @@ def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(ge
 
     # Calculate balance
     transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == body.driver_id
+    PointTransaction.driver_id == body.driver_id,
+    PointTransaction.sponsor_id == body.sponsor_id,
+    PointTransaction.hidden_from_reports == False
     ).all()
-
+    
     balance = sum(t.points for t in transactions)
+
+    
 
     if balance < body.point_cost:
         raise HTTPException(status_code=400, detail="Insufficient points")
@@ -614,8 +622,11 @@ def get_admin_driver_point_list(db: Session = Depends(get_db)):
 
     for driver in drivers:
         transactions = db.query(PointTransaction).filter(
-            PointTransaction.driver_id == driver.id
+        PointTransaction.driver_id == body.driver_id,
+        PointTransaction.sponsor_id == body.sponsor_id,
+        PointTransaction.hidden_from_reports == False
         ).all()
+        
         balance = sum(t.points for t in transactions)
 
         sponsor_rows = (
@@ -647,8 +658,11 @@ def get_admin_sponsor_point_list(db: Session = Depends(get_db)):
 
     for sponsor in sponsors:
         transactions = db.query(PointTransaction).filter(
-            PointTransaction.sponsor_id == sponsor.id
+        PointTransaction.driver_id == body.driver_id,
+        PointTransaction.sponsor_id == body.sponsor_id,
+        PointTransaction.hidden_from_reports == False
         ).all()
+
         total_awarded = sum(t.points for t in transactions)
 
         driver_rows = (
@@ -672,6 +686,64 @@ def get_admin_sponsor_point_list(db: Session = Depends(get_db)):
         })
 
     return results
+
+@router.get("/driver/{driver_id}/balance/{sponsor_id}")
+def get_driver_balance_for_sponsor(driver_id: int, sponsor_id: int, db: Session = Depends(get_db)):
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.driver_id == driver_id,
+        SponsorshipApplication.sponsor_id == sponsor_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+    if not approved:
+        raise HTTPException(status_code=403, detail="No approved sponsorship with this sponsor")
+
+    transactions = db.query(PointTransaction).filter(
+        PointTransaction.driver_id == driver_id,
+        PointTransaction.sponsor_id == sponsor_id,
+        PointTransaction.hidden_from_reports == False
+    ).all()
+
+    balance = sum(t.points for t in transactions)
+    return {
+        "driver_id": driver_id,
+        "sponsor_id": sponsor_id,
+        "balance": balance,
+    }
+
+
+@router.get("/driver/{driver_id}/history/{sponsor_id}")
+def get_driver_history_for_sponsor(driver_id: int, sponsor_id: int, db: Session = Depends(get_db)):
+    approved = db.query(SponsorshipApplication).filter(
+        SponsorshipApplication.driver_id == driver_id,
+        SponsorshipApplication.sponsor_id == sponsor_id,
+        SponsorshipApplication.status == "APPROVED"
+    ).first()
+    if not approved:
+        raise HTTPException(status_code=403, detail="No approved sponsorship with this sponsor")
+
+    rows = (
+        db.query(PointTransaction, User.email)
+        .join(User, PointTransaction.sponsor_id == User.id)
+        .filter(
+            PointTransaction.driver_id == driver_id,
+            PointTransaction.sponsor_id == sponsor_id,
+            PointTransaction.hidden_from_reports == False
+        )
+        .order_by(PointTransaction.created_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": t.id,
+            "sponsor_id": t.sponsor_id,
+            "sponsor_email": email,
+            "points": t.points,
+            "description": t.description,
+            "created_at": t.created_at,
+        }
+        for t, email in rows
+    ]
 
 @router.post("/admin/bulk-adjust")
 def admin_bulk_adjust_points(body: AdminBulkAdjustBody, request: Request, db: Session = Depends(get_db)):
