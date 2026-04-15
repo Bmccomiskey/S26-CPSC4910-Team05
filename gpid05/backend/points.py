@@ -509,13 +509,11 @@ def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(ge
     if not approved:
         raise HTTPException(status_code=403, detail="Not approved with this sponsor")
 
-    # Calculate balance
+    # Calculate total balance across all sponsors (matches what the frontend displays)
     transactions = db.query(PointTransaction).filter(
-    PointTransaction.driver_id == body.driver_id,
-    PointTransaction.sponsor_id == body.sponsor_id,
-    PointTransaction.hidden_from_reports == False
+        PointTransaction.driver_id == body.driver_id,
     ).all()
-    
+
     balance = sum(t.points for t in transactions)
 
     
