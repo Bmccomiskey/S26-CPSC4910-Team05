@@ -35,11 +35,12 @@ function NotificationForm({ userRole }) {
         ? `/auth/admin/notify-${recipient}`
         : '/auth/sponsor/notify-drivers';
 
-      const res = await fetch(endpoint, {
+      const params = new URLSearchParams({ subject, message });
+      if (userRole === 'sponsor') params.append('sponsor_id', '1');
+
+      const res = await fetch(endpoint + '?' + params.toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ subject, message, sponsor_id: 1 })
       });
 
       if (!res.ok) throw new Error('Failed to send notification');
