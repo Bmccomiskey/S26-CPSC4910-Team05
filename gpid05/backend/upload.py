@@ -172,6 +172,8 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
     )
 
     db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
         
 
     return f"{record_type} processed: {email}", None
