@@ -618,11 +618,10 @@ def get_admin_driver_point_list(db: Session = Depends(get_db)):
 
     for driver in drivers:
         transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == body.driver_id,
-        PointTransaction.sponsor_id == body.sponsor_id,
-        PointTransaction.hidden_from_reports == False
+            PointTransaction.driver_id == driver.id,
+            PointTransaction.hidden_from_reports == False
         ).all()
-        
+
         balance = sum(t.points for t in transactions)
 
         sponsor_rows = (
@@ -654,9 +653,8 @@ def get_admin_sponsor_point_list(db: Session = Depends(get_db)):
 
     for sponsor in sponsors:
         transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == body.driver_id,
-        PointTransaction.sponsor_id == body.sponsor_id,
-        PointTransaction.hidden_from_reports == False
+            PointTransaction.sponsor_id == sponsor.id,
+            PointTransaction.hidden_from_reports == False
         ).all()
 
         total_awarded = sum(t.points for t in transactions)
