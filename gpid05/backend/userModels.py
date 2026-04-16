@@ -14,7 +14,6 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     reset_tokens = relationship("PasswordResetToken", back_populates="user")
     organizations = relationship("OrganizationMembership",back_populates="user",cascade="all, delete-orphan")

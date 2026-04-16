@@ -8,10 +8,8 @@ class Organization(Base):
 
     org_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, unique=True)
     org_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    members = relationship(
-    "OrganizationMembership",
-    back_populates="organization",
-    cascade="all, delete-orphan"
+    
+    members = relationship("OrganizationMembership",back_populates="organization",cascade="all, delete-orphan"
 )
 
 
