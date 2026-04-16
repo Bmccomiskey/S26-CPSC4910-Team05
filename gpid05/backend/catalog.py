@@ -9,6 +9,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db import Base
+from audit import log_audit_event
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -62,6 +63,15 @@ def create_custom_item(
     db.add(item)
     db.commit()
     db.refresh(item)
+
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_CUSTOM_ITEM_CREATED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"item_id": item.id, "name": item.name}
+    )
 
     return {"message": "Custom item added", "item_id": item.id}
 
@@ -122,6 +132,15 @@ def refresh_catalog(sponsor_id: int, db: Session = Depends(get_db)):
 
     db.commit()
 
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_REFRESHED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"sponsor_id": sponsor_id}
+    )
+
     return {"status": "SUCCESS", "message": "Catalog refreshed"}
 
 @router.get("/sponsor/{sponsor_id}")
@@ -177,6 +196,15 @@ def remove_item(sponsor_id: int, item_id: int, db: Session = Depends(get_db)):
     item.is_active = False
     db.commit()
 
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_ITEM_REMOVED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"item_id": item_id}
+    )
+
     return {"status": "SUCCESS", "message": "Item removed"}
 
 @router.post("/{sponsor_id}/activate/{item_id}")
@@ -207,6 +235,16 @@ def activate_item(sponsor_id: int, item_id: int, db: Session = Depends(get_db)):
 
     item.is_active = True
     db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_ITEM_ACTIVATED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"item_id": item_id}
+    )
+
 
     return {"status": "SUCCESS", "message": "Item activated"}
 
@@ -244,6 +282,19 @@ def update_catalog_config(
         )
 
     db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_CONFIG_UPDATED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={
+            "min_point_cost": min_point_cost,
+            "max_point_cost": max_point_cost,
+            "points_per_dollar": points_per_dollar,
+        }
+    )
 
     return {"status": "SUCCESS"}
 
@@ -298,6 +349,16 @@ def add_external_item(sponsor_id: int, external_id: int, db: Session = Depends(g
             config.min_point_cost <= existing.point_cost <= config.max_point_cost
         )
         db.commit()
+
+        log_audit_event(
+            db=db,
+            event_type="CATALOG_EXTERNAL_ITEM_ADDED",
+            success=True,
+            user_id=sponsor_id,
+            request=request,
+            metadata={"external_id": external_id, "reactivated_existing": True}
+        )
+
         return {"status": "SUCCESS", "message": "Item already existed and was reactivated"}
 
     response = requests.get(f"https://fakestoreapi.com/products/{external_id}")
@@ -322,5 +383,14 @@ def add_external_item(sponsor_id: int, external_id: int, db: Session = Depends(g
 
     db.add(item)
     db.commit()
+
+    log_audit_event(
+        db=db,
+        event_type="CATALOG_EXTERNAL_ITEM_ADDED",
+        success=True,
+        user_id=sponsor_id,
+        request=request,
+        metadata={"external_id": external_id, "item_name": product["title"]}
+    )
 
     return {"status": "SUCCESS", "message": "Item added to catalog"}

@@ -17,6 +17,7 @@ from catalog import router as catalog_router
 from profile import router as profile_router
 from redemptions import router as redemptions_router
 from upload import router as upload_router
+from audit import router as audit_router
 from notificationHistory import NotificationHistory
 from scheduledNotifications import ScheduledNotification
 
@@ -65,3 +66,4 @@ app.include_router(catalog_router)
 app.include_router(profile_router)
 app.include_router(redemptions_router)
 app.include_router(upload_router)
+app.include_router(audit_router)

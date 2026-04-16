@@ -52,6 +52,18 @@ def create_application(
     db.commit()
     db.refresh(application)
 
+    log_audit_event(
+        db=db,
+        event_type="APPLICATION_SUBMITTED",
+        success=True,
+        user_id=body.driver_id,
+        request=request,
+        metadata={
+            "application_id": application.id,
+            "sponsor_id": body.sponsor_id
+        }
+    )
+
     return {"message": "Application submitted successfully"}
 
 @router.get("/sponsor/{sponsor_id}")

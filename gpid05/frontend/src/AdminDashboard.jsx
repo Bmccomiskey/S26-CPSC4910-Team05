@@ -5,6 +5,7 @@ import './sponsor-pages/SponsorDashboard.css';
 import UserManagement from './UserManagement';
 import SystemManagement from './SystemManagement';
 import PointsManagement from './PointsManagement';
+import AuditLogs from './AuditLogs';
 
 function NotificationForm({ userRole }) {
   const [recipient, setRecipient] = useState('drivers');
@@ -259,20 +260,7 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* PLACEHOLDER TABS FOR FUTURE STORIES */}
-        {activeTab === 'audit' && (
-          <>
-            <div className="sd-top-bar">
-              <h1 className="sd-page-title">Audit Logs</h1>
-            </div>
-            <div className="sd-section">
-              <h2>Audit Logs</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Audit log features will be implemented in future admin stories.
-              </p>
-            </div>
-          </>
-        )}
+        {activeTab === 'audit' && <AuditLogs />}
 
         {activeTab === 'catalog' && (
           <>

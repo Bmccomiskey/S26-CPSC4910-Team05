@@ -68,6 +68,15 @@ def save_profile(user_id: int, body: ProfileBody, db: Session = Depends(get_db))
     db.commit()
     db.refresh(profile)
 
+    log_audit_event(
+        db=db,
+        event_type="PROFILE_UPDATED",
+        success=True,
+        user_id=user_id,
+        request=request,
+        metadata={"target_user_id": user_id}
+    )
+
     return {
         "message": "Profile saved",
         "profile": serialize_profile(profile),
