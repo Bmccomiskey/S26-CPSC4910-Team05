@@ -106,7 +106,7 @@ function NotificationForm({ userRole }) {
 
       {userRole === 'admin' && recipient === 'drivers' && (
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', cursor: 'pointer', width: 'fit-content' }}>
             <input
               type="checkbox"
               checked={sendToAll}
