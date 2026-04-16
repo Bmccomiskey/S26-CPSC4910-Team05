@@ -422,15 +422,27 @@ def get_sponsors(db: Session = Depends(get_db)):
     sponsors = db.query(User).filter(User.role == "sponsor").all()
     return [{"id": s.id, "email": s.email} for s in sponsors]
 
+@router.get("/admin/drivers-list")
+def get_drivers_list(db: Session = Depends(get_db)):
+    drivers = db.query(User).filter(User.role == "user").all()
+    return [{"id": d.id, "email": d.email} for d in drivers]
+
 #admin sends notification to drivers
 @router.post("/admin/notify-drivers")
 async def admin_notify_drivers(
         subject: str,
         message: str,
-        request: Request,
+        driver_ids: str = None,
+        request: Request = None,
         db: Session = Depends(get_db)
 ):
-    drivers = db.query(User).filter(User.role == "user").all()
+    if driver_ids:
+        #Send to specific drivers
+        id_list = [int(id.strip()) for id in driver_ids.split(',') if id.strip()]
+        drivers = db.query(User).filter(User.role == "user", User.id.in_(id_list)).all()
+    else:
+        #Send to all drivers
+        drivers = db.query(User).filter(User.role == "user").all()
 
     if not drivers:
         raise HTTPException(status_code=404, detail="No drivers found.")
@@ -445,6 +457,7 @@ async def admin_notify_drivers(
         user_id=None,
         request=request
     )
+
     history_entry = NotificationHistory(
         sender_id=None,
         sender_role="admin",

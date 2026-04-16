@@ -15,9 +15,35 @@ function NotificationForm({ userRole }) {
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
 
+  const [allDrivers, setAllDrivers] = useState([]);
+  const [selectedDrivers, setSelectedDrivers] = useState([]);
+  const [sendToAll, setSendToAll] = useState(true);
+
+  useEffect(() => {
+    if (userRole === 'admin' && recipient === 'drivers') {
+      fetch('/auth/admin/drivers-list', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => setAllDrivers(data))
+        .catch(err => console.error('Error fetching drivers:', err));
+    }
+  }, [userRole, recipient]);
+
+  const handleDriverSelection = (driverId) => {
+    setSelectedDrivers(prev =>
+      prev.includes(driverId)
+        ? prev.filter(id => id !== driverId)
+        : [...prev, driverId]
+    );
+  };
+
   const handleSend = async () => {
     if (!subject || !message) {
       setError('Subject and message are required');
+      return;
+    }
+
+    if (!sendToAll && selectedDrivers.length === 0 && recipient === 'drivers') {
+      setError('Please select at least one driver');
       return;
     }
 
@@ -32,6 +58,9 @@ function NotificationForm({ userRole }) {
 
       const params = new URLSearchParams({ subject, message });
       if (userRole === 'sponsor') params.append('sponsor_id', '1');
+      if (!sendToAll && recipient === 'drivers' && selectedDrivers.length > 0) {
+        params.append('driver_ids', selectedDrivers.join(','));
+      }
 
       const res = await fetch(endpoint + '?' + params.toString(), {
         method: 'POST',
@@ -44,6 +73,8 @@ function NotificationForm({ userRole }) {
       setSuccess(data.message);
       setSubject('');
       setMessage('');
+      setSelectedDrivers([]);
+      setSendToAll(true);
     } catch (err) {
       setError(err.message);
     }
@@ -60,12 +91,56 @@ function NotificationForm({ userRole }) {
           </label>
           <select
             value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
+            onChange={(e) => {
+              setRecipient(e.target.value);
+              setSendToAll(true);
+              setSelectedDrivers([]);
+            }}
             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px', color: '#000' }}
           >
             <option value="drivers">All Drivers</option>
             <option value="sponsors">All Sponsors</option>
           </select>
+        </div>
+      )}
+
+      {userRole === 'admin' && recipient === 'drivers' && (
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            <input
+              type="checkbox"
+              checked={sendToAll}
+              onChange={(e) => {
+                setSendToAll(e.target.checked);
+                if (e.target.checked) setSelectedDrivers([]);
+              }}
+              style={{ marginRight: '8px' }}
+            />
+            <span style={{ fontWeight: 'bold' }}>Send to all drivers</span>
+          </label>
+
+          {!sendToAll && (
+            <div style={{
+              maxHeight: '200px',
+              overflowY: 'auto',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '10px',
+              backgroundColor: '#f9f9f9'
+            }}>
+              {allDrivers.map(driver => (
+                <label key={driver.id} style={{ display: 'block', marginBottom: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedDrivers.includes(driver.id)}
+                    onChange={() => handleDriverSelection(driver.id)}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <span style={{ color: '#000' }}>{driver.email}</span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
