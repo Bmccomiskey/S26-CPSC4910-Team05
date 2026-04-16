@@ -106,7 +106,7 @@ function NotificationForm({ userRole }) {
 
       {userRole === 'admin' && recipient === 'drivers' && (
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={sendToAll}
@@ -116,30 +116,34 @@ function NotificationForm({ userRole }) {
               }}
               style={{ marginRight: '8px' }}
             />
-            <span style={{ fontWeight: 'bold' }}>Send to all drivers</span>
+            <span style={{ fontWeight: 'bold', color: '#000' }}>Send to all drivers</span>
           </label>
 
           {!sendToAll && (
-            <div style={{
-              maxHeight: '200px',
-              overflowY: 'auto',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '10px',
-              backgroundColor: '#f9f9f9'
-            }}>
-              {allDrivers.map(driver => (
-                <label key={driver.id} style={{ display: 'block', marginBottom: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedDrivers.includes(driver.id)}
-                    onChange={() => handleDriverSelection(driver.id)}
-                    style={{ marginRight: '8px' }}
-                  />
-                  <span style={{ color: '#000' }}>{driver.email}</span>
-                </label>
-              ))}
-            </div>
+            <>
+              <p style={{ marginBottom: '8px', fontWeight: 'bold', color: '#000' }}>Select drivers:</p>
+              <div style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                padding: '10px',
+                backgroundColor: '#fff',
+                maxWidth: '500px'
+              }}>
+                {allDrivers.map(driver => (
+                  <label key={driver.id} style={{ display: 'block', marginBottom: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedDrivers.includes(driver.id)}
+                      onChange={() => handleDriverSelection(driver.id)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <span style={{ color: '#000' }}>{driver.email}</span>
+                  </label>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
