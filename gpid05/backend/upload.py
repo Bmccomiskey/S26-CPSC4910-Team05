@@ -14,10 +14,24 @@ from security import hash_password
 from audit import log_audit_event
 from profileModels import UserProfile
 from admin import admin_create_user
-from orgModels import Organization
+from orgModels import Organization, OrganizationMembership
 
 
 router = APIRouter(prefix="/upload", tags=["upload"])
+
+def get_sponsor_org(user: User, db: Session):
+    membership = (
+        db.query(OrganizationMembership)
+        .filter(OrganizationMembership.user_id == user.id)
+        .first()
+    )
+
+    if not membership:
+        return None
+
+    return db.query(Organization).filter(
+        Organization.org_id == membership.org_id
+    ).first()
 
 def process_line(line: str, line_number: int, db: Session, current_user: User):
     parts = line.strip().split("|")
@@ -30,7 +44,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
     if record_type not in {"O", "D", "S"}:
         return None, f"Line {line_number}: Invalid type '{record_type}'"
 
-    org = parts[1] if len(parts) > 1 else None
+    org_name = parts[1] if len(parts) > 1 else None
     first = parts[2] if len(parts) > 2 else None
     last = parts[3] if len(parts) > 3 else None
     email = parts[4] if len(parts) > 4 else None
@@ -39,84 +53,98 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
 
     role = current_user.role
 
-    #validation rules
     if points and not reason:
         return None, f"Line {line_number}: Points require a reason"
 
-    if not email and record_type in {"D", "S"}:
+    if record_type in {"D", "S"} and not email:
         return None, f"Line {line_number}: Email required"
 
-    
-    #role is admin
+
+    if record_type == "O":
+        if role != "admin":
+            return None, f"Line {line_number}: Only admins can create organizations"
+
+        if not org_name:
+            return None, f"Line {line_number}: Organization name required"
+
+        existing = db.query(Organization).filter(
+            Organization.org_name == org_name
+        ).first()
+
+        if existing:
+            return None, f"Line {line_number}: Organization already exists"
+
+        db.add(Organization(org_name=org_name))
+        return f"Organization created: {org_name}", None
+
+
+    org = None
+
     if role == "admin":
-
-        # O → create organization
-        if record_type == "O":
-            existing = db.query(Organization).filter(
-                Organization.org_name == org
-            ).first()
-
-            if existing:
-                return None, f"Line {line_number}: Organization exists"
-
-            db.add(Organization(org_name=org))
-            return f"Organization created: {org}", None
-
-        # Must have org for D/S
-        if not org:
+        if not org_name:
             return None, f"Line {line_number}: Organization required"
 
-    #role is sponsor
-    if role == "sponsor":
+        org = db.query(Organization).filter(
+            Organization.org_name == org_name
+        ).first()
 
-        # Rule: cannot use O
+        if not org:
+            return None, f"Line {line_number}: Organization '{org_name}' does not exist"
+
+    elif role == "sponsor":
+        org = get_sponsor_org(current_user, db)
+
+        if not org:
+            return None, f"Line {line_number}: Sponsor has no organization"
+
+        # Override any provided org_name
+        org_name = org.org_name
+
         if record_type == "O":
             return None, f"Line {line_number}: Sponsors cannot create organizations"
 
-        # Force org to sponsor's org
-        org = current_user.company_name
-
-        # Rule: no points for sponsors
         if record_type == "S" and points:
             return None, f"Line {line_number}: Cannot assign points to sponsors"
 
-    #driver handling
-    if record_type == "D":
-        user = db.query(User).filter(User.email == email).first()
+    else:
+        return None, f"Line {line_number}: Unauthorized role"
 
-        if not user:
-            user = User(
-                email=email,
-                role="user",
-                password_hash=hash_password("Temp123!"),
-                is_active=True
-            )
-            db.add(user)
-            db.flush()
 
-        if points:
-            # Replace with real points system
-            pass
+    user = db.query(User).filter(User.email == email).first()
 
-        return f"Driver processed: {email}", None
+    if not user:
+        user = User(
+            email=email,
+            role="user" if record_type == "D" else "sponsor",
+            password_hash=hash_password("Temp123!"),
+            is_active=True
+        )
+        db.add(user)
+        db.flush()  # ensures user.id is available
 
-    #sponsor handling
-    if record_type == "S":
-        user = db.query(User).filter(User.email == email).first()
 
-        if not user:
-            user = User(
-                email=email,
-                role="sponsor",
-                password_hash=hash_password("Temp123!"),
-                is_active=True
-            )
-            db.add(user)
-            db.flush()
+    membership = db.query(OrganizationMembership).filter(
+        OrganizationMembership.org_id == org.org_id,
+        OrganizationMembership.user_id == user.id
+    ).first()
 
-        return f"Sponsor processed: {email}", None
+    if not membership:
+        db.add(OrganizationMembership(
+            org_id=org.org_id,
+            user_id=user.id
+        ))
 
-    return None, f"Line {line_number}: Unknown error"
+  
+    if record_type == "D" and points:
+        try:
+            points_val = int(points)
+        except ValueError:
+            return None, f"Line {line_number}: Invalid points value"
+
+        #integrate with points system
+        
+
+    return f"{record_type} processed: {email}", None
 
 @router.post("/bulk")
 def admin_bulk_upload(
