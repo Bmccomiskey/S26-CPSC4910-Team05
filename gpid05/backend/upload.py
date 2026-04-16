@@ -6,6 +6,8 @@ import io
 
 
 from db import get_db
+from gpid05.backend.points import PointTransaction
+from gpid05.backend.sponsorshipModels import SponsorshipApplication
 from userModels import User
 from sysModels import VersionInfo
 from sessions import require_role, require_admin_user, require_session, require_original_user
@@ -134,14 +136,42 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             user_id=user.id
         ))
 
-  
+    #point handling
+    points_val = None
     if record_type == "D" and points:
         try:
             points_val = int(points)
         except ValueError:
             return None, f"Line {line_number}: Invalid points value"
 
-        #integrate with points system
+    #determine sponsor
+    sponsor_id = None
+
+    if role == "admin":
+        sponsor_id = current_user.id  # admin acts as sponsor
+
+    elif role == "sponsor":
+        sponsor_id = current_user.id
+
+        # Ensure approved sponsorship
+        approved = db.query(SponsorshipApplication).filter(
+            SponsorshipApplication.driver_id == user.id,
+            SponsorshipApplication.sponsor_id == sponsor_id,
+            SponsorshipApplication.status == "APPROVED"
+        ).first()
+
+        if not approved:
+            return None, f"Line {line_number}: No approved sponsorship for {email}"
+
+    #create transaction
+    transaction = PointTransaction(
+        driver_id=user.id,
+        sponsor_id=sponsor_id,
+        points=points_val,
+        description=reason
+    )
+
+    db.add(transaction)
         
 
     return f"{record_type} processed: {email}", None
