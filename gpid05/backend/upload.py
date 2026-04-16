@@ -6,8 +6,8 @@ import io
 
 
 from db import get_db
-from gpid05.backend.points import PointTransaction
-from gpid05.backend.sponsorshipModels import SponsorshipApplication
+from points import PointTransaction
+from sponsorshipModels import SponsorshipApplication
 from userModels import User
 from sysModels import VersionInfo
 from sessions import require_role, require_admin_user, require_session, require_original_user
