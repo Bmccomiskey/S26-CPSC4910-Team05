@@ -137,6 +137,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         ))
 
     #point handling
+    points_val = 1
     if record_type == "D" and points:
         try:
             points_val = int(points)
