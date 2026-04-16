@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './sponsor-pages/SponsorDashboard.css';
 import UserManagement from './UserManagement';
 import SystemManagement from './SystemManagement';
@@ -113,6 +113,8 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth('admin');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [notificationHistory, setNotificationHistory] = useState([]);
+  const [scheduledNotifications, setScheduledNotifications] = useState([]);
 
   const handleLogout = async () => {
     try {
@@ -131,6 +133,43 @@ export default function AdminDashboard() {
 
     navigate('/login');
   };
+
+  const fetchNotificationHistory = async () => {
+    try {
+      const res = await fetch('/auth/admin/notification-history', { credentials: 'include' });
+      const data = await res.json();
+      setNotificationHistory(data);
+    } catch (err) {
+      console.error('Error fetching notification history:', err);
+    }
+  };
+
+  const fetchScheduledNotifications = async () => {
+    try {
+      const res = await fetch('/auth/admin/scheduled-notifications', { credentials: 'include' });
+      const data = await res.json();
+      setScheduledNotifications(data);
+    } catch (err) {
+      console.error('Error fetching scheduled notifications:', err);
+    }
+  };
+
+  const cancelScheduledNotification = async (notifId) => {
+    try {
+      await fetch(`/auth/admin/scheduled-notification/${notifId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      fetchScheduledNotifications();
+    } catch (err) {
+      console.error('Error cancelling notification:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'notificationHistory') fetchNotificationHistory();
+    if (activeTab === 'scheduledNotifications') fetchScheduledNotifications();
+  }, [activeTab]);
 
   if (loading) {
     return <div style={{ padding: '40px', fontSize: '18px' }}>Loading...</div>;
@@ -195,6 +234,21 @@ export default function AdminDashboard() {
           >
             Profile
           </button>
+
+          <button
+            className={`sd-nav-item ${activeTab === 'notificationHistory' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notificationHistory')}
+          >
+            Notification History
+          </button>
+
+          <button
+            className={`sd-nav-item ${activeTab === 'scheduledNotifications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('scheduledNotifications')}
+          >
+            Scheduled Notifications
+          </button>
+
         </nav>
 
         <button className="sd-logout-btn" onClick={handleLogout}>
@@ -299,6 +353,88 @@ export default function AdminDashboard() {
           </>
         )}
 
+        {activeTab === 'notificationHistory' && (
+          <>
+            <div className="sd-top-bar">
+              <h1 className="sd-page-title">Notification History</h1>
+            </div>
+            <div className="sd-section">
+              {notificationHistory.length === 0 ? (
+                <p style={{ color: '#94a3b8' }}>No notifications sent yet.</p>
+              ) : (
+                <table className="sd-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Recipients</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notificationHistory.map((notif) => (
+                      <tr key={notif.id}>
+                        <td>{new Date(notif.sent_at).toLocaleString()}</td>
+                        <td style={{ textTransform: 'capitalize' }}>{notif.recipient_type}</td>
+                        <td>{notif.subject}</td>
+                        <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {notif.message}
+                        </td>
+                        <td>{notif.recipient_count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'scheduledNotifications' && (
+          <>
+            <div className="sd-top-bar">
+              <h1 className="sd-page-title">Scheduled Notifications</h1>
+            </div>
+            <div className="sd-section">
+              {scheduledNotifications.length === 0 ? (
+                <p style={{ color: '#94a3b8' }}>No scheduled notifications.</p>
+              ) : (
+                <table className="sd-table">
+                  <thead>
+                    <tr>
+                      <th>Scheduled Time</th>
+                      <th>Recipients</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scheduledNotifications.map((notif) => (
+                      <tr key={notif.id}>
+                        <td>{new Date(notif.scheduled_time).toLocaleString()}</td>
+                        <td style={{ textTransform: 'capitalize' }}>{notif.recipient_type}</td>
+                        <td>{notif.subject}</td>
+                        <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {notif.message}
+                        </td>
+                        <td>
+                          <button
+                            className="sd-btn sd-btn-reject"
+                            onClick={() => cancelScheduledNotification(notif.id)}
+                          >
+                            Cancel
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
