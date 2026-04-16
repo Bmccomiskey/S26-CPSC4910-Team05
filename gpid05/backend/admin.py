@@ -230,7 +230,6 @@ def admin_create_user(
         role=role,
         password_hash=hash_password(body.password),
         is_active=True,
-        company_name=""
     )
 
     db.add(new_user)

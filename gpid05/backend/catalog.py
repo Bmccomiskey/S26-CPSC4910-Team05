@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from db import get_db
@@ -33,6 +33,7 @@ class CreateCustomCatalogItemBody(BaseModel):
 def create_custom_item(
     sponsor_id: int,
     body: CreateCustomCatalogItemBody,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     config = db.query(CatalogConfig).filter(
@@ -76,7 +77,7 @@ def create_custom_item(
     return {"message": "Custom item added", "item_id": item.id}
 
 @router.post("/{sponsor_id}/refresh")
-def refresh_catalog(sponsor_id: int, db: Session = Depends(get_db)):
+def refresh_catalog(sponsor_id: int, request: Request, db: Session = Depends(get_db)):
     response = requests.get("https://fakestoreapi.com/products")
 
     if response.status_code != 200:
@@ -184,7 +185,7 @@ def get_catalog(
     }
 
 @router.post("/{sponsor_id}/remove/{item_id}")
-def remove_item(sponsor_id: int, item_id: int, db: Session = Depends(get_db)):
+def remove_item(sponsor_id: int, item_id: int, request: Request, db: Session = Depends(get_db)):
     item = db.query(CatalogItem).filter(
         CatalogItem.id == item_id,
         CatalogItem.sponsor_id == sponsor_id
@@ -208,7 +209,7 @@ def remove_item(sponsor_id: int, item_id: int, db: Session = Depends(get_db)):
     return {"status": "SUCCESS", "message": "Item removed"}
 
 @router.post("/{sponsor_id}/activate/{item_id}")
-def activate_item(sponsor_id: int, item_id: int, db: Session = Depends(get_db)):
+def activate_item(sponsor_id: int, item_id: int, request: Request, db: Session = Depends(get_db)):
     item = db.query(CatalogItem).filter(
         CatalogItem.id == item_id,
         CatalogItem.sponsor_id == sponsor_id
@@ -254,6 +255,7 @@ def update_catalog_config(
     min_point_cost: int,
     max_point_cost: int,
     points_per_dollar: int,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     config = db.query(CatalogConfig).filter(
@@ -327,7 +329,7 @@ def search_external_catalog(search: str = ""):
     }
 
 @router.post("/{sponsor_id}/add-external/{external_id}")
-def add_external_item(sponsor_id: int, external_id: int, db: Session = Depends(get_db)):
+def add_external_item(sponsor_id: int, external_id: int, request: Request, db: Session = Depends(get_db)):
     config = db.query(CatalogConfig).filter(
         CatalogConfig.sponsor_id == sponsor_id
     ).first()
