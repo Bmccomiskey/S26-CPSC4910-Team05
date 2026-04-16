@@ -17,7 +17,4 @@ class User(Base):
     company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     reset_tokens = relationship("PasswordResetToken", back_populates="user")
-    #organizations = relationship(
-    #"OrganizationMembership",
-    #back_populates="user"
-    #)
+    organizations = relationship("OrganizationMembership",back_populates="user")

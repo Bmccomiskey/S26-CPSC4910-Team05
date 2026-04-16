@@ -19,8 +19,10 @@ class OrganizationMembership(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Prevent duplicate memberships
-    
+    __table_args__ = (
+        UniqueConstraint("org_id", "user_id", name="uq_org_user"),
+    )
 
     # Relationships
-    #organization = relationship("Organization", back_populates="members")
-    #user = relationship("User", back_populates="organizations")
+    organization = relationship("Organization", back_populates="members")
+    user = relationship("User", back_populates="organizations")
