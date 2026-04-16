@@ -107,6 +107,7 @@ function NotificationForm({ userRole }) {
       {userRole === 'admin' && recipient === 'drivers' && (
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', cursor: 'pointer', width: 'fit-content' }}>
+            <span style={{ fontWeight: 'bold', color: '#000', marginRight: '8px' }}>Send to all drivers</span>
             <input
               type="checkbox"
               checked={sendToAll}
@@ -114,9 +115,7 @@ function NotificationForm({ userRole }) {
                 setSendToAll(e.target.checked);
                 if (e.target.checked) setSelectedDrivers([]);
               }}
-              style={{ marginRight: '8px' }}
             />
-            <span style={{ fontWeight: 'bold', color: '#000' }}>Send to all drivers</span>
           </label>
 
           {!sendToAll && (
