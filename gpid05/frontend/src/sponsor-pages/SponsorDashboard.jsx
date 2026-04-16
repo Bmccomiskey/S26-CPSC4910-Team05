@@ -24,7 +24,7 @@ function NotificationForm({ userRole }) {
     if (!subject || !message) {
       setError('Subject and message are required');
       return;
-    };
+    }
 
     setSending(true);
     setError('');
@@ -66,7 +66,7 @@ function NotificationForm({ userRole }) {
           <select
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px' }}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px', color: '#000' }}
           >
             <option value="drivers">All Drivers</option>
             <option value="sponsors">All Sponsors</option>
@@ -83,7 +83,7 @@ function NotificationForm({ userRole }) {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Enter email subject"
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px', color: '#000' }}
         />
       </div>
 
@@ -96,7 +96,7 @@ function NotificationForm({ userRole }) {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Enter your message"
           rows="6"
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px', color: '#000' }}
         />
       </div>
 

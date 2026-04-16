@@ -61,7 +61,7 @@ function NotificationForm({ userRole }) {
           <select
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px' }}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px', color: '#000' }}
           >
             <option value="drivers">All Drivers</option>
             <option value="sponsors">All Sponsors</option>
@@ -78,7 +78,7 @@ function NotificationForm({ userRole }) {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Enter email subject"
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px', color: '#000' }}
         />
       </div>
 
@@ -91,7 +91,7 @@ function NotificationForm({ userRole }) {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Enter your message"
           rows="6"
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px' }}
+          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', maxWidth: '500px', color: '#000' }}
         />
       </div>
 
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
 
             <div className="sd-section">
               <h2>Welcome, Admin</h2>
-              <div style={{ marginTop: '14px' }}>
+              <div style={{ marginTop: '14px', display: 'flex', gap: '10px' }}>
                 <button
                   className="sd-nav-item"
                   style={{ width: 'auto' }}
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   className="sd-nav-item"
-                  style={{ width: 'auto', marginLeft: '10px' }}
+                  style={{ width: 'auto' }}
                   onClick={() => setActiveTab('notifications')}
                 >
                   Send Notifications
