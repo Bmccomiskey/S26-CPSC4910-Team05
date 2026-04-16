@@ -137,7 +137,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         ))
 
     #point handling
-    points_val = 1
+    points_val = 0
     if record_type == "D" and points:
         try:
             points_val = int(points)
@@ -164,16 +164,16 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
             return None, f"Line {line_number}: No approved sponsorship for {email}"
 
     #create transaction
-    transaction = PointTransaction(
-        driver_id=user.id,
-        sponsor_id=sponsor_id,
-        points=points_val,
-        description=reason
-    )
-
-    db.add(transaction)
-    db.commit()
-    db.refresh(transaction)
+    if record_type == "D" and points:
+        transaction = PointTransaction(
+         driver_id=user.id,
+         sponsor_id=sponsor_id,
+         points=points_val,
+         description=reason
+    )  
+        db.add(transaction)
+        db.commit()
+        db.refresh(transaction)
         
     return f"{record_type} processed: {email}", None
 
