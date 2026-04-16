@@ -98,7 +98,7 @@ function NotificationForm({ userRole }) {
             }}
             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '200px', color: '#000' }}
           >
-            <option value="drivers">All Drivers</option>
+            <<option value="drivers">Drivers</option>
             <option value="sponsors">All Sponsors</option>
           </select>
         </div>
