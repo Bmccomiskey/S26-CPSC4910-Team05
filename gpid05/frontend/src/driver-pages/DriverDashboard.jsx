@@ -687,20 +687,40 @@ Sign Out
                 View redeemable items for a selected sponsor
               </p>
             </div>
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <label style={{ marginRight: '8px', fontWeight: 600 }}>Sponsor:</label>
               <select
               value={selectedSponsorId}
               onChange={(e) => setSelectedSponsorId(e.target.value)}
-              style={{ padding: '8px', borderRadius: '6px' }}
+              style={{ padding: '8px', borderRadius: '6px', color: '#000' }}
               >
-                <option value="">Select sponsor</option>
+                <option value="" style={{ color: '#000' }}>Select sponsor</option>
                 {approvedSponsors.map((app) => (
-                  <option key={app.sponsor_id} value={String(app.sponsor_id)}>
+                  <option key={app.sponsor_id} value={String(app.sponsor_id)} style={{ color: '#000' }}>
                     {app.sponsor_email}
                   </option>
                 ))}
                 </select>
+              <button
+                onClick={() => setCartOpen(true)}
+                style={{
+                  position: 'relative', padding: '8px 16px', borderRadius: '6px',
+                  background: '#1e293b', color: '#fff', border: 'none', cursor: 'pointer',
+                  fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap',
+                }}
+              >
+                🛒 Cart
+                {cart.length > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-7px', right: '-7px',
+                    background: '#f59e0b', color: '#000', borderRadius: '50%',
+                    width: '18px', height: '18px', fontSize: '11px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
+                  }}>
+                    {cart.reduce((s, i) => s + (i.quantity || 1), 0)}
+                  </span>
+                )}
+              </button>
                 </div>
                 </div>
                 <div
@@ -709,25 +729,26 @@ Sign Out
                   gap: '10px',
                   flexWrap: 'wrap',
                   marginBottom: '15px',
+                  alignItems: 'center',
                 }}
                 >
                   <select
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
-                  style={{ padding: '5px' }}
+                  style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', background: '#fff' }}
                   >
-                    <option value="none">Sort</option>
-                    <option value="price_asc">Price: Low → High</option>
-                    <option value="price_desc">Price: High → Low</option>
-                    <option value="points_asc">Points: Low → High</option>
-                    <option value="points_desc">Points: High → Low</option>
+                    <option value="none" style={{ color: '#000' }}>Sort by…</option>
+                    <option value="price_asc" style={{ color: '#000' }}>Price: Low → High</option>
+                    <option value="price_desc" style={{ color: '#000' }}>Price: High → Low</option>
+                    <option value="points_asc" style={{ color: '#000' }}>Points: Low → High</option>
+                    <option value="points_desc" style={{ color: '#000' }}>Points: High → Low</option>
                     </select>
                     <input
                     type="text"
                     placeholder="Search catalog..."
                     value={catalogSearch}
                     onChange={(e) => setCatalogSearch(e.target.value)}
-                    style={{ padding: '5px', minWidth: '220px' }}
+                    style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', minWidth: '220px', background: '#fff' }}
                     />
                   </div>
                   {catalogLoading ? (
@@ -796,8 +817,8 @@ Sign Out
                   <td>{item.point_cost}</td>
                   <td>${item.price_usd}</td>
                   <td>
-                    <button onClick={() => redeemItem(item, visibleCatalog.sponsor_id)}>
-                      Redeem
+                    <button onClick={() => addToCart(item, visibleCatalog.sponsor_id, visibleCatalog.sponsor_email)}>
+                      Add to Cart
                     </button>
                   </td>
                 </tr>
