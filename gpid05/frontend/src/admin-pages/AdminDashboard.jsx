@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
-import './sponsor-pages/SponsorDashboard.css';
+import '../sponsor-pages/SponsorDashboard.css';
 import UserManagement from './UserManagement';
 import SystemManagement from './SystemManagement';
 import PointsManagement from './PointsManagement';
