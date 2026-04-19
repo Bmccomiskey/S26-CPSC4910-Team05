@@ -301,20 +301,6 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            className={`sd-nav-item ${activeTab === 'catalog' ? 'active' : ''}`}
-            onClick={() => setActiveTab('catalog')}
-          >
-            Catalog
-          </button>
-
-          <button
-            className={`sd-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
-          >
-            Profile
-          </button>
-
-          <button
             className={`sd-nav-item ${activeTab === 'notificationHistory' ? 'active' : ''}`}
             onClick={() => setActiveTab('notificationHistory')}
           >
@@ -369,9 +355,30 @@ export default function AdminDashboard() {
                 <button
                   className="sd-nav-item"
                   style={{ width: 'auto' }}
+                  onClick={() => setActiveTab('points')}
+                >
+                  Go to Points Management
+                </button>
+                <button
+                  className="sd-nav-item"
+                  style={{ width: 'auto' }}
+                  onClick={() => setActiveTab('audit')}
+                >
+                  Go to Audit Logs
+                </button>
+                <button
+                  className="sd-nav-item"
+                  style={{ width: 'auto' }}
                   onClick={() => setActiveTab('notifications')}
                 >
                   Send Notifications
+                </button>
+                <button
+                  className="sd-nav-item"
+                  style={{ width: 'auto' }}
+                  onClick={() => setActiveTab('system')}
+                >
+                  Go to System Management
                 </button>
               </div>
             </div>
@@ -383,45 +390,7 @@ export default function AdminDashboard() {
 
         {activeTab === 'points' && <PointsManagement currentUser={user} />}
 
-        {activeTab === 'system' && (
-          <>
-           <div className="sd-top-bar">
-           <h1 className="sd-page-title">System Management</h1>
-          </div>
-
-          <SystemManagement />
-          </>
-        )}
-
         {activeTab === 'audit' && <AuditLogs />}
-
-        {activeTab === 'catalog' && (
-          <>
-            <div className="sd-top-bar">
-              <h1 className="sd-page-title">Catalog</h1>
-            </div>
-            <div className="sd-section">
-              <h2>Catalog Administration</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Catalog admin features will be implemented in future admin stories.
-              </p>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'profile' && (
-          <>
-            <div className="sd-top-bar">
-              <h1 className="sd-page-title">Admin Profile</h1>
-            </div>
-            <div className="sd-section">
-              <h2>Profile</h2>
-              <p style={{ marginTop: '10px', color: '#c9c9c9' }}>
-                Signed in as <strong>{user.email}</strong> ({user.role})
-              </p>
-            </div>
-          </>
-        )}
 
         {activeTab === 'notifications' && (
           <>
@@ -514,6 +483,17 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+
+        {activeTab === 'system' && (
+          <>
+           <div className="sd-top-bar">
+           <h1 className="sd-page-title">System Management</h1>
+          </div>
+
+          <SystemManagement />
+          </>
+        )}
+
       </main>
     </div>
   );
