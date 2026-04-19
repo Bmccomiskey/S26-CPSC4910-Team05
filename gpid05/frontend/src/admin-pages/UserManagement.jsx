@@ -279,6 +279,7 @@ export default function UserManagement({ currentUser }) {
         <h2>Manage User Accounts</h2>
         <p style={{ marginTop: "10px", color: "#374151" }}>
           Add, lock, unlock, remove users, or update profile information.
+          
         </p>
 
         
