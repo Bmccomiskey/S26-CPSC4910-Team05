@@ -57,7 +57,7 @@ export default function SponsorManageDrivers() {
     <div style={{ padding: "20px" }}>
       <h2>Manage Driver Applications</h2>
 
-      <BulkUpload currentUser={currentUser} />
+      
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
