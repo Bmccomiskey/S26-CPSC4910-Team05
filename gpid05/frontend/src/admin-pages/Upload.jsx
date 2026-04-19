@@ -32,7 +32,7 @@ export default function BulkUpload({ currentUser }) {
   };
 
   return (
-    <div style={{ border: "2px solid red", padding: "10px" }}>
+    <div style={{ border: "2px solid grey", padding: "20px" }}>
       <h2>Bulk Upload</h2>
 
       <p style={{ marginBottom: '10px', color: '#060606' }}>

@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 import io
 
-
 from db import get_db
 from points import PointTransaction
 from sponsorshipModels import SponsorshipApplication
@@ -165,7 +164,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         if not approved:
             return None, f"Line {line_number}: No approved sponsorship for {email}"
 
-    #create transaction
+    #create point transaction
     if record_type == "D" and points:
         transaction = PointTransaction(
          driver_id=user.id,

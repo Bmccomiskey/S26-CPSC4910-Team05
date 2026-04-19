@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import BulkUpload from '../admin-pages/Upload';
 import AwardPoints from './AwardPoints';
 import SponsorProfile from './SponsorProfile';
 import SponsorGoals from './SponsorGoals';
