@@ -154,15 +154,23 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
     elif role == "sponsor":
         sponsor_id = current_user.id
 
-        # Ensure approved sponsorship
+        # Ensure approved sponsorship, auto-create and approve if missing
         approved = db.query(SponsorshipApplication).filter(
             SponsorshipApplication.driver_id == user.id,
             SponsorshipApplication.sponsor_id == sponsor_id,
-            SponsorshipApplication.status == "APPROVED"
         ).first()
 
         if not approved:
-            return None, f"Line {line_number}: No approved sponsorship for {email}"
+            approved = SponsorshipApplication(
+                driver_id=user.id,
+                sponsor_id=sponsor_id,
+                status="APPROVED"
+            )
+            db.add(approved)
+            db.flush()
+        elif approved.status != "APPROVED":
+            approved.status = "APPROVED"
+            db.flush()
 
     #create point transaction
     if record_type == "D" and points:
