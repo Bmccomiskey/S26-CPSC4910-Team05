@@ -46,11 +46,20 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         return None, f"Line {line_number}: Invalid type '{record_type}'"
 
     org_name = parts[1] if len(parts) > 1 else None
-    first = parts[2] if len(parts) > 2 else None
-    last = parts[3] if len(parts) > 3 else None
-    email = parts[4] if len(parts) > 4 else None
-    points = parts[5] if len(parts) > 5 else None
-    reason = parts[6] if len(parts) > 6 else None
+
+    # Find email by locating the first field containing '@' (starting after org)
+    email = None
+    email_idx = None
+    for i in range(2, len(parts)):
+        if parts[i] and '@' in parts[i]:
+            email = parts[i]
+            email_idx = i
+            break
+
+    first = parts[2] if len(parts) > 2 and 2 != email_idx else None
+    last = parts[3] if len(parts) > 3 and 3 != email_idx else None
+    points = parts[email_idx + 1] if email_idx and len(parts) > email_idx + 1 else None
+    reason = parts[email_idx + 2] if email_idx and len(parts) > email_idx + 2 else None
 
     role = current_user.role
 
@@ -97,7 +106,15 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         org = get_sponsor_org(current_user, db)
 
         if not org:
-            return None, f"Line {line_number}: Sponsor has no organization"
+            # Auto-create an org for this sponsor and add them as a member
+            org_name = current_user.email
+            org = db.query(Organization).filter(Organization.org_name == org_name).first()
+            if not org:
+                org = Organization(org_name=org_name)
+                db.add(org)
+                db.flush()
+            db.add(OrganizationMembership(org_id=org.org_id, user_id=current_user.id))
+            db.flush()
 
         # Override any provided org_name
         org_name = org.org_name
@@ -154,23 +171,24 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
     elif role == "sponsor":
         sponsor_id = current_user.id
 
-        # Ensure approved sponsorship, auto-create and approve if missing
-        approved = db.query(SponsorshipApplication).filter(
-            SponsorshipApplication.driver_id == user.id,
-            SponsorshipApplication.sponsor_id == sponsor_id,
-        ).first()
+        # Ensure approved sponsorship for drivers, auto-create and approve if missing
+        if record_type == "D":
+            approved = db.query(SponsorshipApplication).filter(
+                SponsorshipApplication.driver_id == user.id,
+                SponsorshipApplication.sponsor_id == sponsor_id,
+            ).first()
 
-        if not approved:
-            approved = SponsorshipApplication(
-                driver_id=user.id,
-                sponsor_id=sponsor_id,
-                status="APPROVED"
-            )
-            db.add(approved)
-            db.flush()
-        elif approved.status != "APPROVED":
-            approved.status = "APPROVED"
-            db.flush()
+            if not approved:
+                approved = SponsorshipApplication(
+                    driver_id=user.id,
+                    sponsor_id=sponsor_id,
+                    status="APPROVED"
+                )
+                db.add(approved)
+                db.flush()
+            elif approved.status != "APPROVED":
+                approved.status = "APPROVED"
+                db.flush()
 
     #create point transaction
     if record_type == "D" and points:
