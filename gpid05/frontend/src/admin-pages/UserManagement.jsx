@@ -281,9 +281,9 @@ export default function UserManagement({ currentUser }) {
           Add, lock, unlock, remove users, or update profile information.
         </p>
 
-        <div className="sd-section">
-          <BulkUpload currentUser={currentUser} />
-        </div>
+        
+        <BulkUpload currentUser={currentUser} />
+        
 
         <div className="um-toolbar">
           <button

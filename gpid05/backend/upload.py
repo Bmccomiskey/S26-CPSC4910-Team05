@@ -61,7 +61,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
     if record_type in {"D", "S"} and not email:
         return None, f"Line {line_number}: Email required"
 
-
+    #when processing organizations, enforce that only admins can do so
     if record_type == "O":
         if role != "admin":
             return None, f"Line {line_number}: Only admins can create organizations"
@@ -82,6 +82,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
 
     org = None
 
+    #check if the current user is an admin or sponsor
     if role == "admin":
         if not org_name:
             return None, f"Line {line_number}: Organization required"
@@ -113,7 +114,8 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
 
 
     user = db.query(User).filter(User.email == email).first()
-
+    
+    #create user if not already in database
     if not user:
         user = User(
             email=email,
@@ -124,7 +126,7 @@ def process_line(line: str, line_number: int, db: Session, current_user: User):
         db.add(user)
         db.flush()  # ensures user.id is available
 
-
+    #check if they are already a member of an organization
     membership = db.query(OrganizationMembership).filter(
         OrganizationMembership.org_id == org.org_id,
         OrganizationMembership.user_id == user.id

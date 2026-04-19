@@ -35,7 +35,7 @@ export default function BulkUpload({ currentUser }) {
     <div className="sd-section">
       <h2>Bulk Upload</h2>
 
-      <p style={{ marginBottom: '10px', color: '#c9c9c9' }}>
+      <p style={{ marginBottom: '10px', color: '#060606' }}>
         Upload a pipe-delimited (.txt) file to create users and assign points.
       </p>
 
@@ -48,7 +48,7 @@ export default function BulkUpload({ currentUser }) {
       <div style={{ marginTop: '12px' }}>
         <button
           className="sd-nav-item"
-          style={{ width: 'auto' }}
+          style={{ width: 'auto', color: '#060606' }}
           onClick={handleUpload}
           disabled={loading}
         >
