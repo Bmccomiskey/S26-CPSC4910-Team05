@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import AwardPoints from './AwardPoints';
 import SponsorProfile from './SponsorProfile';
 import SponsorGoals from './SponsorGoals';
+import BulkUpload from '../admin-pages/Upload';
 import { useAuth } from '../useAuth';
 import { useState, useEffect } from 'react';
 import './SponsorDashboard.css';
@@ -459,14 +460,14 @@ export default function SponsorDashboard() {
             className={`sd-nav-item ${activeTab === "notificationHistory" ? "active" : ""}`}
             onClick={() => setActiveTab("notificationHistory")}
           >
-            <span className="sd-nav-icon">📋</span> Notification History
+            <span className="sd-nav-icon">◫</span> Notification History
           </button>
 
           <button
             className={`sd-nav-item ${activeTab === "scheduledNotifications" ? "active" : ""}`}
             onClick={() => setActiveTab("scheduledNotifications")}
           >
-            <span className="sd-nav-icon">⏰</span> Scheduled Notifications
+            <span className="sd-nav-icon">◷</span> Scheduled Notifications
           </button>
 
           <button
@@ -544,6 +545,7 @@ export default function SponsorDashboard() {
             <div className="sd-top-bar">
               <h1 className="sd-page-title">Manage Driver Applications</h1>
             </div>
+            <BulkUpload currentUser={user} />
             <h2>Pending Applications</h2>
             <table className="sd-table">
               <thead>
