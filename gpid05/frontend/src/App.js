@@ -3,7 +3,7 @@ import StartupPage from "./StartupPage";
 import LoginPage from "./LoginPage";
 import SignUp from "./SignUp";
 import ForgotPassword from "./ForgotPassword";
-import AdminDashboard from "./AdminDashboard";
+import AdminDashboard from "./admin-pages/AdminDashboard";
 
 // Driver pages
 import DriverDashboard from "./driver-pages/DriverDashboard";
