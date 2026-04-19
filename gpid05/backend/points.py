@@ -511,15 +511,14 @@ def redeem_item(body: RedeemItemBody, request: Request, db: Session = Depends(ge
 
     # Calculate total balance across all sponsors (matches what the frontend displays)
     transactions = db.query(PointTransaction).filter(
-        PointTransaction.driver_id == body.driver_id,
+    PointTransaction.driver_id == body.driver_id,
+    PointTransaction.sponsor_id == body.sponsor_id,
+    PointTransaction.hidden_from_reports == False
     ).all()
-
-    balance = sum(t.points for t in transactions)
-
     
-
+    balance = sum(t.points for t in transactions)
     if balance < body.point_cost:
-        raise HTTPException(status_code=400, detail="Insufficient points")
+        raise HTTPException(status_code=400, detail="Insufficient points for this sponsor")
 
     # Deduct points (negative transaction)
     redemption = PointTransaction(

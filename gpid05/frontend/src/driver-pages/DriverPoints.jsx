@@ -1,6 +1,11 @@
 import './DriverPoints.css';
 
-export default function DriverPoints({ user, transactions = [], balance = null }) {
+export default function DriverPoints({   user,
+  transactions = [],
+  balance = null,
+  selectedSponsorId = "",
+  approvedSponsors = [],
+  onSponsorChange,}) {
   const totalPoints = balance == null ? transactions.reduce((sum, t) => sum + t.points, 0) : balance;
   const earned = transactions.filter(t => t.points > 0).reduce((sum, t) => sum + t.points, 0);
   const spent  = transactions.filter(t => t.points < 0).reduce((sum, t) => sum + t.points, 0);
@@ -13,6 +18,21 @@ export default function DriverPoints({ user, transactions = [], balance = null }
 
       {/* Page header */}
       <div className="drpt-page-header">
+        <div style={{ marginTop: '14px' }}>
+          <label style={{ marginRight: '8px', fontWeight: 600 }}>Sponsor:</label>
+          <select
+          value={selectedSponsorId}
+          onChange={(e) => onSponsorChange(e.target.value)}
+          style={{ padding: '8px', borderRadius: '6px' }}
+          >
+            <option value="">Select sponsor</option>
+            {approvedSponsors.map((app) => (
+              <option key={app.sponsor_id} value={String(app.sponsor_id)}>
+                {app.sponsor_email}
+                </option>
+              ))}
+              </select>
+            </div>
         <div>
           <h1 className="drpt-page-title">My Points</h1>
           <p className="drpt-page-sub">Track your point balance and transaction history</p>

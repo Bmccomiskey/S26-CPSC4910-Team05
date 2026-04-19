@@ -40,42 +40,51 @@ export default function DriverDashboard() {
   const [cartOpen, setCartOpen] = useState(false);
   const [pointBalance, setPointBalance] = useState(0);
   const [driverName, setDriverName] = useState("");
+  const [selectedSponsorId, setSelectedSponsorId] = useState("");
+ 
   const fetchDriverCatalog = async () => {
-    setCatalogLoading(true);
-    try {
-      const resApps = await fetch(`${API_BASE}/applications/driver/${user.id}`, { credentials: 'include' });
-      const applications = await resApps.json();
-      const approved = applications.filter(app => app.status === "APPROVED");
+  setCatalogLoading(true);
+  try {
+    const resApps = await fetch(`${API_BASE}/applications/driver/${user.id}`, {
+      credentials: 'include'
+    });
+    const applications = await resApps.json();
+    const approved = applications.filter(app => app.status === "APPROVED");
 
-      const catalogs = [];
-      for (const app of approved) {
-        const resCatalog = await fetch(
-          `${API_BASE}/catalog/sponsor/${app.sponsor_id}?search=${catalogSearch}`,
-          { credentials: 'include' }
-        );
-        const data = await resCatalog.json();
-        catalogs.push({
-          sponsor_id: app.sponsor_id,
-          sponsor_email: app.sponsor_email,
-          last_updated: data.last_updated,
-          items: data.items || [],
-        });
-      }
-      setDriverCatalog(catalogs);
-    } catch (err) {
-      console.error("Driver catalog fetch error:", err);
+    const catalogs = [];
+
+    for (const app of approved) {
+      const resCatalog = await fetch(
+        `${API_BASE}/catalog/sponsor/${app.sponsor_id}?search=${catalogSearch}`,
+        { credentials: 'include' }
+      );
+      const data = await resCatalog.json();
+
+      catalogs.push({
+        sponsor_id: app.sponsor_id,
+        sponsor_email: app.sponsor_email,
+        last_updated: data.last_updated,
+        items: data.items || [],
+      });
     }
-    setCatalogLoading(false);
-  };
+
+    setDriverCatalog(catalogs);
+  } catch (err) {
+    console.error("Driver catalog fetch error:", err);
+  }
+  setCatalogLoading(false);
+};
 
   const fetchPointBalance = () => {
-    if (!user) return;
-    fetch(`${API_BASE}/points/driver/${user.id}/balance`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setPointBalance(Number(data.balance || 0)))
-      .catch(err => console.error("Error fetching point balance:", err));
-  };
+  if (!user || !selectedSponsorId) return;
 
+  fetch(`${API_BASE}/points/driver/${user.id}/balance/${selectedSponsorId}`, {
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => setPointBalance(Number(data.balance || 0)))
+    .catch(err => console.error("Error fetching point balance:", err));
+};
   useEffect(() => {
     if (user && activeTab === "catalog") {
       fetchDriverCatalog();
@@ -93,12 +102,15 @@ export default function DriverDashboard() {
   }, [user, activeTab]);
 
   const fetchTransactions = () => {
-    if (!user) return;
-    fetch(`${API_BASE}/points/driver/${user.id}/history`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setTransactions(data))
-      .catch(err => console.error("Error fetching points:", err));
-  };
+  if (!user || !selectedSponsorId) return;
+
+  fetch(`${API_BASE}/points/driver/${user.id}/history/${selectedSponsorId}`, {
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => setTransactions(data))
+    .catch(err => console.error("Error fetching points:", err));
+};
 
   const fetchGoals = () => {
     if (!user) return;
@@ -164,25 +176,32 @@ export default function DriverDashboard() {
     d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
   useEffect(() => {
-    if (!user) return;
-    fetch(`${API_BASE}/applications/driver/${user.id}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setMyApplications(data))
-      .catch(err => console.error("Error fetching applications:", err));
+  if (!user) return;
 
-    fetchTransactions();
-    fetchPointBalance();
-    fetchGoals();
-    fetchPersonalGoals();
+  fetch(`${API_BASE}/applications/driver/${user.id}`, {
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => {
+      setMyApplications(data);
 
-    fetch(`${API_BASE}/profile/${user.id}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.first_name) setDriverName(data.first_name);
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+      const approved = data.filter(app => app.status === "APPROVED");
+      if (approved.length > 0 && !selectedSponsorId) {
+        setSelectedSponsorId(String(approved[0].sponsor_id));
+      }
+    })
+    .catch(err => console.error("Error fetching applications:", err));
+
+  fetchGoals();
+  fetchPersonalGoals();
+}, [user]);
+
+useEffect(() => {
+  if (!user || !selectedSponsorId) return;
+
+  fetchTransactions();
+  fetchPointBalance();
+}, [user, selectedSponsorId]);
 
   // Re-fetch when switching tabs
   useEffect(() => {
@@ -355,6 +374,11 @@ export default function DriverDashboard() {
 
   if (loading) return <div style={{ padding: '40px', fontSize: '18px' }}>Loading...</div>;
   if (!user) return null;
+  const approvedSponsors = myApplications.filter(app => app.status === "APPROVED");
+
+const visibleCatalog = driverCatalog.find(
+  catalog => String(catalog.sponsor_id) === String(selectedSponsorId)
+);
   return (
     <div className="dd-container">
       <div className="dd-sidebar">
@@ -594,6 +618,21 @@ Sign Out
       {activeTab === "catalog" && (
         <div className="dcat-root">
           {/* Header */}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ marginRight: '8px', fontWeight: 600 }}>Sponsor:</label>
+            <select
+            value={selectedSponsorId}
+            onChange={(e) => setSelectedSponsorId(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px' }}
+            >
+              <option value="">Select sponsor</option>
+              {approvedSponsors.map((app) => (
+                <option key={app.sponsor_id} value={String(app.sponsor_id)}>
+                  {app.sponsor_email}
+                  </option>
+                ))}
+                </select>
+              </div>
           <div className="dcat-page-header">
             <div>
               <h1 className="dcat-page-title">Rewards Catalog</h1>
@@ -886,10 +925,16 @@ Sign Out
           onCancelOrder={handleCancelOrder}
         />
       )}
-
       {activeTab === "points" && (
-        <DriverPoints user={user} transactions={transactions} balance={pointBalance} />
-      )}
+        <DriverPoints
+        user={user}
+        transactions={transactions}
+        balance={pointBalance}
+        selectedSponsorId={selectedSponsorId}
+        approvedSponsors={approvedSponsors}
+        onSponsorChange={setSelectedSponsorId}
+        />
+        )}
 
       {activeTab === "profile" && (
         <DriverProfile user={user} applications={myApplications} transactions={transactions} balance={pointBalance} />
